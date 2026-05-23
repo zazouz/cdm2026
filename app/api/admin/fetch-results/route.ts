@@ -6,7 +6,11 @@ import type { Match, Prediction } from '@/lib/types'
 // Appelé par le cron Vercel ou manuellement par l'admin
 export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-admin-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
-  if (secret !== process.env.ADMIN_SECRET) {
+  const adminSecret = process.env.ADMIN_SECRET
+  if (!adminSecret) {
+    return NextResponse.json({ error: 'ADMIN_SECRET non configuré' }, { status: 500 })
+  }
+  if (secret !== adminSecret) {
     return NextResponse.json({ error: 'Interdit' }, { status: 403 })
   }
 

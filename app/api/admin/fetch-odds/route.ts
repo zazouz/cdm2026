@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, updated, notFound, availableInApi })
 }
 
-async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; error?: string }> {
+async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; error?: string; quotaRemaining?: string; quotaUsed?: string }> {
   const apiKey = process.env.ODDS_API_KEY
   if (!apiKey) return { events: null, error: 'ODDS_API_KEY manquant' }
 
@@ -92,7 +92,9 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
   const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
   if (eu.ok) {
     const events = await eu.json() as OddsApiEvent[]
-    if (events.some(e => e.bookmakers.length > 0)) return { events }
+    const quotaRemaining = eu.headers.get('x-requests-remaining') ?? undefined
+    const quotaUsed = eu.headers.get('x-requests-used') ?? undefined
+    if (events.some(e => e.bookmakers.length > 0)) return { events, quotaRemaining, quotaUsed }
   }
 
   return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }

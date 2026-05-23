@@ -25,7 +25,11 @@ export async function POST(req: NextRequest) {
     req.headers.get('x-admin-secret') ??
     req.headers.get('authorization')?.replace('Bearer ', '')
   const isAdminUser = await isAdmin()
-  if (!isAdminUser && secret !== process.env.ADMIN_SECRET) {
+  const adminSecret = process.env.ADMIN_SECRET
+  if (!isAdminUser && !adminSecret) {
+    return NextResponse.json({ error: 'ADMIN_SECRET non configuré' }, { status: 500 })
+  }
+  if (!isAdminUser && secret !== adminSecret) {
     return NextResponse.json({ error: 'Interdit' }, { status: 403 })
   }
 

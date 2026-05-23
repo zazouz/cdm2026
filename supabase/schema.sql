@@ -51,6 +51,15 @@ create table if not exists public.predictions (
   unique(user_id, match_id)
 );
 
+alter table public.predictions
+  drop constraint if exists predictions_score_range;
+alter table public.predictions
+  add constraint predictions_score_range
+  check (
+    predicted_home between 0 and 20
+    and predicted_away between 0 and 20
+  );
+
 -- ============================================================
 -- Row Level Security
 -- ============================================================
@@ -59,12 +68,41 @@ alter table public.users enable row level security;
 alter table public.matches enable row level security;
 alter table public.predictions enable row level security;
 
+create or replace function public.current_user_is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (select u.is_admin from public.users u where u.id = auth.uid()),
+    false
+  )
+$$;
+
 -- users : chacun voit tout le monde (pour le classement), modifie seulement son propre profil
+drop policy if exists "users_select_all" on public.users;
+drop policy if exists "users_insert_own" on public.users;
+drop policy if exists "users_update_own" on public.users;
+
 create policy "users_select_all" on public.users for select using (true);
-create policy "users_insert_own" on public.users for insert with check (auth.uid() = id);
-create policy "users_update_own" on public.users for update using (auth.uid() = id);
+create policy "users_insert_own" on public.users for insert with check (
+  auth.uid() = id
+  and is_admin = false
+);
+create policy "users_update_own" on public.users
+  for update
+  using (auth.uid() = id)
+  with check (
+    auth.uid() = id
+    and is_admin = public.current_user_is_admin()
+  );
 
 -- matches : lisibles par tous les authentifiés, modifiables uniquement par les admins
+drop policy if exists "matches_select_authenticated" on public.matches;
+drop policy if exists "matches_insert_admin" on public.matches;
+drop policy if exists "matches_update_admin" on public.matches;
+
 create policy "matches_select_authenticated" on public.matches for select using (auth.role() = 'authenticated');
 create policy "matches_insert_admin" on public.matches for insert with check (
   exists (select 1 from public.users where id = auth.uid() and is_admin = true)
@@ -74,21 +112,40 @@ create policy "matches_update_admin" on public.matches for update using (
 );
 
 -- predictions : chacun voit les siennes, peut créer/modifier les siennes avant le coup d'envoi
+drop policy if exists "predictions_select_own" on public.predictions;
+drop policy if exists "predictions_insert_own" on public.predictions;
+drop policy if exists "predictions_update_own" on public.predictions;
+
 create policy "predictions_select_own" on public.predictions for select using (auth.uid() = user_id);
 create policy "predictions_insert_own" on public.predictions for insert with check (
   auth.uid() = user_id
   and exists (
     select 1 from public.matches
-    where id = match_id and match_date > now() and status = 'scheduled'
+    where id = match_id
+      and match_date - interval '15 minutes' > now()
+      and status = 'scheduled'
   )
 );
-create policy "predictions_update_own" on public.predictions for update using (
-  auth.uid() = user_id
-  and exists (
-    select 1 from public.matches
-    where id = match_id and match_date > now() and status = 'scheduled'
+create policy "predictions_update_own" on public.predictions
+  for update
+  using (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.matches
+      where id = match_id
+        and match_date - interval '15 minutes' > now()
+        and status = 'scheduled'
+    )
   )
-);
+  with check (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.matches
+      where id = match_id
+        and match_date - interval '15 minutes' > now()
+        and status = 'scheduled'
+    )
+  );
 
 -- ============================================================
 -- Vue du classement (accessible par tous les authentifiés)
@@ -112,7 +169,9 @@ group by u.id, u.username, u.first_name, u.last_name
 order by total_points desc;
 
 -- Vue des pronostics avec infos match (pour affichage perso)
-create or replace view public.predictions_with_match as
+create or replace view public.predictions_with_match
+  with (security_invoker = true)
+as
 select
   p.*,
   m.home_team, m.away_team, m.home_flag, m.away_flag,

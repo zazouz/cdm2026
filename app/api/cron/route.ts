@@ -4,7 +4,17 @@ import { NextRequest, NextResponse } from 'next/server'
 // vercel.json configure la fréquence et l'URL
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    return NextResponse.json({ error: 'CRON_SECRET non configuré' }, { status: 500 })
+  }
+
+  const adminSecret = process.env.ADMIN_SECRET
+  if (!adminSecret) {
+    return NextResponse.json({ error: 'ADMIN_SECRET non configuré' }, { status: 500 })
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Interdit' }, { status: 401 })
   }
 
@@ -13,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   const res = await fetch(`${baseUrl}/api/admin/sync-matches`, {
     method: 'POST',
-    headers: { 'x-admin-secret': process.env.ADMIN_SECRET! },
+    headers: { 'x-admin-secret': adminSecret },
   })
 
   const data = await res.json()

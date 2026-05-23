@@ -10,6 +10,17 @@ export async function POST(req: NextRequest) {
   if (typeof predictedHome !== 'number' || typeof predictedAway !== 'number') {
     return NextResponse.json({ error: 'Scores invalides' }, { status: 400 })
   }
+  if (
+    !Number.isInteger(matchId) ||
+    !Number.isInteger(predictedHome) ||
+    !Number.isInteger(predictedAway) ||
+    predictedHome < 0 ||
+    predictedAway < 0 ||
+    predictedHome > 20 ||
+    predictedAway > 20
+  ) {
+    return NextResponse.json({ error: 'Scores invalides' }, { status: 400 })
+  }
 
   // Vérifie que le match existe et n'a pas commencé
   const { data: match } = await supabase
