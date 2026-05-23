@@ -228,6 +228,7 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
     'irian': 'iran', 'korearep': 'southkorea', 'republicofkorea': 'southkorea',
     'dprkorea': 'northkorea', 'chinapr': 'china',
     'trinidadandtobago': 'trinidadtobago', 'trinidadtobago': 'trinidadtobago',
+    'nz': 'newzealand', 'newzealand': 'newzealand',
   }
   const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
   const DAY_MS = 24 * 60 * 60 * 1000

@@ -111,6 +111,8 @@ const TEAM_ALIAS: Record<string, string> = {
   'chinapr': 'china',
   'trinidadandtobago': 'trinidadtobago',
   'trinidadtobago': 'trinidadtobago',
+  'nz': 'newzealand',
+  'newzealand': 'newzealand',
 }
 
 function matchEvent(
