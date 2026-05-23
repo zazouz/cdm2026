@@ -4,7 +4,7 @@ import type { Lang } from '@/lib/i18n'
 import type { LeaderboardEntry } from '@/lib/types'
 import LeaderboardTable from './LeaderboardTable'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 const T = {
   fr: {

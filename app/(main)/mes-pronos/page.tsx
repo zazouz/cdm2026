@@ -4,7 +4,7 @@ import type { Lang } from '@/lib/i18n'
 import type { Match, Prediction } from '@/lib/types'
 import { flagUrl } from '@/lib/flags'
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 const LOCK_MS = 15 * 60 * 1000
 

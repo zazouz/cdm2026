@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { flagUrl } from '@/lib/flags'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 const T = {
   fr: {
