@@ -104,8 +104,10 @@ export default function MatchCard({ match, prediction, userId }: Props) {
 
       {/* Teams */}
       <div className="flex items-center px-4 py-3">
-        <div className="flex flex-1 flex-col items-center gap-1.5">
-          <span className="text-3xl leading-none">{match.home_flag}</span>
+        <div className="flex flex-1 flex-col items-center gap-2">
+          {match.home_flag
+            ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+            : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
           <span className="text-center text-xs font-semibold leading-tight text-white">{match.home_team}</span>
         </div>
         <div className="flex w-16 flex-col items-center gap-0.5 text-gray-600">
@@ -118,8 +120,10 @@ export default function MatchCard({ match, prediction, userId }: Props) {
             <span className="text-xs font-bold tracking-widest">VS</span>
           )}
         </div>
-        <div className="flex flex-1 flex-col items-center gap-1.5">
-          <span className="text-3xl leading-none">{match.away_flag}</span>
+        <div className="flex flex-1 flex-col items-center gap-2">
+          {match.away_flag
+            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+            : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
           <span className="text-center text-xs font-semibold leading-tight text-white">{match.away_team}</span>
         </div>
       </div>

@@ -117,8 +117,10 @@ export default async function MesPronos() {
                       return (
                         <div key={p.id} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
                           <div className="flex items-center px-4 py-3">
-                            <div className="flex flex-1 flex-col items-center gap-1.5">
-                              <span className="text-2xl leading-none">{p.home_flag}</span>
+                            <div className="flex flex-1 flex-col items-center gap-2">
+                              {p.home_flag
+                                ? <img src={`https://flagcdn.com/w40/${p.home_flag}.png`} alt={p.home_team} className="h-6 w-auto rounded-sm shadow object-cover" />
+                                : <div className="h-6 w-9 rounded-sm bg-gray-800" />}
                               <span className="text-center text-[11px] font-semibold leading-tight text-white">{p.home_team}</span>
                             </div>
                             <div className="w-14 flex-shrink-0 text-center">
@@ -134,8 +136,10 @@ export default async function MesPronos() {
                                 </>
                               )}
                             </div>
-                            <div className="flex flex-1 flex-col items-center gap-1.5">
-                              <span className="text-2xl leading-none">{p.away_flag}</span>
+                            <div className="flex flex-1 flex-col items-center gap-2">
+                              {p.away_flag
+                                ? <img src={`https://flagcdn.com/w40/${p.away_flag}.png`} alt={p.away_team} className="h-6 w-auto rounded-sm shadow object-cover" />
+                                : <div className="h-6 w-9 rounded-sm bg-gray-800" />}
                               <span className="text-center text-[11px] font-semibold leading-tight text-white">{p.away_team}</span>
                             </div>
                           </div>
