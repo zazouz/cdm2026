@@ -18,9 +18,13 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
 
   return (
     <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-gray-800 bg-gray-950/90 px-4 backdrop-blur-xl">
-      <div className="flex items-center gap-2 text-sm font-extrabold tracking-tight text-white">
-        <span className="text-lg leading-none">⚽</span>
-        CDM 2026
+      <div className="flex flex-col leading-tight">
+        <span className="text-[11px] font-extrabold uppercase tracking-tight text-white">
+          {lang === 'fr' ? 'Coupe du Monde' : 'World Cup'}
+        </span>
+        <span className="text-[9px] font-medium text-gray-500">
+          {lang === 'fr' ? '11 Juin – 19 Juillet 2026' : 'June 11 – July 19, 2026'}
+        </span>
       </div>
       <div className="flex items-center gap-2">
         <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">

@@ -72,7 +72,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🏆</div>
+          <img src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg" alt="FIFA World Cup 2026" className="h-24 w-auto mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-white">Pronostics CDM 2026</h1>
           <p className="text-gray-400 mt-1">Crée ton compte</p>
         </div>
@@ -86,7 +86,7 @@ export default function RegisterPage() {
                 value={form.firstName}
                 onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
                 className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Karim"
+                placeholder="Olivier"
                 required
               />
             </div>
@@ -97,7 +97,7 @@ export default function RegisterPage() {
                 value={form.lastName}
                 onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
                 className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Benzema"
+                placeholder="Giroud"
                 required
               />
             </div>
