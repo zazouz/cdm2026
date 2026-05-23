@@ -13,8 +13,31 @@ type Props = {
   userId: string
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleString('fr-FR', {
+const T = {
+  fr: {
+    result: 'résultat',
+    yourBetLocked: 'Ton prono',
+    noBet: 'pas de pronostic',
+    yourBetLabel: 'Ton pronostic',
+    lockWarning: (min: number) => `⏱ Verrouillage dans ${min} min — modifie ton prono maintenant !`,
+    winHint: (team: string, pts: string) => `Victoire ${team} · score exact = max ${pts} pts`,
+    drawHint: (pts: string) => `Match nul · score exact = max ${pts} pts`,
+    error: 'Erreur',
+  },
+  en: {
+    result: 'result',
+    yourBetLocked: 'Your bet',
+    noBet: 'no prediction',
+    yourBetLabel: 'Your prediction',
+    lockWarning: (min: number) => `⏱ Locking in ${min} min — update your prediction now!`,
+    winHint: (team: string, pts: string) => `${team} win · exact score = max ${pts} pts`,
+    drawHint: (pts: string) => `Draw · exact score = max ${pts} pts`,
+    error: 'Error',
+  },
+}
+
+function formatDate(dateStr: string, lang: string) {
+  return new Date(dateStr).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
     weekday: 'short', day: 'numeric', month: 'short',
     hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
   })
@@ -24,15 +47,10 @@ function msUntilLock(dateStr: string) {
   return new Date(dateStr).getTime() - 15 * 60 * 1000 - Date.now()
 }
 
-function resultLabel(home: number, away: number): string {
-  if (home > away) return `victoire ${''}`
-  if (home < away) return `victoire ${''}`
-  return 'match nul'
-}
-
 export default function MatchCard({ match, prediction, userId }: Props) {
   const router = useRouter()
   const { lang } = useLanguage()
+  const t = T[lang]
   const homeTeam = translateTeam(match.home_team, lang)
   const awayTeam = translateTeam(match.away_team, lang)
   const isLocked = new Date(match.match_date).getTime() - 15 * 60 * 1000 <= Date.now() || match.status === 'finished'
@@ -67,26 +85,17 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       router.refresh()
     } else {
       const data = await res.json()
-      setError(data.error ?? 'Erreur')
+      setError(data.error ?? t.error)
     }
     setSaving(false)
   }
 
-  // Compute hint text
-  const predictedWinner = home > away
-    ? homeTeam
-    : away > home
-    ? awayTeam
-    : null
-  const relevantOdds = home > away
-    ? match.home_odds
-    : away > home
-    ? match.away_odds
-    : match.draw_odds
+  const predictedWinner = home > away ? homeTeam : away > home ? awayTeam : null
+  const relevantOdds = home > away ? match.home_odds : away > home ? match.away_odds : match.draw_odds
   const maxPts = relevantOdds ? (3 * relevantOdds).toFixed(2) : null
 
   const stageBadge = match.stage === 'group' && match.group_name
-    ? `Gr. ${match.group_name}`
+    ? `${lang === 'fr' ? 'Gr.' : 'Gr.'} ${match.group_name}`
     : stageLabel(match.stage, lang)
 
   return (
@@ -97,13 +106,13 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         <span className="rounded-full bg-gray-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
           {stageBadge}
         </span>
-        <span className="text-[11px] text-gray-600">{formatDate(match.match_date)}</span>
+        <span className="text-[11px] text-gray-600">{formatDate(match.match_date, lang)}</span>
       </div>
 
       {/* Lock warning */}
       {lockSoon && (
         <p className="px-4 pb-1 text-center text-[11px] font-semibold text-red-400">
-          ⏱ Verrouillage dans {lockSoonMinutes} min — modifie ton prono maintenant !
+          {t.lockWarning(lockSoonMinutes)}
         </p>
       )}
 
@@ -119,7 +128,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {isFinished && match.home_score !== null ? (
             <>
               <span className="text-xl font-extrabold text-white">{match.home_score}–{match.away_score}</span>
-              <span className="text-[9px] uppercase tracking-wide">résultat</span>
+              <span className="text-[9px] uppercase tracking-wide">{t.result}</span>
             </>
           ) : (
             <span className="text-xs font-bold tracking-widest">VS</span>
@@ -155,7 +164,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       <div className="border-t border-gray-800 bg-gray-900/80 px-4 py-3">
         {isLocked ? (
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">Ton prono</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">{t.yourBetLocked}</span>
             {prediction ? (
               <div className="text-right">
                 <span className="font-mono text-base font-bold text-white">
@@ -168,12 +177,12 @@ export default function MatchCard({ match, prediction, userId }: Props) {
                 )}
               </div>
             ) : (
-              <span className="text-xs italic text-gray-600">pas de pronostic</span>
+              <span className="text-xs italic text-gray-600">{t.noBet}</span>
             )}
           </div>
         ) : (
           <>
-            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-wide text-gray-600">Ton pronostic</p>
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-wide text-gray-600">{t.yourBetLabel}</p>
             <div className="flex items-center justify-center gap-3">
               {/* Home stepper */}
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
@@ -227,13 +236,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
             {/* Hint */}
             {maxPts && (
               <p className="mt-2 text-center text-[10px] text-gray-600">
-                {predictedWinner
-                  ? lang === 'fr'
-                    ? `Victoire ${predictedWinner} · score exact = max ${maxPts} pts`
-                    : `${predictedWinner} win · exact score = max ${maxPts} pts`
-                  : lang === 'fr'
-                    ? `Match nul · score exact = max ${maxPts} pts`
-                    : `Draw · exact score = max ${maxPts} pts`}
+                {predictedWinner ? t.winHint(predictedWinner, maxPts) : t.drawHint(maxPts)}
               </p>
             )}
             {error && <p className="mt-1 text-center text-xs text-red-400">{error}</p>}

@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase-server'
+import { cookies } from 'next/headers'
+import type { Lang } from '@/lib/i18n'
 import type { Match } from '@/lib/types'
 import MatchesList from './MatchesList'
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 const STAGE_CHAIN: Record<string, string | null> = {
   r32: null,
@@ -22,7 +24,23 @@ function isStageVisible(stage: string, allMatches: Match[], now: Date): boolean 
   return lastDate <= now.getTime()
 }
 
+const T = {
+  fr: {
+    empty: 'Aucun match programmé pour l\'instant.',
+    emptyHint: 'L\'admin doit d\'abord importer le calendrier.',
+  },
+  en: {
+    empty: 'No matches scheduled yet.',
+    emptyHint: 'The admin needs to import the calendar first.',
+  },
+}
+
 export default async function MatchesPage() {
+  const cookieStore = await cookies()
+  const rawLang = cookieStore.get('prono_lang')?.value
+  const lang: Lang = rawLang === 'fr' || rawLang === 'en' ? rawLang : 'fr'
+  const t = T[lang]
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
@@ -36,8 +54,8 @@ export default async function MatchesPage() {
     return (
       <div className="text-center py-20 text-gray-500">
         <p className="text-4xl mb-4">⚽</p>
-        <p>Aucun match programmé pour l&apos;instant.</p>
-        <p className="text-sm mt-2 text-gray-600">L&apos;admin doit d&apos;abord importer le calendrier.</p>
+        <p>{t.empty}</p>
+        <p className="text-sm mt-2 text-gray-600">{t.emptyHint}</p>
       </div>
     )
   }
