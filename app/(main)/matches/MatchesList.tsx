@@ -29,8 +29,10 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
     return (
       <div className="text-center py-20 text-gray-500">
         <p className="text-4xl mb-4">⏳</p>
-        <p>Tous les pronostics sont verrouillés.</p>
-        <p className="text-sm mt-2 text-gray-500">Retrouve tes pronos dans &ldquo;Mes Pronos&rdquo;.</p>
+        <p>{lang === 'fr' ? 'Tous les pronostics sont verrouillés.' : 'All predictions are locked.'}</p>
+        <p className="text-sm mt-2 text-gray-500">
+          {lang === 'fr' ? 'Retrouve tes pronos dans « Les Pronos ».' : 'Check your bets in "Bets".'}
+        </p>
       </div>
     )
   }

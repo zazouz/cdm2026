@@ -1,4 +1,4 @@
-export default function MesPronosaLoading() {
+export default function BetsLoading() {
   return (
     <div className="space-y-4 animate-pulse">
       <div className="h-6 w-32 rounded bg-gray-800" />

@@ -46,7 +46,7 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
         </span>
         <button
           onClick={handleLogout}
-          className="px-2 py-1 text-[11px] text-gray-600 transition-colors hover:text-red-400"
+          className="px-2 py-1 text-[11px] text-gray-500 transition-colors hover:text-red-400"
         >
           {NAV_LABELS.logout[lang]}
         </button>
