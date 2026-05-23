@@ -69,7 +69,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg" alt="FIFA World Cup 2026" className="h-24 w-auto mx-auto mb-3" />
-          <h1 className="text-2xl font-bold text-white">Pronostics CDM 2026</h1>
+          <h1 className="text-2xl font-bold text-white">{lang === 'fr' ? 'Pronostics Coupe du Monde 2026' : 'World Cup 2026 Predictions'}</h1>
           <p className="text-gray-400 mt-1">{t.title}</p>
           <div className="flex justify-center mt-3">
             <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
