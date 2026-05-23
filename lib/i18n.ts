@@ -37,6 +37,7 @@ export const TEAM_FR: Record<string, string> = {
   'Bosnia and Herzegovina': 'Bosnie-Herzégovine',
   'Bosnia & Herzegovina': 'Bosnie-Herzégovine',
   'Bosnia-Herzegovina': 'Bosnie-Herzégovine',
+  'Bosnia Herzegovina': 'Bosnie-Herzégovine',
   'North Macedonia': 'Macédoine du Nord',
   'Georgia': 'Géorgie',
   'Bulgaria': 'Bulgarie',
@@ -67,6 +68,8 @@ export const TEAM_FR: Record<string, string> = {
   'Guatemala': 'Guatemala',
   'Cuba': 'Cuba',
   'Haiti': 'Haïti',
+  'Curacao': 'Curaçao',
+  'Curaçao': 'Curaçao',
 
   // Africa
   'Morocco': 'Maroc',
@@ -89,6 +92,7 @@ export const TEAM_FR: Record<string, string> = {
   'Zimbabwe': 'Zimbabwe',
   'Cape Verde': 'Cap-Vert',
   'Cape Verde Islands': 'Cap-Vert',
+  'Cabo Verde': 'Cap-Vert',
   'Mozambique': 'Mozambique',
   'Angola': 'Angola',
   'Gabon': 'Gabon',

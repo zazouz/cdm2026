@@ -36,6 +36,7 @@ export const FLAG_MAP: Record<string, string> = {
   'Bosnia and Herzegovina': 'ba',
   'Bosnia & Herzegovina': 'ba',
   'Bosnia-Herzegovina': 'ba',
+  'Bosnia Herzegovina': 'ba',
   'North Macedonia': 'mk',
   'Georgia': 'ge',
   'Bulgaria': 'bg',
@@ -67,6 +68,7 @@ export const FLAG_MAP: Record<string, string> = {
   'Cuba': 'cu',
   'Haiti': 'ht',
   'Curacao': 'cw',
+  'Curaçao': 'cw',
 
   // Africa
   'Morocco': 'ma',
@@ -90,6 +92,7 @@ export const FLAG_MAP: Record<string, string> = {
   'Comoros': 'km',
   'Cape Verde': 'cv',
   'Cape Verde Islands': 'cv',
+  'Cabo Verde': 'cv',
   'Mozambique': 'mz',
   'Namibia': 'na',
   'Angola': 'ao',
