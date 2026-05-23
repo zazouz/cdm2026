@@ -55,7 +55,7 @@ export default async function MatchesPage() {
       <div className="text-center py-20 text-gray-500">
         <p className="text-4xl mb-4">⚽</p>
         <p>{t.empty}</p>
-        <p className="text-sm mt-2 text-gray-600">{t.emptyHint}</p>
+        <p className="text-sm mt-2 text-gray-500">{t.emptyHint}</p>
       </div>
     )
   }

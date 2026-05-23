@@ -89,7 +89,7 @@ export default async function LesPronos() {
         <div className="flex flex-col items-center py-24 text-center">
           <p className="text-4xl mb-4">⏳</p>
           <p className="text-base font-semibold text-gray-300">{t.empty}</p>
-          <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-xs">{t.emptyHint}</p>
+          <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-xs">{t.emptyHint}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -122,12 +122,12 @@ export default async function LesPronos() {
                     {isFinished && m.home_score !== null ? (
                       <>
                         <div className="text-lg font-extrabold text-white">{m.home_score}–{m.away_score}</div>
-                        <div className="text-[9px] uppercase text-gray-600">{t.result}</div>
+                        <div className="text-[10px] uppercase text-gray-500">{t.result}</div>
                       </>
                     ) : (
                       <>
                         <div className="text-[10px] font-semibold text-red-400">{t.live}</div>
-                        <div className="text-[9px] text-gray-600">{formatDate(m.match_date, lang)}</div>
+                        <div className="text-[10px] text-gray-500">{formatDate(m.match_date, lang)}</div>
                       </>
                     )}
                   </div>
@@ -185,11 +185,11 @@ export default async function LesPronos() {
                                 {pts > 0 ? `+${Number(pts).toFixed(2)} pts` : '0 pt'}
                               </span>
                             ) : (
-                              <span className="shrink-0 text-[11px] italic text-gray-600">{t.pending}</span>
+                              <span className="shrink-0 text-[11px] italic text-gray-500">{t.pending}</span>
                             )}
                           </>
                         ) : (
-                          <span className="shrink-0 text-[11px] italic text-gray-600">{t.noBet}</span>
+                          <span className="shrink-0 text-[11px] italic text-gray-500">{t.noBet}</span>
                         )}
                       </div>
                     )

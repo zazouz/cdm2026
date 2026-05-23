@@ -30,7 +30,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
       <div className="text-center py-20 text-gray-500">
         <p className="text-4xl mb-4">⏳</p>
         <p>Tous les pronostics sont verrouillés.</p>
-        <p className="text-sm mt-2 text-gray-600">Retrouve tes pronos dans &ldquo;Mes Pronos&rdquo;.</p>
+        <p className="text-sm mt-2 text-gray-500">Retrouve tes pronos dans &ldquo;Mes Pronos&rdquo;.</p>
       </div>
     )
   }

@@ -48,7 +48,7 @@ export default function LeaderboardTable({
       <button
         onClick={() => toggleSort(col)}
         className={`w-9 text-right text-[10px] font-bold uppercase tracking-wider transition-colors select-none ${
-          active ? 'text-white' : 'text-gray-600 hover:text-gray-400'
+          active ? 'text-white' : 'text-gray-500 hover:text-gray-300'
         }`}
       >
         {label}{arrow}
@@ -60,9 +60,9 @@ export default function LeaderboardTable({
     <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-2.5">
-        <span className="w-5 shrink-0 text-center text-[10px] font-bold uppercase tracking-wider text-gray-600">#</span>
-        <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-gray-600">{COL_LABELS.player[lang]}</span>
-        <span className="w-9 text-right text-[10px] font-bold uppercase tracking-wider text-gray-600">{COL_LABELS.gp[lang]}</span>
+        <span className="w-5 shrink-0 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500">#</span>
+        <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">{COL_LABELS.player[lang]}</span>
+        <span className="w-9 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">{COL_LABELS.gp[lang]}</span>
         <ColHeader label={COL_LABELS.es[lang]} col="exact_scores" />
         <ColHeader label={COL_LABELS.cr[lang]} col="correct_results" />
         <ColHeader label="Pts" col="total_points" />
@@ -87,7 +87,7 @@ export default function LeaderboardTable({
                   <span className="ml-1.5 rounded-full bg-green-950 px-1.5 py-0.5 text-[9px] text-green-600">{COL_LABELS.you[lang]}</span>
                 )}
               </p>
-              <p className="font-mono text-[10px] text-gray-600 truncate">{entry.username}</p>
+              <p className="font-mono text-[10px] text-gray-500 truncate">{entry.username}</p>
             </div>
             <span className="w-9 text-right text-xs text-gray-500 tabular-nums">{entry.predictions_scored}</span>
             <span className={`w-9 text-right text-xs font-semibold tabular-nums ${

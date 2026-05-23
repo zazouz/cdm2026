@@ -106,7 +106,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         <span className="rounded-full bg-gray-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
           {stageBadge}
         </span>
-        <span className="text-[11px] text-gray-600">{formatDate(match.match_date, lang)}</span>
+        <span className="text-[11px] text-gray-500">{formatDate(match.match_date, lang)}</span>
       </div>
 
       {/* Lock warning */}
@@ -128,7 +128,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {isFinished && match.home_score !== null ? (
             <>
               <span className="text-xl font-extrabold text-white">{match.home_score}–{match.away_score}</span>
-              <span className="text-[9px] uppercase tracking-wide">{t.result}</span>
+              <span className="text-[10px] uppercase tracking-wide text-gray-500">{t.result}</span>
             </>
           ) : (
             <span className="text-xs font-bold tracking-widest">VS</span>
@@ -146,15 +146,15 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       {match.home_odds && (
         <div className="flex gap-1.5 px-4 pb-3">
           <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
-            <span className="text-[9px] font-bold uppercase tracking-wide text-gray-600">1</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">1</span>
             <span className="text-sm font-bold text-gray-300">{formatOdds(match.home_odds)}</span>
           </div>
           <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
-            <span className="text-[9px] font-bold uppercase tracking-wide text-gray-600">N</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">N</span>
             <span className="text-sm font-bold text-gray-300">{formatOdds(match.draw_odds)}</span>
           </div>
           <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
-            <span className="text-[9px] font-bold uppercase tracking-wide text-gray-600">2</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">2</span>
             <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       <div className="border-t border-gray-800 bg-gray-900/80 px-4 py-3">
         {isLocked ? (
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-600">{t.yourBetLocked}</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t.yourBetLocked}</span>
             {prediction ? (
               <div className="text-right">
                 <span className="font-mono text-base font-bold text-white">
@@ -177,43 +177,47 @@ export default function MatchCard({ match, prediction, userId }: Props) {
                 )}
               </div>
             ) : (
-              <span className="text-xs italic text-gray-600">{t.noBet}</span>
+              <span className="text-xs italic text-gray-500">{t.noBet}</span>
             )}
           </div>
         ) : (
           <>
-            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-wide text-gray-600">{t.yourBetLabel}</p>
+            <p className="mb-2.5 text-[10px] font-bold uppercase tracking-wide text-gray-500">{t.yourBetLabel}</p>
             <div className="flex items-center justify-center gap-3">
               {/* Home stepper */}
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
                 <button
                   onClick={() => step('home', -1)}
+                  aria-label={`${homeTeam} −1`}
                   className="flex h-11 w-10 items-center justify-center text-xl font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
                 >
                   −
                 </button>
-                <span className="w-10 text-center text-xl font-extrabold text-white">{home}</span>
+                <span className="w-10 text-center text-xl font-extrabold text-white" aria-label={`${homeTeam} : ${home}`}>{home}</span>
                 <button
                   onClick={() => step('home', 1)}
+                  aria-label={`${homeTeam} +1`}
                   className="flex h-11 w-10 items-center justify-center text-xl font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
                 >
                   +
                 </button>
               </div>
 
-              <span className="text-lg font-bold text-gray-600">–</span>
+              <span className="text-lg font-bold text-gray-600" aria-hidden="true">–</span>
 
               {/* Away stepper */}
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
                 <button
                   onClick={() => step('away', -1)}
+                  aria-label={`${awayTeam} −1`}
                   className="flex h-11 w-10 items-center justify-center text-xl font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
                 >
                   −
                 </button>
-                <span className="w-10 text-center text-xl font-extrabold text-white">{away}</span>
+                <span className="w-10 text-center text-xl font-extrabold text-white" aria-label={`${awayTeam} : ${away}`}>{away}</span>
                 <button
                   onClick={() => step('away', 1)}
+                  aria-label={`${awayTeam} +1`}
                   className="flex h-11 w-10 items-center justify-center text-xl font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
                 >
                   +
@@ -223,6 +227,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
               <button
                 onClick={handleSave}
                 disabled={saving}
+                aria-label={saved ? t.yourBetLocked : t.yourBetLabel}
                 className={`h-11 rounded-xl px-5 text-sm font-bold transition-all ${
                   saved
                     ? 'bg-green-900 text-green-400'
@@ -235,7 +240,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
 
             {/* Hint */}
             {maxPts && (
-              <p className="mt-2 text-center text-[10px] text-gray-600">
+              <p className="mt-2 text-center text-[10px] text-gray-500">
                 {predictedWinner ? t.winHint(predictedWinner, maxPts) : t.drawHint(maxPts)}
               </p>
             )}

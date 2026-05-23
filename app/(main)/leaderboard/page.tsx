@@ -55,7 +55,7 @@ export default async function LeaderboardPage() {
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <p className="text-4xl mb-4">🏆</p>
         <p className="text-base font-semibold text-gray-300">{t.empty}</p>
-        <p className="text-sm text-gray-600 mt-2">{t.emptyHint}</p>
+        <p className="text-sm text-gray-500 mt-2">{t.emptyHint}</p>
       </div>
     )
   }
@@ -70,7 +70,7 @@ export default async function LeaderboardPage() {
       <LeaderboardTable entries={rows} currentUserId={user!.id} lang={lang} />
 
       <div className="rounded-xl border border-gray-800 bg-gray-900 p-4 space-y-1.5">
-        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-600 mb-2">{t.scale}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-2">{t.scale}</p>
         <div className="flex justify-between text-xs text-gray-500">
           <span>{t.exact}</span>
           <span className="text-green-600">{t.exactPoints}</span>
@@ -81,7 +81,7 @@ export default async function LeaderboardPage() {
         </div>
         <div className="flex justify-between text-xs text-gray-500">
           <span>{t.wrong}</span>
-          <span className="text-gray-600">{t.wrongPoints}</span>
+          <span className="text-gray-500">{t.wrongPoints}</span>
         </div>
       </div>
     </div>

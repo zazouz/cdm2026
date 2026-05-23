@@ -115,7 +115,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
     <div className="space-y-5">
       <Link
         href="/leaderboard"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-white"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-white"
       >
         {t.back}
       </Link>
@@ -130,14 +130,14 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
             {profile.first_name} {profile.last_name}
             {isMe && <span className="ml-2 rounded-full bg-green-950 px-2 py-0.5 text-[10px] text-green-500">{t.you}</span>}
           </p>
-          <p className="font-mono text-[11px] text-gray-600">{profile.username}</p>
+          <p className="font-mono text-[11px] text-gray-500">{profile.username}</p>
         </div>
         {rank > 0 && (
           <div className="shrink-0 text-center rounded-xl border border-gray-800 bg-gray-800/50 px-4 py-2">
             <div className="text-xl font-extrabold text-white">
               {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
             </div>
-            <div className="text-[9px] uppercase tracking-wide text-gray-600">{t.rank}</div>
+            <div className="text-[10px] uppercase tracking-wide text-gray-500">{t.rank}</div>
           </div>
         )}
       </div>
@@ -146,15 +146,15 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
           <span className="text-2xl font-extrabold tracking-tight text-white">{Number(totalPoints).toFixed(2)}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">{t.points}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mt-1">{t.points}</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
           <span className="text-2xl font-extrabold text-green-400">{exactCount}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">{t.exacts}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mt-1">{t.exacts}</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
           <span className="text-2xl font-extrabold text-blue-400">{correctCount}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">{t.corrects}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mt-1">{t.corrects}</span>
         </div>
       </div>
 
@@ -173,7 +173,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
 
             return (
               <section key={key}>
-                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-600">{label}</p>
+                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">{label}</p>
                 <div className="space-y-2">
                   {groupMatches.map(m => {
                     const p = predByMatchId.get(m.id) ?? null
@@ -194,7 +194,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
                           </div>
                           <div className="w-14 flex-shrink-0 text-center">
                             <div className="text-lg font-extrabold text-white">{m.home_score}–{m.away_score}</div>
-                            <div className="text-[9px] uppercase text-gray-600">{t.result}</div>
+                            <div className="text-[10px] uppercase text-gray-500">{t.result}</div>
                           </div>
                           <div className="flex flex-1 flex-col items-center gap-1.5">
                             {m.away_flag
@@ -210,7 +210,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
                               {t.bet} : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
                             </span>
                           ) : (
-                            <span className="text-[11px] text-gray-600 italic">{t.noBet}</span>
+                            <span className="text-[11px] text-gray-500 italic">{t.noBet}</span>
                           )}
                           <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                             isExact ? 'bg-green-950 text-green-400'
