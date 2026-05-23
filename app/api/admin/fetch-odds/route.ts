@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, updated, notFound })
+  const availableInApi = events.map(e => `${e.home_team} vs ${e.away_team}`)
+  return NextResponse.json({ ok: true, updated, notFound, availableInApi })
 }
 
 async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; error?: string }> {
