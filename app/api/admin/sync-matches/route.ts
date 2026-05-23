@@ -239,14 +239,11 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   for (const match of matchesWithoutOdds) {
     const homeNorm = canon(match.home_team)
     const awayNorm = canon(match.away_team)
-    const dateMsTarget = new Date(match.match_date).getTime()
 
     const event = events.find(e => {
-      const dateClose = Math.abs(new Date(e.commence_time).getTime() - dateMsTarget) < DAY_MS
       const h = canon(e.home_team)
       const a = canon(e.away_team)
-      return dateClose &&
-        (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
+      return (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
         (a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4)))
     })
 
