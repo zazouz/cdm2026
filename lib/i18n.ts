@@ -35,6 +35,8 @@ export const TEAM_FR: Record<string, string> = {
   'Finland': 'Finlande',
   'Iceland': 'Islande',
   'Bosnia and Herzegovina': 'Bosnie-Herzégovine',
+  'Bosnia & Herzegovina': 'Bosnie-Herzégovine',
+  'Bosnia-Herzegovina': 'Bosnie-Herzégovine',
   'North Macedonia': 'Macédoine du Nord',
   'Georgia': 'Géorgie',
   'Bulgaria': 'Bulgarie',
@@ -86,6 +88,7 @@ export const TEAM_FR: Record<string, string> = {
   'Uganda': 'Ouganda',
   'Zimbabwe': 'Zimbabwe',
   'Cape Verde': 'Cap-Vert',
+  'Cape Verde Islands': 'Cap-Vert',
   'Mozambique': 'Mozambique',
   'Angola': 'Angola',
   'Gabon': 'Gabon',
@@ -126,7 +129,7 @@ export const TEAM_FR: Record<string, string> = {
 
 export const STAGE_LABELS: Record<string, { fr: string; en: string }> = {
   group: { fr: 'Phase de groupes', en: 'Group Stage' },
-  r32: { fr: 'Tour préliminaire', en: 'Round of 32' },
+  r32: { fr: 'Seizièmes de finale', en: 'Round of 32' },
   r16: { fr: 'Huitièmes de finale', en: 'Round of 16' },
   qf: { fr: 'Quarts de finale', en: 'Quarter-finals' },
   sf: { fr: 'Demi-finales', en: 'Semi-finals' },

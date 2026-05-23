@@ -68,7 +68,7 @@ export type LeaderboardEntry = {
 
 export const STAGE_LABELS: Record<string, string> = {
   group: 'Phase de groupes',
-  r32: 'Tour préliminaire',
+  r32: 'Seizièmes de finale',
   r16: 'Huitièmes de finale',
   qf: 'Quarts de finale',
   sf: 'Demi-finales',
