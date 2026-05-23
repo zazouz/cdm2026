@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { createClient, createAdminClient } from '@/lib/supabase-server'
 
 async function isAdmin(): Promise<boolean> {
   const supabase = await createClient()
@@ -15,24 +15,52 @@ export async function GET(req: NextRequest) {
   const apiKey = process.env.ODDS_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'ODDS_API_KEY manquant' }, { status: 500 })
 
+  // Fetch winamax events
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
-
   const winamaxRes = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
-  const winamaxEvents = winamaxRes.ok ? await winamaxRes.json() : null
+  const events = winamaxRes.ok ? await winamaxRes.json() : []
 
-  const euRes = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
-  const euEvents = euRes.ok ? await euRes.json() : null
+  // Check DB for Iran vs New Zealand
+  const supabase = await createAdminClient()
+  const { data: dbMatches } = await supabase
+    .from('matches')
+    .select('id, home_team, away_team, home_odds, status')
+    .or('home_team.ilike.%Iran%,away_team.ilike.%Iran%')
+
+  // Trace the matching for every event vs "Iran" / "New Zealand"
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
+  const TEAM_ALIAS: Record<string, string> = {
+    'usa': 'unitedstates', 'unitedstates': 'unitedstates',
+    'irian': 'iran', 'korearep': 'southkorea', 'nz': 'newzealand', 'newzealand': 'newzealand',
+  }
+  const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
+
+  const homeTeam = 'Iran'
+  const awayTeam = 'New Zealand'
+  const homeNorm = canon(homeTeam)
+  const awayNorm = canon(awayTeam)
+
+  const matchTrace = events.map((e: { home_team: string; away_team: string; bookmakers: unknown[] }) => {
+    const h = canon(e.home_team)
+    const a = canon(e.away_team)
+    const homeMatch = h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))
+    const awayMatch = a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4))
+    return {
+      event: `${e.home_team} vs ${e.away_team}`,
+      h, a,
+      homeMatch, awayMatch,
+      bothMatch: homeMatch && awayMatch,
+      bookmakers: e.bookmakers.length,
+    }
+  }).filter((t: { bothMatch: boolean }) => t.bothMatch)
 
   return NextResponse.json({
-    winamax: {
-      status: winamaxRes.status,
-      count: winamaxEvents?.length ?? 0,
-      firstEvent: winamaxEvents?.[0] ?? null,
-    },
-    eu: {
-      status: euRes.status,
-      count: euEvents?.length ?? 0,
-      firstEvent: euEvents?.[0] ?? null,
-    },
+    homeNorm,
+    awayNorm,
+    homeSlice: homeNorm.slice(0, 4),
+    awaySlice: awayNorm.slice(0, 4),
+    eventsCount: events.length,
+    matchingEvents: matchTrace,
+    dbIranMatches: dbMatches,
   })
 }
