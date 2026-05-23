@@ -41,10 +41,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, pointsCalculated: 0 })
   }
 
-  // 3. Calcule les points pour chaque pronostic
+  // 3. Calcule les points — seulement si les côtes sont présentes
+  // Si absentes, on laisse calculated_at = null pour que le cron recalcule plus tard
+  const m = match as Match
+  if (m.home_odds === null || m.draw_odds === null || m.away_odds === null) {
+    return NextResponse.json({ ok: true, pointsCalculated: 0, warning: 'Cotes manquantes — scoring différé au prochain cron' })
+  }
+
   const updates = predictions.map((pred: Prediction) => ({
     id: pred.id,
-    points_earned: computePoints(match as Match, pred),
+    points_earned: computePoints(m, pred),
     calculated_at: new Date().toISOString(),
   }))
 

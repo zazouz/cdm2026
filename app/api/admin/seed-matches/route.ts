@@ -103,8 +103,10 @@ const GROUP_STAGE_MATCHES = [
 ]
 
 export async function POST(req: NextRequest) {
+  const adminSecret = process.env.ADMIN_SECRET
+  if (!adminSecret) return NextResponse.json({ error: 'ADMIN_SECRET non configuré' }, { status: 500 })
   const secret = req.headers.get('x-admin-secret')
-  if (secret !== process.env.ADMIN_SECRET) {
+  if (secret !== adminSecret) {
     return NextResponse.json({ error: 'Interdit' }, { status: 403 })
   }
 

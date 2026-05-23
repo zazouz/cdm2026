@@ -66,19 +66,24 @@ export async function POST(req: NextRequest) {
       fd_match_id: fdMatch.id,
     }).eq('id', pending.id)
 
-    // Calcule les points
+    // Calcule les points — seulement si les côtes sont présentes
+    // Si absentes, calculated_at reste null et le cron recalculera quand elles arriveront
     const updatedMatch: Match = { ...pending, home_score: homeScore, away_score: awayScore, status: 'finished' }
-    const { data: predictions } = await supabase
-      .from('predictions')
-      .select('*')
-      .eq('match_id', pending.id)
+    const hasOdds = updatedMatch.home_odds !== null && updatedMatch.draw_odds !== null && updatedMatch.away_odds !== null
 
-    for (const pred of (predictions ?? []) as Prediction[]) {
-      const points = computePoints(updatedMatch, pred)
-      await supabase.from('predictions').update({
-        points_earned: points,
-        calculated_at: new Date().toISOString(),
-      }).eq('id', pred.id)
+    if (hasOdds) {
+      const { data: predictions } = await supabase
+        .from('predictions')
+        .select('*')
+        .eq('match_id', pending.id)
+
+      for (const pred of (predictions ?? []) as Prediction[]) {
+        const points = computePoints(updatedMatch, pred)
+        await supabase.from('predictions').update({
+          points_earned: points,
+          calculated_at: new Date().toISOString(),
+        }).eq('id', pred.id)
+      }
     }
 
     processed++

@@ -39,9 +39,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const adminSecret = process.env.ADMIN_SECRET
+  if (!adminSecret) return NextResponse.json({ error: 'ADMIN_SECRET non configuré' }, { status: 500 })
   const secret = req.headers.get('x-admin-secret')
   const isAdminUser = await isAdmin()
-  if (!isAdminUser && secret !== process.env.ADMIN_SECRET) {
+  if (!isAdminUser && secret !== adminSecret) {
     return NextResponse.json({ error: 'Interdit' }, { status: 403 })
   }
 
