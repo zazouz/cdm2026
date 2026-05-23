@@ -87,21 +87,12 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
 
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
 
-  const hasOdds = (events: OddsApiEvent[]) =>
-    events.some(e => e.bookmakers.length > 0 && e.bookmakers[0].markets.length > 0)
-
-  // Essaie d'abord Winamax FR
-  const winamax = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
-  if (winamax.ok) {
-    const events = await winamax.json() as OddsApiEvent[]
-    if (hasOdds(events)) return { events }
-  }
-
-  // Fallback : tous les bookmakers EU
+  // EU inclut Winamax FR + autres bookmakers — couverture complète même si Winamax
+  // n'a pas encore les cotes pour certains matchs
   const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
   if (eu.ok) {
     const events = await eu.json() as OddsApiEvent[]
-    if (hasOdds(events)) return { events }
+    if (events.some(e => e.bookmakers.length > 0)) return { events }
   }
 
   return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
@@ -142,7 +133,8 @@ function matchEvent(
 
   if (!event) return null
 
-  const bookmaker = event.bookmakers[0]
+  const bookmaker = event.bookmakers.find(b => b.key === 'winamax_fr' && b.markets.some(m => m.key === 'h2h'))
+    ?? event.bookmakers.find(b => b.markets.some(m => m.key === 'h2h'))
   if (!bookmaker) return null
   const h2h = bookmaker.markets.find(m => m.key === 'h2h')
   if (!h2h) return null

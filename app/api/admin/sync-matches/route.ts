@@ -204,21 +204,10 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
   let events: OddsApiEvent[] = []
 
-  const hasOdds = (evts: OddsApiEvent[]) =>
-    evts.some(e => e.bookmakers.length > 0 && e.bookmakers[0].markets.length > 0)
-
-  const winamax = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
-  if (winamax.ok) {
-    const evts = await winamax.json() as OddsApiEvent[]
-    if (hasOdds(evts)) events = evts
-  }
-
-  if (events.length === 0) {
-    const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
-    if (eu.ok) {
-      const evts = await eu.json() as OddsApiEvent[]
-      if (hasOdds(evts)) events = evts
-    }
+  const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
+  if (eu.ok) {
+    const evts = await eu.json() as OddsApiEvent[]
+    if (evts.some(e => e.bookmakers.length > 0)) events = evts
   }
 
   if (events.length === 0) return 'no_odds_available'
@@ -257,9 +246,10 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
     })
 
     if (!event) continue
-    const bookmaker = event.bookmakers[0]
+    const bookmaker = event.bookmakers.find((b: { key: string; markets: { key: string }[] }) => b.key === 'winamax_fr' && b.markets.some(m => m.key === 'h2h'))
+      ?? event.bookmakers.find((b: { markets: { key: string }[] }) => b.markets.some(m => m.key === 'h2h'))
     if (!bookmaker) continue
-    const h2h = bookmaker.markets.find(m => m.key === 'h2h')
+    const h2h = bookmaker.markets.find((m: { key: string }) => m.key === 'h2h')
     if (!h2h) continue
 
     const homeOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.home_team))?.price
