@@ -105,29 +105,31 @@ export async function POST(req: NextRequest) {
         updated++
       }
 
-      // Calcule les points si le match vient de passer à finished
-      if (justFinished) {
-        const { data: matchRow } = await supabase
-          .from('matches')
-          .select('*')
-          .eq('id', existing.id)
-          .single()
+    }
+  }
 
-        const { data: predictions } = await supabase
-          .from('predictions')
-          .select('*')
-          .eq('match_id', existing.id)
-          .is('calculated_at', null)
+  // Sweep : calcule les points pour tout match terminé avec côtes mais pronos encore non calculés.
+  // Couvre aussi le cas où un match s'est terminé sans côtes et les côtes sont arrivées après.
+  const { data: finishedWithOdds } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('status', 'finished')
+    .not('home_odds', 'is', null)
 
-        for (const pred of (predictions ?? []) as Prediction[]) {
-          const points = computePoints(matchRow as Match, pred)
-          await supabase.from('predictions').update({
-            points_earned: points,
-            calculated_at: new Date().toISOString(),
-          }).eq('id', pred.id)
-          pointsCalculated++
-        }
-      }
+  for (const matchRow of (finishedWithOdds ?? []) as Match[]) {
+    const { data: pending } = await supabase
+      .from('predictions')
+      .select('*')
+      .eq('match_id', matchRow.id)
+      .is('calculated_at', null)
+
+    for (const pred of (pending ?? []) as Prediction[]) {
+      const points = computePoints(matchRow as Match, pred)
+      await supabase.from('predictions').update({
+        points_earned: points,
+        calculated_at: new Date().toISOString(),
+      }).eq('id', pred.id)
+      pointsCalculated++
     }
   }
 
