@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Cherche si ce match est déjà en DB
     const { data: existing } = await supabase
       .from('matches')
-      .select('id, status, home_score, away_score, home_team, away_team, home_flag, stage')
+      .select('id, status, home_score, away_score, home_team, away_team, home_flag, away_flag, stage')
       .eq('fd_match_id', fdMatch.id)
       .maybeSingle()
 
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       // Met à jour si les équipes ont changé (TBD → nom réel) ou si le match vient de se terminer
       const teamsChanged = existing.home_team !== homeTeam || existing.away_team !== awayTeam
       const justFinished = isFinished && hasScore && existing.status !== 'finished'
-      const wrongFlag = existing.home_flag !== getFlag(homeTeam)
+      const wrongFlag = existing.home_flag !== getFlag(homeTeam) || existing.away_flag !== getFlag(awayTeam)
       const wrongStage = existing.stage !== stage
 
       if (teamsChanged || justFinished || wrongFlag || wrongStage) {

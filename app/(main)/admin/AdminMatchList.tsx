@@ -53,7 +53,8 @@ export function FetchAllOddsButton() {
       const data = await res.json()
       if (res.ok) {
         setState('ok')
-        setMsg(`${data.updated ?? 0} matchs mis à jour`)
+        const nf = data.notFound?.length ? ` · Sans cotes: ${data.notFound.join(', ')}` : ''
+        setMsg(`${data.updated ?? 0} matchs mis à jour${nf}`)
       } else {
         setState('error')
         setMsg(data.error ?? 'Erreur inconnue')

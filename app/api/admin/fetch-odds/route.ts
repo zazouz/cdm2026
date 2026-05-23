@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
   if (!events) return NextResponse.json({ error: oddsError ?? 'Erreur The Odds API' }, { status: 502 })
 
   let updated = 0
+  const notFound: string[] = []
   for (const match of matches) {
     const odds = matchEvent(events, match.home_team, match.away_team, match.match_date)
     if (odds) {
@@ -71,10 +72,12 @@ export async function POST(req: NextRequest) {
         odds_fetched_at: new Date().toISOString(),
       }).eq('id', match.id)
       updated++
+    } else {
+      notFound.push(`${match.home_team} vs ${match.away_team}`)
     }
   }
 
-  return NextResponse.json({ ok: true, updated })
+  return NextResponse.json({ ok: true, updated, notFound })
 }
 
 async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; error?: string }> {
