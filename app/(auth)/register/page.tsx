@@ -103,6 +103,10 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          <p className="text-xs text-amber-600 bg-amber-950/40 rounded-lg px-3 py-2">
+            Utilise ton vrai prénom et nom — les comptes avec de faux noms seront supprimés.
+          </p>
+
           {username && (
             <p className="text-xs text-gray-500">
               Ton pseudo : <span className="text-green-400 font-mono">{username}</span>
