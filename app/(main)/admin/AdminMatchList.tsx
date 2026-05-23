@@ -44,17 +44,19 @@ export function SyncButton() {
 export function FetchAllOddsButton() {
   const [state, setState] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
   const [msg, setMsg] = useState('')
+  const [apiEvents, setApiEvents] = useState<string[] | null>(null)
 
   async function handleFetch() {
     setState('loading')
     setMsg('')
+    setApiEvents(null)
     try {
       const res = await fetch('/api/admin/fetch-odds', { method: 'POST' })
       const data = await res.json()
       if (res.ok) {
         setState('ok')
-        const nf = data.notFound?.length ? ` · Sans cotes: ${data.notFound.join(', ')}` : ''
-        setMsg(`${data.updated ?? 0} matchs mis à jour${nf}`)
+        setMsg(`${data.updated ?? 0} matchs mis à jour`)
+        if (data.availableInApi) setApiEvents(data.availableInApi)
       } else {
         setState('error')
         setMsg(data.error ?? 'Erreur inconnue')
@@ -66,7 +68,7 @@ export function FetchAllOddsButton() {
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <button
         onClick={handleFetch}
         disabled={state === 'loading'}
@@ -75,6 +77,12 @@ export function FetchAllOddsButton() {
         {state === 'loading' ? 'Chargement...' : 'Fetcher les cotes (tous les matchs)'}
       </button>
       {msg && <p className={`text-xs ${state === 'error' ? 'text-red-400' : 'text-green-400'}`}>{msg}</p>}
+      {apiEvents && (
+        <div className="rounded-lg border border-gray-700 bg-gray-950 p-3">
+          <p className="text-xs font-semibold text-gray-400 mb-1">Matchs disponibles dans The Odds API ({apiEvents.length}) :</p>
+          <p className="text-xs text-gray-500 font-mono break-all">{apiEvents.join(' · ')}</p>
+        </div>
+      )}
     </div>
   )
 }
