@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import NavBar from './NavBar'
 import BottomNav from './BottomNav'
+import { LanguageProvider } from './LanguageProvider'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -18,12 +19,14 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const isAdmin = profile?.is_admin ?? false
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950">
-      <NavBar username={profile?.username ?? ''} isAdmin={isAdmin} />
-      <main className="flex-1 mx-auto w-full max-w-lg px-4 py-5 pb-24">
-        {children}
-      </main>
-      <BottomNav isAdmin={isAdmin} />
-    </div>
+    <LanguageProvider>
+      <div className="min-h-screen flex flex-col bg-gray-950">
+        <NavBar username={profile?.username ?? ''} isAdmin={isAdmin} />
+        <main className="flex-1 mx-auto w-full max-w-lg px-4 py-5 pb-24">
+          {children}
+        </main>
+        <BottomNav isAdmin={isAdmin} />
+      </div>
+    </LanguageProvider>
   )
 }

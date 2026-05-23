@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
+import { useLanguage } from './LanguageProvider'
 
 export default function NavBar({ username }: { username: string; isAdmin: boolean }) {
   const router = useRouter()
+  const { lang, setLang } = useLanguage()
 
   async function handleLogout() {
     const supabase = createClient()
@@ -20,6 +22,20 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
         CDM 2026
       </div>
       <div className="flex items-center gap-2">
+        <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
+          <button
+            onClick={() => setLang('fr')}
+            className={`px-2.5 py-1 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
+          >
+            FR
+          </button>
+          <button
+            onClick={() => setLang('en')}
+            className={`px-2.5 py-1 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
+          >
+            EN
+          </button>
+        </div>
         <span className="rounded-full border border-gray-800 bg-gray-900 px-3 py-1 font-mono text-[11px] text-gray-500">
           {username}
         </span>

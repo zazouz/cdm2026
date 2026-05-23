@@ -4,6 +4,8 @@ import { useState } from 'react'
 import type { Match, PredictionWithMatch } from '@/lib/types'
 import { formatOdds } from '@/lib/scoring'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '../LanguageProvider'
+import { translateTeam, stageLabel } from '@/lib/i18n'
 
 type Props = {
   match: Match
@@ -30,6 +32,9 @@ function resultLabel(home: number, away: number): string {
 
 export default function MatchCard({ match, prediction, userId }: Props) {
   const router = useRouter()
+  const { lang } = useLanguage()
+  const homeTeam = translateTeam(match.home_team, lang)
+  const awayTeam = translateTeam(match.away_team, lang)
   const isLocked = new Date(match.match_date).getTime() - 15 * 60 * 1000 <= Date.now() || match.status === 'finished'
   const isFinished = match.status === 'finished'
 
@@ -69,9 +74,9 @@ export default function MatchCard({ match, prediction, userId }: Props) {
 
   // Compute hint text
   const predictedWinner = home > away
-    ? match.home_team
+    ? homeTeam
     : away > home
-    ? match.away_team
+    ? awayTeam
     : null
   const relevantOdds = home > away
     ? match.home_odds
@@ -80,9 +85,9 @@ export default function MatchCard({ match, prediction, userId }: Props) {
     : match.draw_odds
   const maxPts = relevantOdds ? (3 * relevantOdds).toFixed(2) : null
 
-  const stageLabel = match.stage === 'group' && match.group_name
+  const stageBadge = match.stage === 'group' && match.group_name
     ? `Gr. ${match.group_name}`
-    : match.stage === 'r16' ? '8e' : match.stage === 'qf' ? 'QF' : match.stage === 'sf' ? 'SF' : match.stage === 'final' ? 'Finale' : match.stage.toUpperCase()
+    : stageLabel(match.stage, lang)
 
   return (
     <div className={`overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 ${isFinished ? 'opacity-70' : ''}`}>
@@ -90,7 +95,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       {/* Meta row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-1">
         <span className="rounded-full bg-gray-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-          {stageLabel}
+          {stageBadge}
         </span>
         <span className="text-[11px] text-gray-600">{formatDate(match.match_date)}</span>
       </div>
@@ -108,7 +113,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {match.home_flag
             ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
             : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-          <span className="text-center text-xs font-semibold leading-tight text-white">{match.home_team}</span>
+          <span className="text-center text-xs font-semibold leading-tight text-white">{homeTeam}</span>
         </div>
         <div className="flex w-16 flex-col items-center gap-0.5 text-gray-600">
           {isFinished && match.home_score !== null ? (
@@ -122,9 +127,9 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         </div>
         <div className="flex flex-1 flex-col items-center gap-2">
           {match.away_flag
-            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={awayTeam} className="h-7 w-auto rounded-sm shadow object-cover" />
             : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-          <span className="text-center text-xs font-semibold leading-tight text-white">{match.away_team}</span>
+          <span className="text-center text-xs font-semibold leading-tight text-white">{awayTeam}</span>
         </div>
       </div>
 
