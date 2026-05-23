@@ -12,12 +12,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('prono_lang') as Lang | null
-    if (stored === 'fr' || stored === 'en') setLangState(stored)
+    if (stored === 'fr' || stored === 'en') {
+      setLangState(stored)
+      document.cookie = `prono_lang=${stored};path=/;max-age=31536000;samesite=lax`
+    }
   }, [])
 
   function setLang(l: Lang) {
     setLangState(l)
     localStorage.setItem('prono_lang', l)
+    document.cookie = `prono_lang=${l};path=/;max-age=31536000;samesite=lax`
   }
 
   return (

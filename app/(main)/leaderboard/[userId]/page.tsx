@@ -1,11 +1,42 @@
 import { createAdminClient, createClient } from '@/lib/supabase-server'
-import { STAGE_LABELS } from '@/lib/types'
+import { cookies } from 'next/headers'
+import type { Lang } from '@/lib/i18n'
+import { stageLabel } from '@/lib/i18n'
 import type { Match, Prediction } from '@/lib/types'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { flagUrl } from '@/lib/flags'
 
 export const revalidate = 60
+
+const T = {
+  fr: {
+    back: '← Classement',
+    you: 'toi',
+    rank: 'rang',
+    points: 'Points',
+    exacts: 'Exacts',
+    corrects: 'Corrects',
+    empty: 'Aucun match terminé pour l\'instant.',
+    result: 'résultat',
+    bet: 'Prono',
+    noBet: 'Pas de prono',
+    group: (n: string) => `Groupe ${n}`,
+  },
+  en: {
+    back: '← Standings',
+    you: 'you',
+    rank: 'rank',
+    points: 'Points',
+    exacts: 'Exact',
+    corrects: 'Correct',
+    empty: 'No finished matches yet.',
+    result: 'result',
+    bet: 'Bet',
+    noBet: 'No bet',
+    group: (n: string) => `Group ${n}`,
+  },
+}
 
 function resultSign(home: number, away: number): -1 | 0 | 1 {
   if (home > away) return 1
@@ -15,6 +46,11 @@ function resultSign(home: number, away: number): -1 | 0 | 1 {
 
 export default async function UserPredictionsPage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params
+
+  const cookieStore = await cookies()
+  const rawLang = cookieStore.get('prono_lang')?.value
+  const lang: Lang = rawLang === 'fr' || rawLang === 'en' ? rawLang : 'fr'
+  const t = T[lang]
 
   const [supabase, admin] = await Promise.all([createClient(), createAdminClient()])
 
@@ -81,7 +117,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
         href="/leaderboard"
         className="inline-flex items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-white"
       >
-        ← Classement
+        {t.back}
       </Link>
 
       {/* User header */}
@@ -92,7 +128,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
         <div className="flex-1 min-w-0">
           <p className="text-base font-extrabold text-white">
             {profile.first_name} {profile.last_name}
-            {isMe && <span className="ml-2 rounded-full bg-green-950 px-2 py-0.5 text-[10px] text-green-500">toi</span>}
+            {isMe && <span className="ml-2 rounded-full bg-green-950 px-2 py-0.5 text-[10px] text-green-500">{t.you}</span>}
           </p>
           <p className="font-mono text-[11px] text-gray-600">{profile.username}</p>
         </div>
@@ -101,7 +137,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
             <div className="text-xl font-extrabold text-white">
               {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`}
             </div>
-            <div className="text-[9px] uppercase tracking-wide text-gray-600">rang</div>
+            <div className="text-[9px] uppercase tracking-wide text-gray-600">{t.rank}</div>
           </div>
         )}
       </div>
@@ -110,30 +146,30 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
           <span className="text-2xl font-extrabold tracking-tight text-white">{Number(totalPoints).toFixed(2)}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">Points</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">{t.points}</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
           <span className="text-2xl font-extrabold text-green-400">{exactCount}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">Exacts</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">{t.exacts}</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
           <span className="text-2xl font-extrabold text-blue-400">{correctCount}</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">Corrects</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">{t.corrects}</span>
         </div>
       </div>
 
       {matches.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <p className="text-3xl mb-3">🎯</p>
-          <p className="text-sm font-semibold text-gray-400">Aucun match terminé pour l&apos;instant.</p>
+          <p className="text-sm font-semibold text-gray-400">{t.empty}</p>
         </div>
       ) : (
         <div className="space-y-6">
           {sortedGroups.map(([key, groupMatches]) => {
             const [stage, groupName] = key.split('__')
             const label = stage === 'group' && groupName
-              ? `Groupe ${groupName}`
-              : STAGE_LABELS[stage] ?? stage
+              ? t.group(groupName)
+              : stageLabel(stage, lang)
 
             return (
               <section key={key}>
@@ -158,7 +194,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
                           </div>
                           <div className="w-14 flex-shrink-0 text-center">
                             <div className="text-lg font-extrabold text-white">{m.home_score}–{m.away_score}</div>
-                            <div className="text-[9px] uppercase text-gray-600">résultat</div>
+                            <div className="text-[9px] uppercase text-gray-600">{t.result}</div>
                           </div>
                           <div className="flex flex-1 flex-col items-center gap-1.5">
                             {m.away_flag
@@ -171,10 +207,10 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
                         <div className="flex items-center justify-between border-t border-gray-800 bg-gray-900/60 px-4 py-2.5">
                           {p ? (
                             <span className="text-[11px] text-gray-500">
-                              Prono : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
+                              {t.bet} : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
                             </span>
                           ) : (
-                            <span className="text-[11px] text-gray-600 italic">Pas de prono</span>
+                            <span className="text-[11px] text-gray-600 italic">{t.noBet}</span>
                           )}
                           <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                             isExact ? 'bg-green-950 text-green-400'

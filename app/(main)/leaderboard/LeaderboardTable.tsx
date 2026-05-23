@@ -3,15 +3,26 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { LeaderboardEntry } from '@/lib/types'
+import type { Lang } from '@/lib/i18n'
 
 type SortKey = 'total_points' | 'exact_scores' | 'correct_results'
+
+const COL_LABELS: Record<string, { fr: string; en: string }> = {
+  player: { fr: 'Joueur', en: 'Player' },
+  gp: { fr: 'MJ', en: 'GP' },
+  es: { fr: 'SE', en: 'ES' },
+  cr: { fr: 'RJ', en: 'CR' },
+  you: { fr: 'toi', en: 'you' },
+}
 
 export default function LeaderboardTable({
   entries,
   currentUserId,
+  lang,
 }: {
   entries: LeaderboardEntry[]
   currentUserId: string
+  lang: Lang
 }) {
   const [sortKey, setSortKey] = useState<SortKey>('total_points')
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc')
@@ -50,10 +61,10 @@ export default function LeaderboardTable({
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-gray-800 px-4 py-2.5">
         <span className="w-5 shrink-0 text-center text-[10px] font-bold uppercase tracking-wider text-gray-600">#</span>
-        <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-gray-600">Joueur</span>
-        <span className="w-9 text-right text-[10px] font-bold uppercase tracking-wider text-gray-600">MJ</span>
-        <ColHeader label="SE" col="exact_scores" />
-        <ColHeader label="RJ" col="correct_results" />
+        <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-gray-600">{COL_LABELS.player[lang]}</span>
+        <span className="w-9 text-right text-[10px] font-bold uppercase tracking-wider text-gray-600">{COL_LABELS.gp[lang]}</span>
+        <ColHeader label={COL_LABELS.es[lang]} col="exact_scores" />
+        <ColHeader label={COL_LABELS.cr[lang]} col="correct_results" />
         <ColHeader label="Pts" col="total_points" />
       </div>
 
@@ -73,7 +84,7 @@ export default function LeaderboardTable({
               <p className={`text-sm font-semibold truncate ${isMe ? 'text-green-400' : 'text-white'}`}>
                 {entry.first_name} {entry.last_name}
                 {isMe && (
-                  <span className="ml-1.5 rounded-full bg-green-950 px-1.5 py-0.5 text-[9px] text-green-600">toi</span>
+                  <span className="ml-1.5 rounded-full bg-green-950 px-1.5 py-0.5 text-[9px] text-green-600">{COL_LABELS.you[lang]}</span>
                 )}
               </p>
               <p className="font-mono text-[10px] text-gray-600 truncate">{entry.username}</p>
