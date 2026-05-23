@@ -3,6 +3,7 @@ import { STAGE_LABELS } from '@/lib/types'
 import type { PredictionWithMatch } from '@/lib/types'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { flagUrl } from '@/lib/flags'
 
 export const revalidate = 60
 
@@ -154,7 +155,9 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
                       <div key={p.id} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
                         <div className="flex items-center px-4 py-3">
                           <div className="flex flex-1 flex-col items-center gap-1.5">
-                            <span className="text-2xl leading-none">{p.home_flag}</span>
+                            {p.home_flag
+                              ? <img src={flagUrl(p.home_flag)} alt={p.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+                              : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
                             <span className="text-center text-[11px] font-semibold leading-tight text-white">{p.home_team}</span>
                           </div>
                           <div className="w-14 flex-shrink-0 text-center">
@@ -162,7 +165,9 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
                             <div className="text-[9px] uppercase text-gray-600">résultat</div>
                           </div>
                           <div className="flex flex-1 flex-col items-center gap-1.5">
-                            <span className="text-2xl leading-none">{p.away_flag}</span>
+                            {p.away_flag
+                              ? <img src={flagUrl(p.away_flag)} alt={p.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+                              : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
                             <span className="text-center text-[11px] font-semibold leading-tight text-white">{p.away_team}</span>
                           </div>
                         </div>
