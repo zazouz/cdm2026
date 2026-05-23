@@ -81,20 +81,24 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
   const apiKey = process.env.ODDS_API_KEY
   if (!apiKey) return { events: null, error: 'ODDS_API_KEY manquant' }
 
-  const url = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&bookmakers=winamax_fr&markets=h2h&oddsFormat=decimal`
-  const res = await fetch(url, { next: { revalidate: 0 } })
-  if (!res.ok) {
-    const body = await res.text().catch(() => '')
-    return { events: null, error: `The Odds API ${res.status}: ${body.slice(0, 200)}` }
+  const sportKeys = ['soccer_fifa_world_cup', 'soccer_fifa_world_cup_2026']
+  for (const sportKey of sportKeys) {
+    const url = `https://api.the-odds-api.com/v4/sports/${sportKey}/odds?apiKey=${apiKey}&bookmakers=winamax_fr&markets=h2h&oddsFormat=decimal`
+    const res = await fetch(url, { next: { revalidate: 0 } })
+    if (!res.ok) continue
+    const events = await res.json() as OddsApiEvent[]
+    if (events.length > 0) return { events }
+    // Winamax vide → fallback tous bookmakers EU
+    const fallback = await fetch(
+      `https://api.the-odds-api.com/v4/sports/${sportKey}/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal`,
+      { next: { revalidate: 0 } }
+    )
+    if (fallback.ok) {
+      const fallbackEvents = await fallback.json() as OddsApiEvent[]
+      if (fallbackEvents.length > 0) return { events: fallbackEvents }
+    }
   }
-  const events = await res.json() as OddsApiEvent[]
-  if (events.length === 0) {
-    const fallbackUrl = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal`
-    const fallbackRes = await fetch(fallbackUrl, { next: { revalidate: 0 } })
-    if (!fallbackRes.ok) return { events: null, error: `Fallback EU: ${fallbackRes.status}` }
-    return { events: await fallbackRes.json() }
-  }
-  return { events }
+  return { events: null, error: 'Aucun sport WC trouvé sur The Odds API — les cotes ne sont peut-être pas encore disponibles' }
 }
 
 function matchEvent(

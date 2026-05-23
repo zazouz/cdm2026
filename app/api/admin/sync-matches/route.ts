@@ -86,10 +86,10 @@ export async function POST(req: NextRequest) {
       // Met à jour si les équipes ont changé (TBD → nom réel) ou si le match vient de se terminer
       const teamsChanged = existing.home_team !== homeTeam || existing.away_team !== awayTeam
       const justFinished = isFinished && hasScore && existing.status !== 'finished'
-      const missingFlag = !existing.home_flag
+      const wrongFlag = existing.home_flag !== getFlag(homeTeam)
       const wrongStage = existing.stage !== stage
 
-      if (teamsChanged || justFinished || missingFlag || wrongStage) {
+      if (teamsChanged || justFinished || wrongFlag || wrongStage) {
         await supabase.from('matches').update({
           home_team: homeTeam,
           away_team: awayTeam,
