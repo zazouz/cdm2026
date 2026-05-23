@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-server'
+import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { computePoints } from '@/lib/scoring'
 import type { Match, Prediction } from '@/lib/types'
+
+async function isAdmin(): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false
+  const { data } = await supabase.from('users').select('is_admin').eq('id', user.id).single()
+  return data?.is_admin ?? false
+}
 
 const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
 const ODDS_AUTO_FETCH_DELAY_HOURS = 12
@@ -15,7 +23,8 @@ export async function POST(req: NextRequest) {
   const secret =
     req.headers.get('x-admin-secret') ??
     req.headers.get('authorization')?.replace('Bearer ', '')
-  if (secret !== process.env.ADMIN_SECRET) {
+  const isAdminUser = await isAdmin()
+  if (!isAdminUser && secret !== process.env.ADMIN_SECRET) {
     return NextResponse.json({ error: 'Interdit' }, { status: 403 })
   }
 

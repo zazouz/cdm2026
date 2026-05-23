@@ -4,6 +4,80 @@ import { useState } from 'react'
 import type { Match } from '@/lib/types'
 import { STAGE_LABELS } from '@/lib/types'
 
+export function SyncButton() {
+  const [state, setState] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
+  const [msg, setMsg] = useState('')
+
+  async function handleSync() {
+    setState('loading')
+    setMsg('')
+    try {
+      const res = await fetch('/api/admin/sync-matches', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setState('ok')
+        setMsg(`Créés: ${data.created} · Mis à jour: ${data.updated} · Points: ${data.pointsCalculated}`)
+      } else {
+        setState('error')
+        setMsg(data.error ?? 'Erreur inconnue')
+      }
+    } catch {
+      setState('error')
+      setMsg('Erreur réseau')
+    }
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={handleSync}
+        disabled={state === 'loading'}
+        className="bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm px-4 py-2 rounded-lg font-medium"
+      >
+        {state === 'loading' ? 'Sync en cours...' : 'Sync football-data.org'}
+      </button>
+      {msg && <p className={`text-xs ${state === 'error' ? 'text-red-400' : 'text-green-400'}`}>{msg}</p>}
+    </div>
+  )
+}
+
+export function FetchAllOddsButton() {
+  const [state, setState] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
+  const [msg, setMsg] = useState('')
+
+  async function handleFetch() {
+    setState('loading')
+    setMsg('')
+    try {
+      const res = await fetch('/api/admin/fetch-odds', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setState('ok')
+        setMsg(`${data.updated ?? 0} matchs mis à jour`)
+      } else {
+        setState('error')
+        setMsg(data.error ?? 'Erreur inconnue')
+      }
+    } catch {
+      setState('error')
+      setMsg('Erreur réseau')
+    }
+  }
+
+  return (
+    <div className="space-y-1">
+      <button
+        onClick={handleFetch}
+        disabled={state === 'loading'}
+        className="bg-amber-700 hover:bg-amber-600 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm px-4 py-2 rounded-lg font-medium"
+      >
+        {state === 'loading' ? 'Chargement...' : 'Fetcher les cotes (tous les matchs)'}
+      </button>
+      {msg && <p className={`text-xs ${state === 'error' ? 'text-red-400' : 'text-green-400'}`}>{msg}</p>}
+    </div>
+  )
+}
+
 function formatDate(d: string) {
   return new Date(d).toLocaleString('fr-FR', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
