@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pronostics CDM 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none }
+    input[type=number] { -moz-appearance:textfield }
+    .tab-active { position:relative }
+    .tab-active::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:#22c55e; border-radius:2px 2px 0 0 }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+
+<div id="app"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const ME = { username:'davidleroux', first:'David', last:'Leroux' }
+
+// state: 'open' = pronostic encore possible | 'live' = en cours | 'done' = terminé
+const MATCHES = [
+  // OPEN — pronostiquables
+  { id:1,  home:'France',        away:'Belgique',        hf:'🇫🇷', af:'🇧🇪', date:'2026-06-15T19:00Z', group:'F', h1:2.10, hN:3.40, h2:3.60, hs:null, as_:null, state:'open', pred:{h:2,a:1} },
+  { id:2,  home:'Italie',        away:'Suisse',          hf:'🇮🇹', af:'🇨🇭', date:'2026-06-15T23:00Z', group:'F', h1:2.30, hN:3.20, h2:3.10, hs:null, as_:null, state:'open', pred:null },
+  { id:3,  home:'Espagne',       away:'Allemagne',       hf:'🇪🇸', af:'🇩🇪', date:'2026-06-24T02:00Z', group:'E', h1:2.20, hN:3.40, h2:3.10, hs:null, as_:null, state:'open', pred:null },
+  { id:4,  home:'Brésil',        away:'Japon',           hf:'🇧🇷', af:'🇯🇵', date:'2026-06-23T02:00Z', group:'D', h1:1.55, hN:4.10, h2:5.80, hs:null, as_:null, state:'open', pred:{h:2,a:0} },
+  { id:5,  home:'Argentine',     away:'Canada',          hf:'🇦🇷', af:'🇨🇦', date:'2026-06-21T23:00Z', group:'B', h1:1.80, hN:3.70, h2:4.20, hs:null, as_:null, state:'open', pred:null },
+  // LIVE — en cours (verrouillés, dans Mes Pronos)
+  { id:6,  home:'Allemagne',     away:'Arabie Saoudite', hf:'🇩🇪', af:'🇸🇦', date:'2026-06-14T23:00Z', group:'E', h1:1.35, hN:5.50, h2:9.00, hs:null, as_:null, state:'live', pred:{h:2,a:0} },
+  { id:7,  home:'Maroc',         away:'Tchéquie',        hf:'🇲🇦', af:'🇨🇿', date:'2026-06-17T19:00Z', group:'C', h1:2.60, hN:3.20, h2:2.70, hs:null, as_:null, state:'live', pred:null },
+  // DONE — terminés
+  { id:8,  home:'Espagne',       away:'Arabie Saoudite', hf:'🇪🇸', af:'🇸🇦', date:'2026-06-19T23:00Z', group:'E', h1:1.40, hN:5.00, h2:8.00, hs:3, as_:0, state:'done', pred:{h:2,a:0}, pts:4.20 },
+  { id:9,  home:'Allemagne',     away:'Venezuela',       hf:'🇩🇪', af:'🇻🇪', date:'2026-06-19T19:00Z', group:'E', h1:1.35, hN:5.50, h2:9.00, hs:2, as_:1, state:'done', pred:{h:1,a:0}, pts:1.35 },
+  { id:10, home:'Portugal',      away:'Tanzanie',        hf:'🇵🇹', af:'🇹🇿', date:'2026-06-18T02:00Z', group:'C', h1:1.22, hN:6.50, h2:12.0, hs:4, as_:0, state:'done', pred:{h:4,a:0}, pts:3.66 },
+  { id:11, home:'France',        away:'Suisse',          hf:'🇫🇷', af:'🇨🇭', date:'2026-06-20T02:00Z', group:'F', h1:1.75, hN:3.80, h2:4.50, hs:1, as_:2, state:'done', pred:{h:2,a:1}, pts:0 },
+  { id:12, home:'Corée du Sud',  away:'Nouvelle-Zélande',hf:'🇰🇷', af:'🇳🇿', date:'2026-06-23T19:00Z', group:'I', h1:1.70, hN:3.90, h2:5.00, hs:null, as_:null, state:'live', pred:{h:1,a:0} },
+]
+
+const LEADERBOARD = [
+  { rank:1, un:'kariembenzema',   f:'Karim',   l:'Benzema',     pts:38.60, exact:4, correct:11 },
+  { rank:2, un:'mariedumont',     f:'Marie',   l:'Dumont',      pts:31.25, exact:3, correct:9  },
+  { rank:3, un:'davidleroux',     f:'David',   l:'Leroux',      pts:27.80, exact:2, correct:8  },
+  { rank:4, un:'thomasmartin',    f:'Thomas',  l:'Martin',      pts:22.10, exact:2, correct:7  },
+  { rank:5, un:'sophiebernard',   f:'Sophie',  l:'Bernard',     pts:18.90, exact:1, correct:6  },
+  { rank:6, un:'lucasrobert',     f:'Lucas',   l:'Robert',      pts:15.40, exact:1, correct:5  },
+  { rank:7, un:'emmacharpentier', f:'Emma',    l:'Charpentier', pts:12.00, exact:0, correct:4  },
+]
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let PAGE = 'matches'
+let LOGGED = false
+
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+const fDate = d => new Date(d).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})
+const fTime = d => new Date(d).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Paris'})
+const fOdds = v => v != null ? v.toFixed(2) : '—'
+const go = p => { PAGE = p; render() }
+const $ = id => document.getElementById(id)
+
+function calcPotential(m, h, a) {
+  if (h === '' || a === '' || !m.h1) return null
+  h = +h; a = +a
+  const odds = h > a ? m.h1 : h < a ? m.h2 : m.hN
+  return (3 * odds).toFixed(2)
+}
+
+// ── ROOT ───────────────────────────────────────────────────────────────────────
+function render() {
+  $('app').innerHTML = LOGGED ? shell() : loginPage()
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AUTH PAGES
+// ══════════════════════════════════════════════════════════════════════════════
+function loginPage() { return `
+<div class="min-h-screen flex flex-col items-center justify-center px-4 gap-8">
+  <div class="text-center">
+    <div class="text-5xl mb-2">🏆</div>
+    <h1 class="text-2xl font-bold tracking-tight">CDM 2026 Pronostics</h1>
+  </div>
+  <div class="w-full max-w-sm bg-gray-900 rounded-2xl p-6 space-y-4">
+    <div>
+      <label class="text-xs text-gray-500 font-medium uppercase tracking-wider">Pseudo</label>
+      <input type="text" value="davidleroux" class="mt-1.5 w-full bg-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-transparent focus:border-green-500"/>
+    </div>
+    <div>
+      <label class="text-xs text-gray-500 font-medium uppercase tracking-wider">Mot de passe</label>
+      <input type="password" value="••••••" class="mt-1.5 w-full bg-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-transparent"/>
+    </div>
+    <button onclick="LOGGED=true;go('matches')" class="w-full bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors mt-1">
+      Se connecter
+    </button>
+    <p class="text-center text-xs text-gray-600">
+      Pas de compte ? <button onclick="showReg()" class="text-green-400 hover:text-green-300">S'inscrire</button>
+    </p>
+  </div>
+</div>`
+}
+
+function showReg() {
+  $('app').innerHTML = `
+<div class="min-h-screen flex flex-col items-center justify-center px-4 gap-8">
+  <div class="text-center">
+    <div class="text-5xl mb-2">🏆</div>
+    <h1 class="text-2xl font-bold tracking-tight">CDM 2026 Pronostics</h1>
+    <p class="text-sm text-gray-500 mt-1">Crée ton compte</p>
+  </div>
+  <div class="w-full max-w-sm bg-gray-900 rounded-2xl p-6 space-y-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="text-xs text-gray-500 font-medium uppercase tracking-wider">Prénom</label>
+        <input id="rf" type="text" placeholder="Karim" oninput="updSlug()" class="mt-1.5 w-full bg-gray-800 rounded-xl px-3 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-transparent"/>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 font-medium uppercase tracking-wider">Nom</label>
+        <input id="rl" type="text" placeholder="Benzema" oninput="updSlug()" class="mt-1.5 w-full bg-gray-800 rounded-xl px-3 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-transparent"/>
+      </div>
+    </div>
+    <div id="slugBox" class="hidden bg-gray-800 rounded-xl px-4 py-2.5 flex items-center gap-2">
+      <span class="text-xs text-gray-500">Pseudo :</span>
+      <span id="slugVal" class="text-sm font-mono text-green-400 font-medium"></span>
+    </div>
+    <div>
+      <label class="text-xs text-gray-500 font-medium uppercase tracking-wider">Mot de passe</label>
+      <input type="password" placeholder="6 caractères min." class="mt-1.5 w-full bg-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-transparent"/>
+    </div>
+    <div>
+      <label class="text-xs text-gray-500 font-medium uppercase tracking-wider">Confirmer</label>
+      <input type="password" placeholder="••••••••" class="mt-1.5 w-full bg-gray-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 border border-transparent"/>
+    </div>
+    <button onclick="LOGGED=true;go('matches')" class="w-full bg-green-600 hover:bg-green-500 text-white font-semibold rounded-xl py-3 text-sm transition-colors">
+      Créer mon compte
+    </button>
+    <p class="text-center text-xs text-gray-600">
+      Déjà un compte ? <button onclick="render()" class="text-green-400 hover:text-green-300">Se connecter</button>
+    </p>
+  </div>
+</div>`
+}
+
+function updSlug() {
+  const v = (($('rf')?.value??'') + ($('rl')?.value??'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'')
+  const b = $('slugBox'); const s = $('slugVal')
+  if (!b || !s) return
+  if (v) { b.classList.remove('hidden'); s.textContent = v }
+  else b.classList.add('hidden')
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// APP SHELL
+// ══════════════════════════════════════════════════════════════════════════════
+function shell() {
+  const tabs = [
+    { id:'matches',     label:'Matchs' },
+    { id:'mypronos',    label:'Mes pronos' },
+    { id:'leaderboard', label:'Classement' },
+    { id:'admin',       label:'Admin' },
+  ]
+  const liveCount = MATCHES.filter(m => m.state === 'live').length
+  return `
+<div class="flex flex-col min-h-screen">
+  <!-- Top bar -->
+  <header class="bg-gray-900 border-b border-gray-800/80 sticky top-0 z-20">
+    <div class="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+      <span class="font-bold text-sm tracking-tight">🏆 CDM 2026</span>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-gray-500 font-mono">${ME.username}</span>
+        <button onclick="LOGGED=false;render()" class="text-xs text-gray-600 hover:text-red-400 transition-colors">Déco</button>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="max-w-lg mx-auto px-4 flex border-t border-gray-800/60">
+      ${tabs.map(t => {
+        const badge = t.id === 'mypronos' && liveCount > 0
+          ? `<span class="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">${liveCount}</span>`
+          : ''
+        return `<button onclick="go('${t.id}')"
+          class="flex-1 flex items-center justify-center gap-1 py-3 text-xs font-medium transition-colors ${PAGE===t.id ? 'text-white tab-active' : 'text-gray-500 hover:text-gray-300'}">
+          ${t.label}${badge}
+        </button>`
+      }).join('')}
+    </div>
+  </header>
+
+  <!-- Page content -->
+  <main class="max-w-lg mx-auto w-full px-3 py-5 flex-1 space-y-3">
+    ${PAGE==='matches'     ? pageMatches()     : ''}
+    ${PAGE==='mypronos'    ? pageMyPronos()    : ''}
+    ${PAGE==='leaderboard' ? pageLeaderboard() : ''}
+    ${PAGE==='admin'       ? pageAdmin()       : ''}
+  </main>
+</div>`
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MATCHES TAB — only open matches
+// ══════════════════════════════════════════════════════════════════════════════
+function pageMatches() {
+  const open = MATCHES.filter(m => m.state === 'open')
+  if (open.length === 0) return `<p class="text-center text-gray-600 py-16 text-sm">Aucun match à pronostiquer pour l'instant.</p>`
+
+  // group by group
+  const byGroup = {}
+  for (const m of open) {
+    if (!byGroup[m.group]) byGroup[m.group] = []
+    byGroup[m.group].push(m)
+  }
+
+  return `
+<div class="space-y-5">
+  <p class="text-xs text-gray-600 px-1">Pronostics fermés 15 minutes avant le coup d'envoi.</p>
+  ${Object.entries(byGroup).map(([g, ms]) => `
+  <section class="space-y-2.5">
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-widest px-1">Groupe ${g}</h2>
+    ${ms.map(matchCard).join('')}
+  </section>`).join('')}
+</div>`
+}
+
+function matchCard(m) {
+  const hasPred = !!m.pred
+  const uid = `m${m.id}`
+
+  // Détermine quelle côte est active selon le prono actuel
+  const predResult = hasPred ? (m.pred.h > m.pred.a ? 'home' : m.pred.h < m.pred.a ? 'away' : 'draw') : null
+
+  const oddsBlock = (id, label, flag, odds, active) => `
+    <div id="${id}" class="flex-1 rounded-xl p-2.5 text-center transition-all duration-150 border-2 ${active
+      ? 'bg-green-950 border-green-500'
+      : 'bg-gray-800 border-transparent hover:border-gray-600'}">
+      <div class="text-[11px] font-medium truncate ${active ? 'text-green-300' : 'text-gray-400'}">${flag ? flag+' ' : ''}${label}</div>
+      <div class="text-base font-bold mt-0.5 ${active ? 'text-green-300' : 'text-white'}">${fOdds(odds)}</div>
+    </div>`
+
+  return `
+<div class="bg-gray-900 rounded-2xl overflow-hidden" id="card-${m.id}">
+  <!-- Header -->
+  <div class="flex items-center justify-between px-4 pt-3.5 pb-0">
+    <span class="text-xs text-gray-600">${fDate(m.date)} · ${fTime(m.date)}</span>
+    ${hasPred
+      ? `<span class="text-xs text-green-500 font-medium flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>Prono posé</span>`
+      : `<span class="text-xs text-gray-700">Groupe ${m.group}</span>`}
+  </div>
+
+  <!-- Teams + score inputs -->
+  <div class="grid grid-cols-3 gap-0 px-4 pt-4 pb-3 items-center">
+    <div class="flex flex-col items-center gap-1.5">
+      <span class="text-3xl">${m.hf}</span>
+      <span class="text-sm font-semibold text-white text-center leading-tight">${m.home}</span>
+      <input id="${uid}h" type="number" min="0" max="20" value="${hasPred ? m.pred.h : ''}"
+        placeholder="—" oninput="updPotential('${uid}',${m.id})"
+        class="w-14 h-12 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 focus:border-green-500 rounded-xl text-center text-white text-xl font-bold focus:outline-none transition-colors mt-1"/>
+    </div>
+    <div class="flex flex-col items-center justify-center gap-1">
+      <span class="text-gray-700 text-sm font-bold mt-9">–</span>
+      <span id="${uid}pts" class="text-xs font-semibold text-center leading-tight transition-all ${hasPred ? 'text-green-400' : 'text-transparent'}">
+        ${hasPred ? calcPotential(m, m.pred.h, m.pred.a)+' pts max' : '0'}
+      </span>
+    </div>
+    <div class="flex flex-col items-center gap-1.5">
+      <span class="text-3xl">${m.af}</span>
+      <span class="text-sm font-semibold text-white text-center leading-tight">${m.away}</span>
+      <input id="${uid}a" type="number" min="0" max="20" value="${hasPred ? m.pred.a : ''}"
+        placeholder="—" oninput="updPotential('${uid}',${m.id})"
+        class="w-14 h-12 bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 focus:border-green-500 rounded-xl text-center text-white text-xl font-bold focus:outline-none transition-colors mt-1"/>
+    </div>
+  </div>
+
+  <!-- Côtes -->
+  ${m.h1 != null ? `
+  <div class="flex gap-2 px-4 pb-3">
+    ${oddsBlock(uid+'oh', m.home, m.hf, m.h1, predResult==='home')}
+    ${oddsBlock(uid+'on', 'Match nul', '', m.hN, predResult==='draw')}
+    ${oddsBlock(uid+'oa', m.away, m.af, m.h2, predResult==='away')}
+  </div>` : `<div class="px-4 pb-3 text-xs text-gray-700 text-center">Côtes disponibles prochainement</div>`}
+
+  <!-- Bouton valider -->
+  <div class="px-4 pb-4">
+    <button id="${uid}btn" onclick="saveCard('${uid}',${m.id})"
+      class="w-full ${hasPred ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-500 text-white'} text-sm font-semibold py-2.5 rounded-xl transition-colors">
+      ${hasPred ? 'Modifier le pronostic' : 'Valider le pronostic'}
+    </button>
+  </div>
+</div>`
+}
+
+function updPotential(uid, matchId) {
+  const m = MATCHES.find(x => x.id === matchId)
+  const h = $(uid+'h')?.value
+  const a = $(uid+'a')?.value
+  const ptsEl = $(uid+'pts')
+
+  // Met à jour les points potentiels
+  if (ptsEl) {
+    const p = calcPotential(m, h, a)
+    if (p && h !== '' && a !== '') {
+      ptsEl.textContent = p + ' pts max'
+      ptsEl.className = 'text-xs font-semibold text-center leading-tight text-green-400'
+    } else {
+      ptsEl.textContent = '0'
+      ptsEl.className = 'text-xs font-semibold text-center leading-tight text-transparent'
+    }
+  }
+
+  // Surligne la bonne côte
+  const hv = h !== '' ? +h : null
+  const av = a !== '' ? +a : null
+  const result = hv !== null && av !== null
+    ? (hv > av ? 'home' : hv < av ? 'away' : 'draw')
+    : null
+
+  const activeClass = 'flex-1 rounded-xl p-2.5 text-center transition-all duration-150 border-2 bg-green-950 border-green-500'
+  const inactiveClass = 'flex-1 rounded-xl p-2.5 text-center transition-all duration-150 border-2 bg-gray-800 border-transparent hover:border-gray-600'
+
+  const setOddsStyle = (id, isActive) => {
+    const el = $(id)
+    if (!el) return
+    el.className = isActive ? activeClass : inactiveClass
+    el.querySelector('div:first-child').className = `text-[11px] font-medium truncate ${isActive ? 'text-green-300' : 'text-gray-400'}`
+    el.querySelector('div:last-child').className = `text-base font-bold mt-0.5 ${isActive ? 'text-green-300' : 'text-white'}`
+  }
+
+  setOddsStyle(uid+'oh', result === 'home')
+  setOddsStyle(uid+'on', result === 'draw')
+  setOddsStyle(uid+'oa', result === 'away')
+}
+
+function saveCard(uid, matchId) {
+  const btn = $(uid+'btn')
+  if (!btn) return
+  btn.textContent = '✓ Enregistré'
+  btn.className = 'bg-green-700 text-green-200 text-xs font-semibold px-4 py-2 rounded-xl'
+  btn.disabled = true
+  setTimeout(() => {
+    btn.textContent = 'Modifier'
+    btn.className = 'bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition-colors'
+    btn.disabled = false
+  }, 2000)
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MES PRONOS TAB
+// ══════════════════════════════════════════════════════════════════════════════
+function pageMyPronos() {
+  const live = MATCHES.filter(m => m.state === 'live')
+  const done = MATCHES.filter(m => m.state === 'done')
+
+  const totalPts = done.reduce((s,m) => s + (m.pts??0), 0)
+  const exact = done.filter(m => m.pts > 0 && m.hs===m.pred?.h && m.as_===m.pred?.a).length
+  const correct = done.filter(m => m.pts > 0).length
+
+  return `
+<div class="space-y-5">
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-2">
+    <div class="bg-gray-900 rounded-2xl p-3.5 text-center">
+      <div class="text-xl font-bold text-green-400">${totalPts.toFixed(2)}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Points</div>
+    </div>
+    <div class="bg-gray-900 rounded-2xl p-3.5 text-center">
+      <div class="text-xl font-bold text-white">${exact}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Score exact</div>
+    </div>
+    <div class="bg-gray-900 rounded-2xl p-3.5 text-center">
+      <div class="text-xl font-bold text-white">${correct}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Bon résultat</div>
+    </div>
+  </div>
+
+  <!-- En cours -->
+  ${live.length > 0 ? `
+  <section class="space-y-2">
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-red-500 pulse-dot inline-block"></span>
+      En cours (${live.length})
+    </h2>
+    ${live.map(liveCard).join('')}
+  </section>` : ''}
+
+  <!-- Terminés -->
+  ${done.length > 0 ? `
+  <section class="space-y-2">
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-widest px-1">Terminés (${done.length})</h2>
+    ${done.map(doneCard).join('')}
+  </section>` : ''}
+
+  ${live.length === 0 && done.length === 0
+    ? `<p class="text-center text-gray-600 py-16 text-sm">Aucun résultat pour l'instant.</p>`
+    : ''}
+
+  <p class="text-xs text-gray-700 px-1 pt-2">Score exact = 3× côte · Bon résultat = 1× côte</p>
+</div>`
+}
+
+function liveCard(m) {
+  const hasPred = !!m.pred
+  return `
+<div class="bg-gray-900 rounded-2xl overflow-hidden border border-red-900/40">
+  <div class="flex items-center gap-2 px-4 pt-3 pb-0">
+    <span class="w-1.5 h-1.5 rounded-full bg-red-500 pulse-dot inline-block"></span>
+    <span class="text-xs text-red-400 font-semibold">En cours</span>
+    <span class="text-xs text-gray-600 ml-auto">Groupe ${m.group}</span>
+  </div>
+  <div class="grid grid-cols-3 gap-0 px-4 pt-3.5 pb-4 items-center">
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-2xl">${m.hf}</span>
+      <span class="text-sm font-semibold text-white text-center">${m.home}</span>
+    </div>
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-2xl font-bold text-gray-500">? – ?</span>
+      <span class="text-xs ${hasPred ? 'text-gray-400' : 'text-gray-700'}">
+        ${hasPred ? `Prono : ${m.pred.h}–${m.pred.a}` : 'Pas de prono'}
+      </span>
+    </div>
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-2xl">${m.af}</span>
+      <span class="text-sm font-semibold text-white text-center">${m.away}</span>
+    </div>
+  </div>
+</div>`
+}
+
+function doneCard(m) {
+  const hasPred = !!m.pred
+  const pts = m.pts ?? 0
+  const isExact = hasPred && pts > 0 && m.pred.h === m.hs && m.pred.a === m.as_
+  const isCorrect = hasPred && pts > 0 && !isExact
+  const isWrong = hasPred && pts === 0
+
+  let badgeHtml = ''
+  if (isExact)   badgeHtml = `<span class="text-[11px] bg-green-950 text-green-400 border border-green-900/50 px-2 py-0.5 rounded-full font-medium">Score exact 🎯</span>`
+  else if (isCorrect) badgeHtml = `<span class="text-[11px] bg-blue-950 text-blue-400 border border-blue-900/50 px-2 py-0.5 rounded-full font-medium">Bon résultat</span>`
+  else if (isWrong)   badgeHtml = `<span class="text-[11px] bg-gray-800 text-gray-600 border border-gray-700/50 px-2 py-0.5 rounded-full">Raté</span>`
+
+  return `
+<div class="bg-gray-900 rounded-2xl overflow-hidden">
+  <div class="grid grid-cols-3 gap-0 px-4 pt-4 pb-3 items-center">
+    <!-- Home -->
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-2xl">${m.hf}</span>
+      <span class="text-sm font-semibold text-white text-center leading-tight">${m.home}</span>
+      ${hasPred ? `<span class="text-xs font-mono font-bold mt-1 ${pts > 0 ? 'text-gray-300' : 'text-gray-600'}">${m.pred.h}</span>` : `<span class="text-xs text-gray-700 mt-1">—</span>`}
+    </div>
+
+    <!-- Score -->
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-2xl font-bold text-white">${m.hs}–${m.as_}</span>
+      <span class="text-xs text-gray-600">Résultat</span>
+      ${hasPred ? `<span class="text-xs font-bold ${pts > 0 ? 'text-green-400' : 'text-gray-700'} mt-1">${pts > 0 ? '+'+pts.toFixed(2)+' pts' : '0 pt'}</span>` : ''}
+    </div>
+
+    <!-- Away -->
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-2xl">${m.af}</span>
+      <span class="text-sm font-semibold text-white text-center leading-tight">${m.away}</span>
+      ${hasPred ? `<span class="text-xs font-mono font-bold mt-1 ${pts > 0 ? 'text-gray-300' : 'text-gray-600'}">${m.pred.a}</span>` : `<span class="text-xs text-gray-700 mt-1">—</span>`}
+    </div>
+  </div>
+
+  ${hasPred ? `
+  <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-800/60">
+    ${badgeHtml}
+    <span class="text-xs text-gray-700">${fDate(m.date)}</span>
+  </div>` : `<div class="px-4 pb-3 text-xs text-gray-700">Pas de pronostic · ${fDate(m.date)}</div>`}
+</div>`
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════════════════════════════════════
+function pageLeaderboard() {
+  const medals = ['🥇','🥈','🥉']
+  return `
+<div class="space-y-4">
+  <h1 class="text-base font-bold px-1">Classement</h1>
+  <div class="bg-gray-900 rounded-2xl overflow-hidden">
+    ${LEADERBOARD.map((e,i) => {
+      const isMe = e.un === ME.username
+      return `
+      <div class="flex items-center px-4 py-3.5 border-b border-gray-800/50 last:border-0 ${isMe ? 'bg-green-950/30' : ''}">
+        <span class="w-7 text-base shrink-0">${medals[i] ?? `<span class="text-sm text-gray-600 font-mono">${e.rank}</span>`}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-semibold ${isMe ? 'text-green-400' : 'text-white'} truncate">${e.f} ${e.l}</span>
+            ${isMe ? `<span class="text-[10px] text-green-700 font-medium shrink-0">toi</span>` : ''}
+          </div>
+          <div class="text-xs text-gray-600 font-mono">${e.un}</div>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-sm font-bold ${isMe ? 'text-green-400' : 'text-white'}">${e.pts.toFixed(2)}</div>
+          <div class="text-[10px] text-gray-700">${e.exact}🎯 ${e.correct}✓</div>
+        </div>
+      </div>`
+    }).join('')}
+  </div>
+</div>`
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════════════════════════════════════════
+function pageAdmin() {
+  return `
+<div class="space-y-4">
+  <h1 class="text-base font-bold px-1">Administration</h1>
+
+  <div class="bg-gray-900 rounded-2xl p-4 space-y-3">
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Actions</h2>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="admMsg('Sync réussie — 8 matchs créés, 1 mis à jour')"
+        class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+        Sync football-data.org
+      </button>
+      <button onclick="admMsg('Côtes fetchées — 6 matchs mis à jour (1 crédit)')"
+        class="bg-amber-700 hover:bg-amber-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors">
+        Fetcher les côtes
+      </button>
+    </div>
+    <div id="admMsg" class="hidden text-xs text-green-400 bg-green-950/30 rounded-xl px-3 py-2"></div>
+  </div>
+
+  <div class="space-y-2">
+    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-widest px-1">Matchs (${MATCHES.length})</h2>
+    ${MATCHES.map(adminRow).join('')}
+  </div>
+</div>`
+}
+
+function admMsg(msg) {
+  const el = $('admMsg')
+  if (!el) return
+  el.textContent = msg; el.classList.remove('hidden')
+  setTimeout(() => el.classList.add('hidden'), 4000)
+}
+
+function adminRow(m) {
+  const stgLabel = {group:'Groupes',r32:'R32',r16:'Huitièmes',qf:'Quarts',sf:'Demis',final:'Finale'}
+  const stateBadge = {
+    open:  `<span class="text-[10px] text-blue-400 bg-blue-950/50 px-1.5 py-0.5 rounded-full">Ouvert</span>`,
+    live:  `<span class="text-[10px] text-red-400 bg-red-950/50 px-1.5 py-0.5 rounded-full flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-red-500 pulse-dot inline-block"></span>En cours</span>`,
+    done:  `<span class="text-[10px] text-green-600 bg-green-950/50 px-1.5 py-0.5 rounded-full">Terminé</span>`,
+  }
+  return `
+<div class="bg-gray-900 rounded-xl p-3">
+  <div class="flex items-start gap-2">
+    <div class="flex-1 min-w-0">
+      <div class="text-sm font-medium text-white truncate">${m.hf} ${m.home} – ${m.af} ${m.away}</div>
+      <div class="flex items-center gap-1.5 mt-1">
+        ${stateBadge[m.state]}
+        <span class="text-xs text-gray-600">Gr. ${m.group ?? '—'} · ${fDate(m.date)}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      ${m.h1 != null ? `<span class="text-xs text-green-500/80">${m.h1}/${m.hN}/${m.h2}</span>` : `<span class="text-xs text-amber-600/60">Pas de côtes</span>`}
+      ${m.state === 'done'
+        ? `<span class="font-mono text-sm font-bold text-green-400">${m.hs}–${m.as_}</span>`
+        : `<div class="flex items-center gap-1">
+            <input type="number" min="0" placeholder="0" class="w-9 bg-gray-800 border border-gray-700 rounded-lg text-center text-white text-sm py-1.5 focus:outline-none focus:border-green-500"/>
+            <span class="text-gray-700 text-xs">–</span>
+            <input type="number" min="0" placeholder="0" class="w-9 bg-gray-800 border border-gray-700 rounded-lg text-center text-white text-sm py-1.5 focus:outline-none focus:border-green-500"/>
+            <button onclick="this.textContent='✓';this.disabled=true;this.className='text-green-500 text-sm px-1'"
+              class="text-gray-500 hover:text-green-400 text-sm px-1 transition-colors">✓</button>
+          </div>`
+      }
+    </div>
+  </div>
+</div>`
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+render()
+</script>
+</body>
+</html>

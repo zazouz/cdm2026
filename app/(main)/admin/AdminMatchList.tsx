@@ -1,0 +1,133 @@
+'use client'
+
+import { useState } from 'react'
+import type { Match } from '@/lib/types'
+import { STAGE_LABELS } from '@/lib/types'
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleString('fr-FR', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Paris',
+  })
+}
+
+export default function AdminMatchList({ matches }: { matches: Match[] }) {
+  if (matches.length === 0) {
+    return (
+      <p className="text-gray-500 text-sm">Aucun match. Utilise le bouton ci-dessus pour importer le calendrier.</p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+        Matchs ({matches.length})
+      </h2>
+      {matches.map(match => (
+        <AdminMatchRow key={match.id} match={match} />
+      ))}
+    </div>
+  )
+}
+
+function AdminMatchRow({ match }: { match: Match }) {
+  const [homeScore, setHomeScore] = useState(match.home_score?.toString() ?? '')
+  const [awayScore, setAwayScore] = useState(match.away_score?.toString() ?? '')
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [fetchingOdds, setFetchingOdds] = useState(false)
+
+  async function handleSetScore() {
+    const h = parseInt(homeScore)
+    const a = parseInt(awayScore)
+    if (isNaN(h) || isNaN(a)) { setMsg('Scores invalides'); return }
+    setSaving(true)
+    setMsg('')
+    const res = await fetch('/api/admin/set-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matchId: match.id, homeScore: h, awayScore: a }),
+    })
+    const data = await res.json()
+    setMsg(res.ok ? 'Points calculés' : data.error ?? 'Erreur')
+    setSaving(false)
+  }
+
+  async function handleFetchOdds() {
+    setFetchingOdds(true)
+    setMsg('')
+    const res = await fetch(`/api/admin/fetch-odds?matchId=${match.id}`, { method: 'GET' })
+    const data = await res.json()
+    setMsg(res.ok ? `Côtes: ${data.home_odds} / ${data.draw_odds} / ${data.away_odds}` : data.error ?? 'Erreur')
+    setFetchingOdds(false)
+  }
+
+  const isFinished = match.status === 'finished'
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-3 text-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Match info */}
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-white">
+            {match.home_team} vs {match.away_team}
+          </div>
+          <div className="text-xs text-gray-500">
+            {formatDate(match.match_date)} · {STAGE_LABELS[match.stage] ?? match.stage}
+            {match.group_name && ` · Groupe ${match.group_name}`}
+          </div>
+        </div>
+
+        {/* Odds status */}
+        <div className="text-xs">
+          {match.home_odds ? (
+            <span className="text-green-400">{match.home_odds} / {match.draw_odds} / {match.away_odds}</span>
+          ) : (
+            <button
+              onClick={handleFetchOdds}
+              disabled={fetchingOdds}
+              className="text-amber-400 hover:text-amber-300 disabled:text-gray-600"
+            >
+              {fetchingOdds ? 'Chargement...' : 'Fetcher côtes'}
+            </button>
+          )}
+        </div>
+
+        {/* Score */}
+        {isFinished ? (
+          <span className="text-green-400 font-mono font-bold">
+            {match.home_score} – {match.away_score}
+          </span>
+        ) : (
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min="0"
+              value={homeScore}
+              onChange={e => setHomeScore(e.target.value)}
+              className="w-10 bg-gray-800 rounded text-center text-white text-sm py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+              placeholder="0"
+            />
+            <span className="text-gray-600">–</span>
+            <input
+              type="number"
+              min="0"
+              value={awayScore}
+              onChange={e => setAwayScore(e.target.value)}
+              className="w-10 bg-gray-800 rounded text-center text-white text-sm py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+              placeholder="0"
+            />
+            <button
+              onClick={handleSetScore}
+              disabled={saving || homeScore === '' || awayScore === ''}
+              className="bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-white text-xs px-2 py-1.5 rounded font-medium"
+            >
+              {saving ? '...' : 'Valider'}
+            </button>
+          </div>
+        )}
+      </div>
+      {msg && <p className={`text-xs mt-2 ${msg.includes('Erreur') ? 'text-red-400' : 'text-green-400'}`}>{msg}</p>}
+    </div>
+  )
+}

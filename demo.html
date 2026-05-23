@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDM 2026</title>
+<style>
+:root {
+  --bg: #0c1220;
+  --surface: #131c2e;
+  --surface2: #1a2540;
+  --border: #1e2d48;
+  --border2: #243255;
+  --green: #22c55e;
+  --green-dim: #166534;
+  --gold: #f59e0b;
+  --silver: #94a3b8;
+  --bronze: #b45309;
+  --blue: #60a5fa;
+  --red: #f87171;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --faint: #475569;
+  --faintest: #1e2d48;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── PHONE SHELL ── */
+.shell {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 72px;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(12,18,32,.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -.3px;
+  color: var(--text);
+}
+.topbar-logo-ball { font-size: 18px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-user {
+  font-size: 11px;
+  color: var(--faint);
+  font-family: monospace;
+  background: var(--surface);
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.topbar-deco {
+  font-size: 11px;
+  color: var(--faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.topbar-deco:hover { color: var(--red); }
+
+/* ── BOTTOM NAV ── */
+.bottomnav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(12,18,32,.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0 8px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  gap: 3px;
+  transition: all .15s;
+}
+.nav-tab-icon { font-size: 20px; line-height: 1; opacity: .5; transition: all .15s; }
+.nav-tab-label { font-size: 10px; font-weight: 600; color: var(--faint); transition: all .15s; letter-spacing: .2px; text-transform: uppercase; }
+.nav-tab.active .nav-tab-icon { opacity: 1; }
+.nav-tab.active .nav-tab-label { color: var(--green); }
+.nav-tab:hover .nav-tab-icon { opacity: .8; }
+
+/* ── SCREEN ── */
+.screen { display: none; padding: 16px; }
+.screen.visible { display: block; }
+
+/* ── PAGE HEADER ── */
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -.4px;
+  margin-bottom: 4px;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+/* ── SECTION ── */
+.section { margin-bottom: 24px; }
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--faint);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── STAGE UNLOCK BANNER ── */
+.unlock-banner {
+  background: linear-gradient(135deg, #0f1d0f, #162416);
+  border: 1px solid #1a3b1a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.unlock-banner-icon { font-size: 20px; flex-shrink: 0; }
+.unlock-banner-text { font-size: 12px; color: #4ade80; line-height: 1.5; }
+.unlock-banner-text strong { color: #86efac; }
+
+/* ── MATCH CARD ── */
+.match-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.match-card.locked { opacity: .75; }
+.match-card.upcoming-next { border-color: var(--green-dim); }
+
+.match-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 0;
+}
+.match-group {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--faint);
+  background: var(--surface2);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.match-date-small {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px 10px;
+  gap: 0;
+}
+.team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.team-flag { font-size: 28px; line-height: 1; }
+.team-name { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.2; }
+
+.match-center {
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.vs-text { font-size: 12px; color: var(--faint); font-weight: 700; letter-spacing: 1px; }
+.result-score { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.result-label { font-size: 9px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; }
+.match-time-center { font-size: 13px; font-weight: 700; color: var(--muted); }
+.match-time-date { font-size: 10px; color: var(--faint); }
+
+.lock-warning {
+  text-align: center;
+  padding: 0 14px 6px;
+  font-size: 11px;
+  color: var(--red);
+  font-weight: 500;
+}
+
+/* ── ODDS ── */
+.odds-row {
+  display: flex;
+  gap: 5px;
+  padding: 0 14px 10px;
+}
+.odds-pill {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 4px;
+  text-align: center;
+}
+.odds-pill-label { font-size: 9px; color: var(--faint); text-transform: uppercase; font-weight: 600; }
+.odds-pill-value { font-size: 13px; font-weight: 700; color: var(--text); }
+
+/* ── PREDICTION AREA ── */
+.pred-area {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px 14px;
+  background: var(--surface2);
+}
+.pred-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--faint);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.pred-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.stepper-btn {
+  width: 40px;
+  height: 44px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .1s;
+  font-weight: 300;
+  line-height: 1;
+}
+.stepper-btn:hover { background: var(--border); color: var(--text); }
+.stepper-btn:active { background: var(--border2); }
+.stepper-val {
+  width: 40px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  border: none;
+  background: none;
+  outline: none;
+  /* no spinners */
+  -moz-appearance: textfield;
+}
+.stepper-val::-webkit-outer-spin-button,
+.stepper-val::-webkit-inner-spin-button { -webkit-appearance: none; }
+.pred-sep {
+  font-size: 20px;
+  color: var(--faint);
+  font-weight: 700;
+}
+.pred-save-btn {
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  border-radius: 12px;
+  padding: 0 18px;
+  height: 44px;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .2px;
+}
+.pred-save-btn:hover { background: #16a34a; color: #fff; }
+.pred-save-btn:disabled { background: var(--surface); color: var(--faint); cursor: default; }
+.pred-save-btn.saved { background: var(--green-dim); color: var(--green); }
+.pred-hint {
+  font-size: 10px;
+  color: var(--faint);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* Locked prediction display */
+.pred-locked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pred-locked-score {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  font-family: monospace;
+}
+.pred-locked-pts {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+.pts-exact { background: #052e16; color: var(--green); }
+.pts-correct { background: #1e3a5f; color: var(--blue); }
+.pts-zero { background: var(--surface); color: var(--faint); }
+.pts-pending { background: var(--surface); color: var(--faint); font-style: italic; font-weight: 400; font-size: 11px; }
+.no-pred { font-size: 12px; color: var(--faint); font-style: italic; }
+
+/* ── STATS GRID ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-val { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.stat-val.green { color: var(--green); }
+.stat-val.blue { color: var(--blue); }
+.stat-lbl { font-size: 10px; color: var(--faint); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: .3px; }
+
+/* ── LEADERBOARD ── */
+.podium {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: flex-end;
+}
+.podium-item {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 10px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+  overflow: hidden;
+}
+.podium-item:hover { border-color: var(--border2); }
+.podium-item.first { border-color: rgba(245,158,11,.3); background: linear-gradient(160deg, #1c1a0e, #131c2e); }
+.podium-medal { font-size: 22px; margin-bottom: 6px; }
+.podium-name { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.2; margin-bottom: 2px; }
+.podium-pts { font-size: 16px; font-weight: 800; color: var(--text); }
+.podium-sub { font-size: 10px; color: var(--faint); font-family: monospace; }
+
+.lb-list { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.lb-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .12s;
+  gap: 12px;
+  text-decoration: none;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row:hover { background: var(--surface2); }
+.lb-row.me { background: linear-gradient(90deg, rgba(34,197,94,.05), transparent); }
+.lb-rank {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--faint);
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.lb-info { flex: 1 }
+.lb-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.lb-name.me { color: var(--green); }
+.lb-username { font-size: 11px; color: var(--faint); font-family: monospace; }
+.lb-stats { text-align: right; }
+.lb-pts { font-size: 16px; font-weight: 800; color: var(--text); }
+.lb-detail { font-size: 10px; color: var(--faint); }
+.me-badge { font-size: 10px; color: var(--green-dim); background: rgba(34,197,94,.1); padding: 2px 6px; border-radius: 10px; margin-left: 6px; }
+
+.lb-legend {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+.lb-legend-title { font-size: 11px; font-weight: 700; color: var(--faint); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+.lb-legend-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 3px 0; }
+.lb-legend-row span:first-child { color: var(--faint); }
+
+/* ── USER DETAIL ── */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--faint);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color .12s;
+}
+.back-btn:hover { color: var(--text); }
+.user-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.user-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-dim), #0f2d0f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--green);
+  flex-shrink: 0;
+  border: 2px solid rgba(34,197,94,.3);
+}
+.user-info-name { font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.3px; }
+.user-info-sub { font-size: 12px; color: var(--faint); font-family: monospace; margin-top: 1px; }
+.user-rank-badge {
+  margin-left: auto;
+  text-align: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  flex-shrink: 0;
+}
+.user-rank-num { font-size: 22px; font-weight: 800; color: var(--text); }
+.user-rank-lbl { font-size: 9px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── PRONO HISTORY CARD ── */
+.prono-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.prono-card-teams {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px 8px;
+  gap: 0;
+}
+.prono-card-center { width: 60px; text-align: center; flex-shrink: 0; }
+.prono-score-actual { font-size: 18px; font-weight: 800; color: var(--text); }
+.prono-score-lbl { font-size: 9px; color: var(--faint); }
+.prono-card-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.prono-your-score { font-size: 12px; color: var(--muted); }
+.prono-your-score strong { color: var(--text); font-family: monospace; font-size: 14px; }
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--faint);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.empty-text { font-size: 13px; line-height: 1.5; }
+
+/* ── NEXT ROUND HINT ── */
+.next-round-hint {
+  text-align: center;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px dashed var(--border2);
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+.next-round-hint-title { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 3px; }
+.next-round-hint-text { font-size: 11px; color: var(--faint); }
+
+/* ── TEAM SMALL ── */
+.team-small { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.team-small-flag { font-size: 24px; line-height: 1; }
+.team-small-name { font-size: 11px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.2; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <span class="topbar-logo-ball">⚽</span>
+      CDM 2026
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user">david.l</span>
+      <button class="topbar-deco">Déco</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       SCREEN — MATCHS
+  ═══════════════════════════════ -->
+  <div id="s-matchs" class="screen visible">
+
+    <div class="page-title">Pronostics</div>
+    <div class="page-subtitle">Modifiable jusqu'à 15 min avant le coup d'envoi. Les scores exacts rapportent 3× la côte.</div>
+
+    <!-- GROUPE A -->
+    <div class="section">
+      <div class="section-label">Groupe A</div>
+
+      <!-- Match 1 — prono sauvegardé -->
+      <div class="match-card">
+        <div class="match-meta">
+          <span class="match-group">Gr. A</span>
+          <span class="match-date-small">Dim. 15 juin · 21h00</span>
+        </div>
+        <div class="match-teams">
+          <div class="team">
+            <div class="team-flag">🇺🇸</div>
+            <div class="team-name">États-Unis</div>
+          </div>
+          <div class="match-center">
+            <div class="vs-text">VS</div>
+          </div>
+          <div class="team">
+            <div class="team-flag">🇲🇽</div>
+            <div class="team-name">Mexique</div>
+          </div>
+        </div>
+        <div class="odds-row">
+          <div class="odds-pill">
+            <div class="odds-pill-label">1</div>
+            <div class="odds-pill-value">2.15</div>
+          </div>
+          <div class="odds-pill">
+            <div class="odds-pill-label">N</div>
+            <div class="odds-pill-value">3.40</div>
+          </div>
+          <div class="odds-pill">
+            <div class="odds-pill-label">2</div>
+            <div class="odds-pill-value">3.20</div>
+          </div>
+        </div>
+        <div class="pred-area">
+          <div class="pred-label">Ton pronostic</div>
+          <div class="pred-inputs">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="2">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <span class="pred-sep">–</span>
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="1">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <button class="pred-save-btn saved">✓</button>
+          </div>
+          <div class="pred-hint">Résultat prédit : victoire États-Unis · côte 2.15 → max 6.45 pts si exact</div>
+        </div>
+      </div>
+
+      <!-- Match 2 — sans prono -->
+      <div class="match-card">
+        <div class="match-meta">
+          <span class="match-group">Gr. A</span>
+          <span class="match-date-small">Dim. 15 juin · 18h00</span>
+        </div>
+        <div class="match-teams">
+          <div class="team">
+            <div class="team-flag">🇨🇦</div>
+            <div class="team-name">Canada</div>
+          </div>
+          <div class="match-center">
+            <div class="vs-text">VS</div>
+          </div>
+          <div class="team">
+            <div class="team-flag">🇲🇦</div>
+            <div class="team-name">Maroc</div>
+          </div>
+        </div>
+        <div class="odds-row">
+          <div class="odds-pill">
+            <div class="odds-pill-label">1</div>
+            <div class="odds-pill-value">2.80</div>
+          </div>
+          <div class="odds-pill">
+            <div class="odds-pill-label">N</div>
+            <div class="odds-pill-value">3.10</div>
+          </div>
+          <div class="odds-pill">
+            <div class="odds-pill-label">2</div>
+            <div class="odds-pill-value">2.50</div>
+          </div>
+        </div>
+        <div class="pred-area">
+          <div class="pred-label">Ton pronostic</div>
+          <div class="pred-inputs">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="0" placeholder="—">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <span class="pred-sep">–</span>
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="0" placeholder="—">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <button class="pred-save-btn" onclick="savePred(this)">OK</button>
+          </div>
+          <div class="pred-hint">Aucun pronostic enregistré pour ce match</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUPE B — avec avertissement verrouillage -->
+    <div class="section">
+      <div class="section-label">Groupe B</div>
+
+      <!-- Match verrouillage imminent -->
+      <div class="match-card">
+        <div class="match-meta">
+          <span class="match-group">Gr. B</span>
+          <span class="match-date-small">Lun. 16 juin · 21h00</span>
+        </div>
+        <div class="match-teams">
+          <div class="team">
+            <div class="team-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+            <div class="team-name">Angleterre</div>
+          </div>
+          <div class="match-center">
+            <div class="vs-text">VS</div>
+          </div>
+          <div class="team">
+            <div class="team-flag">🇫🇷</div>
+            <div class="team-name">France</div>
+          </div>
+        </div>
+        <div class="lock-warning">⏱ Verrouillage dans 8 min — modifie ton prono maintenant !</div>
+        <div class="odds-row">
+          <div class="odds-pill"><div class="odds-pill-label">1</div><div class="odds-pill-value">3.50</div></div>
+          <div class="odds-pill"><div class="odds-pill-label">N</div><div class="odds-pill-value">3.20</div></div>
+          <div class="odds-pill"><div class="odds-pill-label">2</div><div class="odds-pill-value">2.10</div></div>
+        </div>
+        <div class="pred-area">
+          <div class="pred-label">Ton pronostic</div>
+          <div class="pred-inputs">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="0">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <span class="pred-sep">–</span>
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="2">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <button class="pred-save-btn saved">✓</button>
+          </div>
+          <div class="pred-hint">Victoire France · côte 2.10 → max 6.30 pts si exact</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8ES — débloqués (tour d'avance) -->
+    <div class="section">
+      <div class="unlock-banner">
+        <div class="unlock-banner-icon">🔓</div>
+        <div class="unlock-banner-text">
+          <strong>Les huitièmes sont disponibles !</strong><br>
+          Le dernier match de groupes a démarré. Tu peux pronostiquer les 8es dès maintenant, et les modifier jusqu'à 15 min avant chaque coup d'envoi.
+        </div>
+      </div>
+      <div class="section-label">Huitièmes de finale</div>
+
+      <div class="match-card upcoming-next">
+        <div class="match-meta">
+          <span class="match-group" style="background:rgba(34,197,94,.1);color:#4ade80;">8e de finale</span>
+          <span class="match-date-small">Lun. 30 juin · 21h00</span>
+        </div>
+        <div class="match-teams">
+          <div class="team"><div class="team-flag">🇧🇷</div><div class="team-name">Brésil</div></div>
+          <div class="match-center"><div class="vs-text">VS</div></div>
+          <div class="team"><div class="team-flag">🇦🇷</div><div class="team-name">Argentine</div></div>
+        </div>
+        <div class="odds-row">
+          <div class="odds-pill"><div class="odds-pill-label">1</div><div class="odds-pill-value">2.20</div></div>
+          <div class="odds-pill"><div class="odds-pill-label">N</div><div class="odds-pill-value">3.30</div></div>
+          <div class="odds-pill"><div class="odds-pill-label">2</div><div class="odds-pill-value">3.10</div></div>
+        </div>
+        <div class="pred-area">
+          <div class="pred-label">Ton pronostic</div>
+          <div class="pred-inputs">
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="0">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <span class="pred-sep">–</span>
+            <div class="stepper">
+              <button class="stepper-btn" onclick="decrement(this)">−</button>
+              <input class="stepper-val" type="number" value="0">
+              <button class="stepper-btn" onclick="increment(this)">+</button>
+            </div>
+            <button class="pred-save-btn" onclick="savePred(this)">OK</button>
+          </div>
+          <div class="pred-hint">Aucun pronostic enregistré pour ce match</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen matchs -->
+
+  <!-- ══════════════════════════════
+       SCREEN — MES PRONOS
+  ═══════════════════════════════ -->
+  <div id="s-pronos" class="screen">
+
+    <div class="page-title">Mes Pronos</div>
+    <div class="page-subtitle">Tes pronostics verrouillés. Les points sont calculés dès la fin du match.</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val">14.80</div>
+        <div class="stat-lbl">Points</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val green">2</div>
+        <div class="stat-lbl">Exacts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val blue">3</div>
+        <div class="stat-lbl">Corrects</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Groupe A</div>
+
+      <!-- Score exact -->
+      <div class="match-card locked">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🇺🇸</div><div class="team-small-name">États-Unis</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div class="prono-score-actual">2 – 1</div>
+            <div class="prono-score-lbl">résultat</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇲🇽</div><div class="team-small-name">Mexique</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Ton prono : <strong>2 – 1</strong></div>
+            <span class="pred-locked-pts pts-exact">⭐ +6.45 pts · exact</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bon résultat -->
+      <div class="match-card locked">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🇨🇦</div><div class="team-small-name">Canada</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div class="prono-score-actual">1 – 0</div>
+            <div class="prono-score-lbl">résultat</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇲🇦</div><div class="team-small-name">Maroc</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Ton prono : <strong>2 – 0</strong></div>
+            <span class="pred-locked-pts pts-correct">+2.80 pts · bon résultat</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mauvais -->
+      <div class="match-card locked">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div><div class="team-small-name">Angleterre</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div class="prono-score-actual">3 – 1</div>
+            <div class="prono-score-lbl">résultat</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇫🇷</div><div class="team-small-name">France</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Ton prono : <strong>0 – 2</strong></div>
+            <span class="pred-locked-pts pts-zero">0 pt</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Huitièmes de finale</div>
+
+      <!-- En cours -->
+      <div class="match-card">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🇧🇷</div><div class="team-small-name">Brésil</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div style="font-size:11px;color:var(--red);font-weight:700;">EN COURS</div>
+            <div class="prono-score-lbl">lun. 30 juin</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇦🇷</div><div class="team-small-name">Argentine</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Ton prono : <strong>1 – 2</strong></div>
+            <span class="pred-locked-pts pts-pending">résultat en attente…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen pronos -->
+
+  <!-- ══════════════════════════════
+       SCREEN — CLASSEMENT
+  ═══════════════════════════════ -->
+  <div id="s-classement" class="screen">
+
+    <div class="page-title">Classement</div>
+    <div class="page-subtitle">Clique sur un joueur pour voir le détail de ses pronostics.</div>
+
+    <!-- Podium top 3 -->
+    <div class="podium">
+      <div class="podium-item" onclick="showUser('Thomas Renard','toto92','28.55','3','9','2')">
+        <div class="podium-medal">🥈</div>
+        <div class="podium-name">Thomas<br>Renard</div>
+        <div class="podium-pts">28.55</div>
+        <div class="podium-sub">toto92</div>
+      </div>
+      <div class="podium-item first" onclick="showUser('Marie Dupont','marie.d','31.20','4','7','1')">
+        <div class="podium-medal">🥇</div>
+        <div class="podium-name">Marie<br>Dupont</div>
+        <div class="podium-pts">31.20</div>
+        <div class="podium-sub">marie.d</div>
+      </div>
+      <div class="podium-item" onclick="showUser('Lucas Martin','luca_m','20.40','2','6','3')">
+        <div class="podium-medal">🥉</div>
+        <div class="podium-name">Lucas<br>Martin</div>
+        <div class="podium-pts">20.40</div>
+        <div class="podium-sub">luca_m</div>
+      </div>
+    </div>
+
+    <div class="lb-list">
+      <div class="lb-row me" onclick="showUser('David Leroux','david.l','14.80','2','3','4')">
+        <div class="lb-rank">4</div>
+        <div class="lb-info">
+          <div class="lb-name me">David Leroux <span class="me-badge">toi</span></div>
+          <div class="lb-username">david.l</div>
+        </div>
+        <div class="lb-stats">
+          <div class="lb-pts">14.80</div>
+          <div class="lb-detail">2 exacts · 3 corrects</div>
+        </div>
+      </div>
+      <div class="lb-row" onclick="showUser('Camille Petit','cam_p','11.30','1','5','5')">
+        <div class="lb-rank">5</div>
+        <div class="lb-info">
+          <div class="lb-name">Camille Petit</div>
+          <div class="lb-username">cam_p</div>
+        </div>
+        <div class="lb-stats">
+          <div class="lb-pts">11.30</div>
+          <div class="lb-detail">1 exact · 5 corrects</div>
+        </div>
+      </div>
+      <div class="lb-row" onclick="showUser('Alex Morel','alex.m','6.15','0','4','6')">
+        <div class="lb-rank">6</div>
+        <div class="lb-info">
+          <div class="lb-name">Alex Morel</div>
+          <div class="lb-username">alex.m</div>
+        </div>
+        <div class="lb-stats">
+          <div class="lb-pts">6.15</div>
+          <div class="lb-detail">0 exact · 4 corrects</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lb-legend">
+      <div class="lb-legend-title">Barème des points</div>
+      <div class="lb-legend-row"><span>Score exact</span><span>3 × côte du résultat prédit</span></div>
+      <div class="lb-legend-row"><span>Bon résultat</span><span>1 × côte du résultat prédit</span></div>
+      <div class="lb-legend-row"><span>Mauvais résultat</span><span>0 pt</span></div>
+    </div>
+
+  </div><!-- /screen classement -->
+
+  <!-- ══════════════════════════════
+       SCREEN — USER DETAIL
+  ═══════════════════════════════ -->
+  <div id="s-user" class="screen">
+
+    <button class="back-btn" onclick="goBack()">← Classement</button>
+
+    <div class="user-header">
+      <div class="user-avatar" id="ud-avatar">M</div>
+      <div>
+        <div class="user-info-name" id="ud-name">Marie Dupont</div>
+        <div class="user-info-sub" id="ud-username">marie.d</div>
+      </div>
+      <div class="user-rank-badge">
+        <div class="user-rank-num" id="ud-rank">1</div>
+        <div class="user-rank-lbl">rang</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="ud-pts">31.20</div>
+        <div class="stat-lbl">Points</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val green" id="ud-exact">4</div>
+        <div class="stat-lbl">Exacts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val blue" id="ud-correct">7</div>
+        <div class="stat-lbl">Corrects</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Groupe A — 3 matchs scorés</div>
+
+      <div class="match-card locked">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🇺🇸</div><div class="team-small-name">États-Unis</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div class="prono-score-actual">2 – 1</div>
+            <div class="prono-score-lbl">résultat</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇲🇽</div><div class="team-small-name">Mexique</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Prono : <strong>2 – 1</strong></div>
+            <span class="pred-locked-pts pts-exact">⭐ +6.45 pts · exact</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="match-card locked">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🇨🇦</div><div class="team-small-name">Canada</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div class="prono-score-actual">1 – 0</div>
+            <div class="prono-score-lbl">résultat</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇲🇦</div><div class="team-small-name">Maroc</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Prono : <strong>1 – 0</strong></div>
+            <span class="pred-locked-pts pts-exact">⭐ +2.80 pts · exact</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="match-card locked">
+        <div class="match-teams">
+          <div class="team-small"><div class="team-small-flag">🏴󠁧󠁢󠁥󠁮󠁧󠁿</div><div class="team-small-name">Angleterre</div></div>
+          <div class="prono-card-center" style="width:60px;text-align:center;flex-shrink:0">
+            <div class="prono-score-actual">3 – 1</div>
+            <div class="prono-score-lbl">résultat</div>
+          </div>
+          <div class="team-small"><div class="team-small-flag">🇫🇷</div><div class="team-small-name">France</div></div>
+        </div>
+        <div class="pred-area" style="padding:10px 14px 12px">
+          <div class="pred-locked">
+            <div class="prono-your-score">Prono : <strong>1 – 0</strong></div>
+            <span class="pred-locked-pts pts-correct">+3.50 pts · bon résultat</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen user -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottomnav">
+    <button class="nav-tab active" id="tab-matchs" onclick="switchTab('matchs')">
+      <span class="nav-tab-icon">⚽</span>
+      <span class="nav-tab-label">Matchs</span>
+    </button>
+    <button class="nav-tab" id="tab-pronos" onclick="switchTab('pronos')">
+      <span class="nav-tab-icon">📋</span>
+      <span class="nav-tab-label">Mes Pronos</span>
+    </button>
+    <button class="nav-tab" id="tab-classement" onclick="switchTab('classement')">
+      <span class="nav-tab-icon">🏆</span>
+      <span class="nav-tab-label">Classement</span>
+    </button>
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+const tabs = ['matchs','pronos','classement','user']
+let prevTab = 'classement'
+
+function switchTab(id) {
+  tabs.forEach(t => {
+    document.getElementById('s-'+t).classList.remove('visible')
+    const btn = document.getElementById('tab-'+t)
+    if (btn) btn.classList.remove('active')
+  })
+  document.getElementById('s-'+id).classList.add('visible')
+  const btn = document.getElementById('tab-'+id)
+  if (btn) btn.classList.add('active')
+  prevTab = id
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function showUser(name, username, pts, exact, correct, rank) {
+  prevTab = 'classement'
+  document.getElementById('ud-avatar').textContent = name[0]
+  document.getElementById('ud-name').textContent = name
+  document.getElementById('ud-username').textContent = username
+  document.getElementById('ud-pts').textContent = pts
+  document.getElementById('ud-exact').textContent = exact
+  document.getElementById('ud-correct').textContent = correct
+  document.getElementById('ud-rank').textContent = rank
+  tabs.forEach(t => {
+    document.getElementById('s-'+t).classList.remove('visible')
+    const btn = document.getElementById('tab-'+t)
+    if (btn) btn.classList.remove('active')
+  })
+  document.getElementById('s-user').classList.add('visible')
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function goBack() { switchTab(prevTab) }
+
+function increment(btn) {
+  const input = btn.previousElementSibling
+  const val = parseInt(input.value) || 0
+  if (val < 20) input.value = val + 1
+  updateHint(btn)
+}
+function decrement(btn) {
+  const input = btn.nextElementSibling
+  const val = parseInt(input.value) || 0
+  if (val > 0) input.value = val - 1
+  updateHint(btn)
+}
+function updateHint(btn) {
+  const card = btn.closest('.match-card')
+  const saveBtn = card.querySelector('.pred-save-btn')
+  if (saveBtn && saveBtn.classList.contains('saved')) {
+    saveBtn.classList.remove('saved')
+    saveBtn.textContent = 'OK'
+  }
+}
+function savePred(btn) {
+  btn.classList.add('saved')
+  btn.textContent = '✓'
+  const card = btn.closest('.match-card')
+  const hint = card.querySelector('.pred-hint')
+  if (hint) hint.textContent = 'Pronostic enregistré ✓'
+}
+</script>
+</body>
+</html>

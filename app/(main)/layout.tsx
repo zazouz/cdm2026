@@ -1,0 +1,29 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase-server'
+import NavBar from './NavBar'
+import BottomNav from './BottomNav'
+
+export default async function MainLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('username, is_admin')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = profile?.is_admin ?? false
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-950">
+      <NavBar username={profile?.username ?? ''} isAdmin={isAdmin} />
+      <main className="flex-1 mx-auto w-full max-w-lg px-4 py-5 pb-24">
+        {children}
+      </main>
+      <BottomNav isAdmin={isAdmin} />
+    </div>
+  )
+}
