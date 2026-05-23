@@ -10,6 +10,7 @@ type Props = {
   matches: Match[]
   predictionByMatch: Record<number, PredictionWithMatch>
   userId: string
+  nextUnlock?: { stage: string; remaining: number } | null
 }
 
 const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
@@ -21,7 +22,7 @@ function formatDayHeader(dateStr: string, lang: string) {
   })
 }
 
-export default function MatchesList({ matches, predictionByMatch, userId }: Props) {
+export default function MatchesList({ matches, predictionByMatch, userId, nextUnlock }: Props) {
   const [view, setView] = useState<'chrono' | 'group'>('chrono')
   const { lang } = useLanguage()
 
@@ -60,6 +61,17 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
           </button>
         </div>
       </div>
+
+      {nextUnlock && (
+        <div className="flex items-center gap-2.5 rounded-xl border border-gray-700/50 bg-gray-900/50 px-4 py-2.5 text-xs text-gray-400">
+          <span>🔓</span>
+          <span>
+            {lang === 'fr'
+              ? `${stageLabel(nextUnlock.stage, 'fr')} disponible dans ${nextUnlock.remaining} match${nextUnlock.remaining > 1 ? 's' : ''}`
+              : `${stageLabel(nextUnlock.stage, 'en')} available in ${nextUnlock.remaining} match${nextUnlock.remaining !== 1 ? 'es' : ''}`}
+          </span>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-gray-800 bg-gray-900/50 px-4 py-3 text-xs text-gray-500 space-y-1">
         <p>

@@ -15,9 +15,11 @@ export async function GET(req: NextRequest) {
   }
 
   if (authHeader !== `Bearer ${cronSecret}`) {
+    console.error('[CDM2026][cron] unauthorized attempt')
     return NextResponse.json({ error: 'Interdit' }, { status: 401 })
   }
 
+  console.log('[CDM2026][cron] triggered', { ts: new Date().toISOString() })
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL
   if (!baseUrl) return NextResponse.json({ error: 'APP_URL manquant' }, { status: 500 })
 
@@ -27,5 +29,6 @@ export async function GET(req: NextRequest) {
   })
 
   const data = await res.json()
+  console.log('[CDM2026][cron] sync result', data)
   return NextResponse.json(data)
 }

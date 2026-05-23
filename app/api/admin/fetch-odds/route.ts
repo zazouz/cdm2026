@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  console.log('[CDM2026][fetch-odds] POST done', { updated, notFound: notFound.length })
   const availableInApi = events.map(e => `${e.home_team} vs ${e.away_team}`)
   return NextResponse.json({ ok: true, updated, notFound, availableInApi })
 }
@@ -96,9 +97,13 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
     const events = await eu.json() as OddsApiEvent[]
     const quotaRemaining = eu.headers.get('x-requests-remaining') ?? undefined
     const quotaUsed = eu.headers.get('x-requests-used') ?? undefined
-    if (events.some(e => e.bookmakers.length > 0)) return { events, quotaRemaining, quotaUsed }
+    if (events.some(e => e.bookmakers.length > 0)) {
+      console.log('[CDM2026][fetch-odds] quota', { remaining: quotaRemaining, used: quotaUsed, events: events.length })
+      return { events, quotaRemaining, quotaUsed }
+    }
   }
 
+  console.warn('[CDM2026][fetch-odds] no odds available')
   return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
 }
 

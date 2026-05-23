@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Match } from '@/lib/types'
 import { useLanguage } from '../LanguageProvider'
 import { stageLabel } from '@/lib/i18n'
@@ -24,6 +24,11 @@ const T = {
     fetchOddsInlineLoading: 'Chargement...',
     cancel: 'Annuler',
     save: 'Valider',
+    confirm: 'Confirmer',
+    confirmQuestion: '→ OK ?',
+    confirmReset: 'Annuler le score ?',
+    no: 'Non',
+    yes: 'Oui',
     errUnknown: 'Erreur inconnue',
     errNetwork: 'Erreur réseau',
     group: (n: string) => `Groupe ${n}`,
@@ -46,6 +51,11 @@ const T = {
     fetchOddsInlineLoading: 'Loading...',
     cancel: 'Cancel',
     save: 'Save',
+    confirm: 'Confirm',
+    confirmQuestion: '→ OK?',
+    confirmReset: 'Reset score?',
+    no: 'No',
+    yes: 'Yes',
     errUnknown: 'Unknown error',
     errNetwork: 'Network error',
     group: (n: string) => `Group ${n}`,
@@ -177,6 +187,13 @@ function AdminMatchRow({ match }: { match: Match }) {
   const [msg, setMsg] = useState('')
   const [msgOk, setMsgOk] = useState(true)
   const [fetchingOdds, setFetchingOdds] = useState(false)
+  const [confirmState, setConfirmState] = useState<'idle' | 'score' | 'reset'>('idle')
+
+  useEffect(() => {
+    if (!msg) return
+    const t = setTimeout(() => setMsg(''), 3000)
+    return () => clearTimeout(t)
+  }, [msg])
 
   async function handleSetScore() {
     const h = parseInt(homeScore)
@@ -270,41 +287,82 @@ function AdminMatchRow({ match }: { match: Match }) {
             <span className="text-green-400 font-mono font-bold">
               {homeScore !== '' ? homeScore : match.home_score} – {awayScore !== '' ? awayScore : match.away_score}
             </span>
-            <button
-              onClick={handleReset}
-              disabled={resetting}
-              className="text-red-400 hover:text-red-300 disabled:text-gray-600 text-xs px-2 py-1 rounded border border-red-800 hover:border-red-600"
-            >
-              {resetting ? '...' : t.cancel}
-            </button>
+            {confirmState === 'reset' ? (
+              <>
+                <span className="text-xs text-gray-500">{t.confirmReset}</span>
+                <button
+                  onClick={() => setConfirmState('idle')}
+                  className="text-gray-500 hover:text-white text-xs px-2 py-1 rounded border border-gray-700"
+                >
+                  {t.no}
+                </button>
+                <button
+                  onClick={() => { setConfirmState('idle'); handleReset() }}
+                  disabled={resetting}
+                  className="text-red-400 hover:text-red-300 disabled:text-gray-600 text-xs px-2 py-1 rounded border border-red-800 hover:border-red-600"
+                >
+                  {resetting ? '...' : t.yes}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setConfirmState('reset')}
+                disabled={resetting}
+                className="text-red-400 hover:text-red-300 disabled:text-gray-600 text-xs px-2 py-1 rounded border border-red-800 hover:border-red-600"
+              >
+                {resetting ? '...' : t.cancel}
+              </button>
+            )}
           </div>
         ) : (
-          <div className="flex items-center gap-1">
-            <input
-              type="number"
-              min="0"
-              value={homeScore}
-              onChange={e => setHomeScore(e.target.value)}
-              className="w-10 bg-gray-800 rounded text-center text-white text-sm py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
-              placeholder="0"
-            />
-            <span className="text-gray-600">–</span>
-            <input
-              type="number"
-              min="0"
-              value={awayScore}
-              onChange={e => setAwayScore(e.target.value)}
-              className="w-10 bg-gray-800 rounded text-center text-white text-sm py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
-              placeholder="0"
-            />
-            <button
-              onClick={handleSetScore}
-              disabled={saving || homeScore === '' || awayScore === ''}
-              className="bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-white text-xs px-2 py-1.5 rounded font-medium"
-            >
-              {saving ? '...' : t.save}
-            </button>
-          </div>
+          <>
+            {confirmState === 'score' ? (
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm text-white">{homeScore} – {awayScore}</span>
+                <span className="text-xs text-gray-500">{t.confirmQuestion}</span>
+                <button
+                  onClick={() => setConfirmState('idle')}
+                  className="text-gray-500 hover:text-white text-xs px-2 py-1 rounded border border-gray-700"
+                >
+                  {t.no}
+                </button>
+                <button
+                  onClick={() => { setConfirmState('idle'); handleSetScore() }}
+                  disabled={saving}
+                  className="bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-white text-xs px-2 py-1.5 rounded font-medium"
+                >
+                  {saving ? '...' : t.yes}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min="0"
+                  value={homeScore}
+                  onChange={e => { setHomeScore(e.target.value); setConfirmState('idle') }}
+                  className="w-10 bg-gray-800 rounded text-center text-white text-sm py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  placeholder="0"
+                />
+                <span className="text-gray-600">–</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={awayScore}
+                  onChange={e => { setAwayScore(e.target.value); setConfirmState('idle') }}
+                  className="w-10 bg-gray-800 rounded text-center text-white text-sm py-1 focus:outline-none focus:ring-1 focus:ring-green-500"
+                  placeholder="0"
+                />
+                <button
+                  onClick={() => setConfirmState('score')}
+                  disabled={saving || homeScore === '' || awayScore === ''}
+                  className="bg-green-700 hover:bg-green-600 disabled:bg-gray-700 text-white text-xs px-2 py-1.5 rounded font-medium"
+                >
+                  {saving ? '...' : t.save}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
       {msg && <p className={`text-xs mt-2 ${msgOk ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>}

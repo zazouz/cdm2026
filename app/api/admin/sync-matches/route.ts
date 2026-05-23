@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
 
   const fdData = await fdRes.json() as { matches: FDMatch[] }
   const fdMatches = fdData.matches ?? []
+  console.log('[CDM2026][sync] started', { fdMatchCount: fdMatches.length, ts: new Date().toISOString() })
 
   const supabase = await createAdminClient()
   let created = 0
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest) {
   }
 
   const oddsAutoFetched = await autoFetchOddsIfNeeded(supabase)
+  console.log('[CDM2026][sync] done', { created, updated, pointsCalculated, oddsAutoFetched })
 
   return NextResponse.json({ ok: true, created, updated, pointsCalculated, oddsAutoFetched })
 }

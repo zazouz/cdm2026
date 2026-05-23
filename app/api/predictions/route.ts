@@ -42,6 +42,10 @@ export async function POST(req: NextRequest) {
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id,match_id' })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[CDM2026][prediction] upsert failed', { userId: user.id, matchId, error: error.message })
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  console.log('[CDM2026][prediction] saved', { userId: user.id, matchId, predictedHome, predictedAway })
   return NextResponse.json({ ok: true })
 }

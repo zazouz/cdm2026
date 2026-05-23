@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Match, PredictionWithMatch } from '@/lib/types'
 import { formatOdds } from '@/lib/scoring'
 import { useRouter } from 'next/navigation'
@@ -65,6 +65,12 @@ export default function MatchCard({ match, prediction, userId }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(!!prediction)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => setError(''), 4000)
+    return () => clearTimeout(t)
+  }, [error])
 
   function step(which: 'home' | 'away', dir: 1 | -1) {
     if (which === 'home') setHome(v => Math.max(0, Math.min(20, v + dir)))
