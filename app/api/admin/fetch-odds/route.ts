@@ -81,24 +81,23 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
   const apiKey = process.env.ODDS_API_KEY
   if (!apiKey) return { events: null, error: 'ODDS_API_KEY manquant' }
 
-  const sportKeys = ['soccer_fifa_world_cup', 'soccer_fifa_world_cup_2026']
-  for (const sportKey of sportKeys) {
-    const url = `https://api.the-odds-api.com/v4/sports/${sportKey}/odds?apiKey=${apiKey}&bookmakers=winamax_fr&markets=h2h&oddsFormat=decimal`
-    const res = await fetch(url, { next: { revalidate: 0 } })
-    if (!res.ok) continue
-    const events = await res.json() as OddsApiEvent[]
+  const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
+
+  // Essaie d'abord Winamax FR
+  const winamax = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
+  if (winamax.ok) {
+    const events = await winamax.json() as OddsApiEvent[]
     if (events.length > 0) return { events }
-    // Winamax vide → fallback tous bookmakers EU
-    const fallback = await fetch(
-      `https://api.the-odds-api.com/v4/sports/${sportKey}/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal`,
-      { next: { revalidate: 0 } }
-    )
-    if (fallback.ok) {
-      const fallbackEvents = await fallback.json() as OddsApiEvent[]
-      if (fallbackEvents.length > 0) return { events: fallbackEvents }
-    }
   }
-  return { events: null, error: 'Aucun sport WC trouvé sur The Odds API — les cotes ne sont peut-être pas encore disponibles' }
+
+  // Fallback : tous les bookmakers EU
+  const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
+  if (eu.ok) {
+    const events = await eu.json() as OddsApiEvent[]
+    if (events.length > 0) return { events }
+  }
+
+  return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
 }
 
 function matchEvent(

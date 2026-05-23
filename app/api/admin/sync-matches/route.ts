@@ -199,18 +199,18 @@ async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createA
 
 async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminClient>>): Promise<string> {
   const apiKey = process.env.ODDS_API_KEY!
-  const url = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&bookmakers=winamax_fr&markets=h2h&oddsFormat=decimal`
-  const res = await fetch(url, { next: { revalidate: 0 } })
-  if (!res.ok) return `odds_api_error_${res.status}`
+  const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
+  let events: OddsApiEvent[] = []
 
-  let events = await res.json() as OddsApiEvent[]
+  const winamax = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
+  if (winamax.ok) events = await winamax.json()
+
   if (events.length === 0) {
-    const fallbackRes = await fetch(
-      `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal`,
-      { next: { revalidate: 0 } }
-    )
-    if (fallbackRes.ok) events = await fallbackRes.json()
+    const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
+    if (eu.ok) events = await eu.json()
   }
+
+  if (events.length === 0) return 'no_odds_available'
 
   const { data: matchesWithoutOdds } = await supabase
     .from('matches')
