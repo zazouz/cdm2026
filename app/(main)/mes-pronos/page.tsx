@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import type { PredictionWithMatch } from '@/lib/types'
 import { TeamName } from '../TeamName'
+import { STAGE_LABELS } from '@/lib/types'
 
 export const revalidate = 30
 
