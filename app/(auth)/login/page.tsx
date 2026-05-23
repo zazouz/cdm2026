@@ -41,6 +41,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showForgot, setShowForgot] = useState(false)
+  const [loginAttempts, setLoginAttempts] = useState(0)
   const t = T[lang]
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,6 +56,7 @@ export default function LoginPage() {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (signInError) {
+      setLoginAttempts(n => n + 1)
       setError(t.error)
       setLoading(false)
       return
@@ -116,7 +118,16 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm bg-red-950/50 rounded-lg px-3 py-2">{error}</p>
+            <div className="bg-red-950/50 rounded-lg px-3 py-2 space-y-1">
+              <p className="text-red-400 text-sm">{error}</p>
+              {loginAttempts >= 1 && (
+                <p className="text-xs text-gray-400">
+                  {lang === 'fr'
+                    ? <>Pas encore de compte ? <a href="/register" className="text-green-400 underline">Inscris-toi ici.</a></>
+                    : <>No account yet? <a href="/register" className="text-green-400 underline">Sign up here.</a></>}
+                </p>
+              )}
+            </div>
           )}
 
           <button
