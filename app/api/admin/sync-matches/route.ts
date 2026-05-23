@@ -204,12 +204,21 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
   let events: OddsApiEvent[] = []
 
+  const hasOdds = (evts: OddsApiEvent[]) =>
+    evts.some(e => e.bookmakers.length > 0 && e.bookmakers[0].markets.length > 0)
+
   const winamax = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
-  if (winamax.ok) events = await winamax.json()
+  if (winamax.ok) {
+    const evts = await winamax.json() as OddsApiEvent[]
+    if (hasOdds(evts)) events = evts
+  }
 
   if (events.length === 0) {
     const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
-    if (eu.ok) events = await eu.json()
+    if (eu.ok) {
+      const evts = await eu.json() as OddsApiEvent[]
+      if (hasOdds(evts)) events = evts
+    }
   }
 
   if (events.length === 0) return 'no_odds_available'

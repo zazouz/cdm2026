@@ -87,18 +87,21 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
 
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
 
+  const hasOdds = (events: OddsApiEvent[]) =>
+    events.some(e => e.bookmakers.length > 0 && e.bookmakers[0].markets.length > 0)
+
   // Essaie d'abord Winamax FR
   const winamax = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
   if (winamax.ok) {
     const events = await winamax.json() as OddsApiEvent[]
-    if (events.length > 0) return { events }
+    if (hasOdds(events)) return { events }
   }
 
   // Fallback : tous les bookmakers EU
   const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
   if (eu.ok) {
     const events = await eu.json() as OddsApiEvent[]
-    if (events.length > 0) return { events }
+    if (hasOdds(events)) return { events }
   }
 
   return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
