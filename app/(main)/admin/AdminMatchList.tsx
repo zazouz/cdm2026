@@ -114,9 +114,11 @@ export default function AdminMatchList({ matches }: { matches: Match[] }) {
 }
 
 function AdminMatchRow({ match }: { match: Match }) {
+  const [finished, setFinished] = useState(match.status === 'finished')
   const [homeScore, setHomeScore] = useState(match.home_score?.toString() ?? '')
   const [awayScore, setAwayScore] = useState(match.away_score?.toString() ?? '')
   const [saving, setSaving] = useState(false)
+  const [resetting, setResetting] = useState(false)
   const [msg, setMsg] = useState('')
   const [fetchingOdds, setFetchingOdds] = useState(false)
 
@@ -132,8 +134,33 @@ function AdminMatchRow({ match }: { match: Match }) {
       body: JSON.stringify({ matchId: match.id, homeScore: h, awayScore: a }),
     })
     const data = await res.json()
-    setMsg(res.ok ? 'Points calculés' : data.error ?? 'Erreur')
+    if (res.ok) {
+      setFinished(true)
+      setMsg('Points calculés')
+    } else {
+      setMsg(data.error ?? 'Erreur')
+    }
     setSaving(false)
+  }
+
+  async function handleReset() {
+    setResetting(true)
+    setMsg('')
+    const res = await fetch('/api/admin/reset-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ matchId: match.id }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setFinished(false)
+      setHomeScore('')
+      setAwayScore('')
+      setMsg('Résultat annulé')
+    } else {
+      setMsg(data.error ?? 'Erreur')
+    }
+    setResetting(false)
   }
 
   async function handleFetchOdds() {
@@ -144,8 +171,6 @@ function AdminMatchRow({ match }: { match: Match }) {
     setMsg(res.ok ? `Côtes: ${data.home_odds} / ${data.draw_odds} / ${data.away_odds}` : data.error ?? 'Erreur')
     setFetchingOdds(false)
   }
-
-  const isFinished = match.status === 'finished'
 
   return (
     <div className="bg-gray-900 rounded-xl p-3 text-sm">
@@ -177,10 +202,19 @@ function AdminMatchRow({ match }: { match: Match }) {
         </div>
 
         {/* Score */}
-        {isFinished ? (
-          <span className="text-green-400 font-mono font-bold">
-            {match.home_score} – {match.away_score}
-          </span>
+        {finished ? (
+          <div className="flex items-center gap-2">
+            <span className="text-green-400 font-mono font-bold">
+              {homeScore !== '' ? homeScore : match.home_score} – {awayScore !== '' ? awayScore : match.away_score}
+            </span>
+            <button
+              onClick={handleReset}
+              disabled={resetting}
+              className="text-red-400 hover:text-red-300 disabled:text-gray-600 text-xs px-2 py-1 rounded border border-red-800 hover:border-red-600"
+            >
+              {resetting ? '...' : 'Annuler'}
+            </button>
+          </div>
         ) : (
           <div className="flex items-center gap-1">
             <input
