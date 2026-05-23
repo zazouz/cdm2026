@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { computePoints } from '@/lib/scoring'
+import { getFlag } from '@/lib/flags'
 import type { Match, Prediction } from '@/lib/types'
 
 async function isAdmin(): Promise<boolean> {
@@ -70,6 +71,8 @@ export async function POST(req: NextRequest) {
       await supabase.from('matches').insert({
         home_team: homeTeam,
         away_team: awayTeam,
+        home_flag: getFlag(homeTeam),
+        away_flag: getFlag(awayTeam),
         match_date: fdMatch.utcDate,
         stage,
         group_name: groupName,
@@ -88,6 +91,8 @@ export async function POST(req: NextRequest) {
         await supabase.from('matches').update({
           home_team: homeTeam,
           away_team: awayTeam,
+          home_flag: getFlag(homeTeam),
+          away_flag: getFlag(awayTeam),
           ...(justFinished && {
             home_score: fdMatch.score.fullTime.home,
             away_score: fdMatch.score.fullTime.away,
@@ -266,9 +271,13 @@ function mapStage(fdStage: string): string {
   const map: Record<string, string> = {
     GROUP_STAGE: 'group',
     ROUND_OF_32: 'r32',
+    LAST_32: 'r32',
     ROUND_OF_16: 'r16',
+    LAST_16: 'r16',
     QUARTER_FINAL: 'qf',
+    QUARTER_FINALS: 'qf',
     SEMI_FINAL: 'sf',
+    SEMI_FINALS: 'sf',
     THIRD_PLACE: 'final',
     FINAL: 'final',
   }
