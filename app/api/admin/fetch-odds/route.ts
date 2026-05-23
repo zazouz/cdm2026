@@ -81,10 +81,18 @@ async function fetchAllOddsEvents(): Promise<OddsApiEvent[] | null> {
   const apiKey = process.env.ODDS_API_KEY
   if (!apiKey) throw new Error('ODDS_API_KEY manquant')
 
-  const url = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal`
+  const url = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&bookmakers=winamax_fr&markets=h2h&oddsFormat=decimal`
   const res = await fetch(url, { next: { revalidate: 0 } })
   if (!res.ok) return null
-  return res.json()
+  const events = await res.json() as OddsApiEvent[]
+  // Si Winamax FR n'a pas encore les cotes CDM, fallback sur tous les bookmakers EU
+  if (events.length === 0) {
+    const fallbackUrl = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup_2026/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal`
+    const fallbackRes = await fetch(fallbackUrl, { next: { revalidate: 0 } })
+    if (!fallbackRes.ok) return null
+    return fallbackRes.json()
+  }
+  return events
 }
 
 function matchEvent(
