@@ -136,8 +136,24 @@ export const FLAG_MAP: Record<string, string> = {
   'India': 'in',
 }
 
+const normalizeKey = (s: string) =>
+  s.toLowerCase()
+   .replace(/[àáâãä]/g, 'a').replace(/[çć]/g, 'c').replace(/[èéêë]/g, 'e')
+   .replace(/[ìíîï]/g, 'i').replace(/[ñ]/g, 'n').replace(/[òóôõö]/g, 'o')
+   .replace(/[ùúûü]/g, 'u').replace(/[^a-z]/g, '')
+
+let _normalized: Record<string, string> | null = null
+function normalizedMap(): Record<string, string> {
+  if (_normalized) return _normalized
+  _normalized = {}
+  for (const [k, v] of Object.entries(FLAG_MAP)) {
+    _normalized[normalizeKey(k)] = v
+  }
+  return _normalized
+}
+
 export function getFlag(teamName: string): string {
-  return FLAG_MAP[teamName] ?? ''
+  return FLAG_MAP[teamName] ?? normalizedMap()[normalizeKey(teamName)] ?? ''
 }
 
 export function flagUrl(code: string): string {

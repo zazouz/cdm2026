@@ -223,18 +223,25 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   if (!matchesWithoutOdds) return 'no_matches'
 
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
+  const TEAM_ALIAS: Record<string, string> = {
+    'usa': 'unitedstates', 'unitedstates': 'unitedstates',
+    'irian': 'iran', 'korearep': 'southkorea', 'republicofkorea': 'southkorea',
+    'dprkorea': 'northkorea', 'chinapr': 'china',
+    'trinidadandtobago': 'trinidadtobago', 'trinidadtobago': 'trinidadtobago',
+  }
+  const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
   const DAY_MS = 24 * 60 * 60 * 1000
   let updated = 0
 
   for (const match of matchesWithoutOdds) {
-    const homeNorm = normalize(match.home_team)
-    const awayNorm = normalize(match.away_team)
+    const homeNorm = canon(match.home_team)
+    const awayNorm = canon(match.away_team)
     const dateMsTarget = new Date(match.match_date).getTime()
 
     const event = events.find(e => {
       const dateClose = Math.abs(new Date(e.commence_time).getTime() - dateMsTarget) < DAY_MS
-      const h = normalize(e.home_team)
-      const a = normalize(e.away_team)
+      const h = canon(e.home_team)
+      const a = canon(e.away_team)
       return dateClose &&
         (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
         (a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4)))

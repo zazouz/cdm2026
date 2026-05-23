@@ -100,6 +100,19 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
   return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
 }
 
+// Canonical aliases so "USA" and "United States" resolve to the same key
+const TEAM_ALIAS: Record<string, string> = {
+  'usa': 'unitedstates',
+  'unitedstates': 'unitedstates',
+  'irian': 'iran',
+  'korearep': 'southkorea',
+  'republicofkorea': 'southkorea',
+  'dprkorea': 'northkorea',
+  'chinapr': 'china',
+  'trinidadandtobago': 'trinidadtobago',
+  'trinidadtobago': 'trinidadtobago',
+}
+
 function matchEvent(
   events: OddsApiEvent[],
   homeTeam: string,
@@ -107,15 +120,16 @@ function matchEvent(
   matchDate: string
 ): { home: number; draw: number; away: number } | null {
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
-  const homeNorm = normalize(homeTeam)
-  const awayNorm = normalize(awayTeam)
+  const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
+  const homeNorm = canon(homeTeam)
+  const awayNorm = canon(awayTeam)
   const dateMsTarget = new Date(matchDate).getTime()
   const DAY_MS = 24 * 60 * 60 * 1000
 
   const event = events.find(e => {
     const dateClose = Math.abs(new Date(e.commence_time).getTime() - dateMsTarget) < DAY_MS
-    const h = normalize(e.home_team)
-    const a = normalize(e.away_team)
+    const h = canon(e.home_team)
+    const a = canon(e.away_team)
     return dateClose &&
       (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
       (a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4)))
