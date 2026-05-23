@@ -1,6 +1,6 @@
 import { createAdminClient, createClient } from '@/lib/supabase-server'
 import { STAGE_LABELS } from '@/lib/types'
-import type { PredictionWithMatch } from '@/lib/types'
+import type { Match, Prediction } from '@/lib/types'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { flagUrl } from '@/lib/flags'
@@ -21,37 +21,31 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: profile } = await admin
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single()
+  const [{ data: profile }, { data: allEntries }, { data: finishedMatches }] = await Promise.all([
+    admin.from('users').select('*').eq('id', userId).single(),
+    admin.from('leaderboard').select('id').order('total_points', { ascending: false }),
+    admin.from('matches').select('*').eq('status', 'finished').order('match_date', { ascending: true }),
+  ])
 
   if (!profile) notFound()
 
-  const { data: allEntries } = await admin
-    .from('leaderboard')
-    .select('id')
-    .order('total_points', { ascending: false })
   const rank = (allEntries ?? []).findIndex((e: { id: string }) => e.id === userId) + 1
+  const matches = (finishedMatches ?? []) as Match[]
 
-  const { data: predictions } = await admin
-    .from('predictions_with_match')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'finished')
-    .not('points_earned', 'is', null)
-    .order('match_date', { ascending: true })
+  const matchIds = matches.map(m => m.id)
+  const { data: rawPredictions } = matchIds.length > 0
+    ? await admin.from('predictions').select('*').eq('user_id', userId).in('match_id', matchIds)
+    : { data: [] }
 
-  const rows = (predictions ?? []) as PredictionWithMatch[]
+  const predByMatchId = new Map((rawPredictions ?? []).map((p: Prediction) => [p.match_id, p]))
 
   const stageOrder = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
 
-  const grouped: Record<string, PredictionWithMatch[]> = {}
-  for (const p of rows) {
-    const key = `${p.stage}__${p.group_name ?? ''}`
+  const grouped: Record<string, Match[]> = {}
+  for (const m of matches) {
+    const key = `${m.stage}__${m.group_name ?? ''}`
     if (!grouped[key]) grouped[key] = []
-    grouped[key].push(p)
+    grouped[key].push(m)
   }
 
   const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
@@ -62,17 +56,20 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
     return groupA.localeCompare(groupB)
   })
 
-  const totalPoints = rows.reduce((sum, p) => sum + (p.points_earned ?? 0), 0)
-  const exactCount = rows.filter(p =>
-    p.home_score !== null &&
-    p.predicted_home === p.home_score &&
-    p.predicted_away === p.away_score
-  ).length
-  const correctCount = rows.filter(p => {
-    if (p.home_score === null || p.away_score === null) return false
-    const isExact = p.predicted_home === p.home_score && p.predicted_away === p.away_score
+  const totalPoints = matches.reduce((sum, m) => {
+    const p = predByMatchId.get(m.id)
+    return sum + (p?.points_earned ?? 0)
+  }, 0)
+  const exactCount = matches.filter(m => {
+    const p = predByMatchId.get(m.id)
+    return p && m.home_score !== null && p.predicted_home === m.home_score && p.predicted_away === m.away_score
+  }).length
+  const correctCount = matches.filter(m => {
+    const p = predByMatchId.get(m.id)
+    if (!p || m.home_score === null || m.away_score === null) return false
+    const isExact = p.predicted_home === m.home_score && p.predicted_away === m.away_score
     if (isExact) return false
-    return resultSign(p.predicted_home, p.predicted_away) === resultSign(p.home_score, p.away_score)
+    return resultSign(p.predicted_home, p.predicted_away) === resultSign(m.home_score, m.away_score)
   }).length
 
   const isMe = userId === user.id
@@ -112,7 +109,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2">
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
-          <span className="text-2xl font-extrabold tracking-tight text-white">{totalPoints.toFixed(2)}</span>
+          <span className="text-2xl font-extrabold tracking-tight text-white">{Number(totalPoints).toFixed(2)}</span>
           <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-600 mt-1">Points</span>
         </div>
         <div className="flex flex-col items-center rounded-2xl border border-gray-800 bg-gray-900 py-4">
@@ -125,14 +122,14 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {matches.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center">
           <p className="text-3xl mb-3">🎯</p>
-          <p className="text-sm font-semibold text-gray-400">Aucun pronostic scoré pour l&apos;instant.</p>
+          <p className="text-sm font-semibold text-gray-400">Aucun match terminé pour l&apos;instant.</p>
         </div>
       ) : (
         <div className="space-y-6">
-          {sortedGroups.map(([key, groupPredictions]) => {
+          {sortedGroups.map(([key, groupMatches]) => {
             const [stage, groupName] = key.split('__')
             const label = stage === 'group' && groupName
               ? `Groupe ${groupName}`
@@ -142,40 +139,43 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
               <section key={key}>
                 <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-600">{label}</p>
                 <div className="space-y-2">
-                  {groupPredictions.map(p => {
-                    const isExact =
-                      p.home_score !== null &&
-                      p.predicted_home === p.home_score &&
-                      p.predicted_away === p.away_score
-                    const isCorrect = !isExact && p.home_score !== null &&
-                      resultSign(p.predicted_home, p.predicted_away) === resultSign(p.home_score!, p.away_score!)
-                    const pts = p.points_earned ?? 0
+                  {groupMatches.map(m => {
+                    const p = predByMatchId.get(m.id) ?? null
+                    const isExact = p !== null && m.home_score !== null &&
+                      p.predicted_home === m.home_score && p.predicted_away === m.away_score
+                    const isCorrect = p !== null && !isExact && m.home_score !== null && m.away_score !== null &&
+                      resultSign(p.predicted_home, p.predicted_away) === resultSign(m.home_score, m.away_score)
+                    const pts = p?.points_earned ?? 0
 
                     return (
-                      <div key={p.id} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
+                      <div key={m.id} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
                         <div className="flex items-center px-4 py-3">
                           <div className="flex flex-1 flex-col items-center gap-1.5">
-                            {p.home_flag
-                              ? <img src={flagUrl(p.home_flag)} alt={p.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+                            {m.home_flag
+                              ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
                               : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-                            <span className="text-center text-[11px] font-semibold leading-tight text-white">{p.home_team}</span>
+                            <span className="text-center text-[11px] font-semibold leading-tight text-white">{m.home_team}</span>
                           </div>
                           <div className="w-14 flex-shrink-0 text-center">
-                            <div className="text-lg font-extrabold text-white">{p.home_score}–{p.away_score}</div>
+                            <div className="text-lg font-extrabold text-white">{m.home_score}–{m.away_score}</div>
                             <div className="text-[9px] uppercase text-gray-600">résultat</div>
                           </div>
                           <div className="flex flex-1 flex-col items-center gap-1.5">
-                            {p.away_flag
-                              ? <img src={flagUrl(p.away_flag)} alt={p.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+                            {m.away_flag
+                              ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
                               : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-                            <span className="text-center text-[11px] font-semibold leading-tight text-white">{p.away_team}</span>
+                            <span className="text-center text-[11px] font-semibold leading-tight text-white">{m.away_team}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between border-t border-gray-800 bg-gray-900/60 px-4 py-2.5">
-                          <span className="text-[11px] text-gray-500">
-                            Prono : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
-                          </span>
+                          {p ? (
+                            <span className="text-[11px] text-gray-500">
+                              Prono : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-gray-600 italic">Pas de prono</span>
+                          )}
                           <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                             isExact ? 'bg-green-950 text-green-400'
                             : isCorrect ? 'bg-blue-950 text-blue-400'
