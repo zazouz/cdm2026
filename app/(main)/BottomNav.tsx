@@ -2,15 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLanguage } from './LanguageProvider'
+import { NAV_LABELS } from '@/lib/i18n'
 
 export default function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname()
+  const { lang } = useLanguage()
 
   const tabs = [
-    { href: '/matches', icon: '⚽', label: 'Matchs' },
-    { href: '/mes-pronos', icon: '📋', label: 'Mes Pronos' },
-    { href: '/leaderboard', icon: '🏆', label: 'Classement' },
-    ...(isAdmin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
+    { href: '/matches', icon: '⚽', label: NAV_LABELS.matches[lang] },
+    { href: '/mes-pronos', icon: '📋', label: NAV_LABELS.pronos[lang] },
+    { href: '/leaderboard', icon: '🏆', label: NAV_LABELS.leaderboard[lang] },
+    ...(isAdmin ? [{ href: '/admin', icon: '⚙️', label: NAV_LABELS.admin[lang] }] : []),
   ]
 
   return (

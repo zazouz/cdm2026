@@ -140,6 +140,14 @@ export const STAGE_LABELS: Record<string, { fr: string; en: string }> = {
   final: { fr: 'Finale', en: 'Final' },
 }
 
+export const NAV_LABELS: Record<string, { fr: string; en: string }> = {
+  matches: { fr: 'Matchs', en: 'Matches' },
+  pronos: { fr: 'Mes Pronos', en: 'My Bets' },
+  leaderboard: { fr: 'Classement', en: 'Standings' },
+  admin: { fr: 'Admin', en: 'Admin' },
+  logout: { fr: 'Déco', en: 'Logout' },
+}
+
 export function translateTeam(name: string, lang: Lang): string {
   if (lang === 'en') return name
   return TEAM_FR[name] ?? name

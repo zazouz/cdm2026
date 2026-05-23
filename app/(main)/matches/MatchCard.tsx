@@ -228,8 +228,12 @@ export default function MatchCard({ match, prediction, userId }: Props) {
             {maxPts && (
               <p className="mt-2 text-center text-[10px] text-gray-600">
                 {predictedWinner
-                  ? `Victoire ${predictedWinner} · score exact = max ${maxPts} pts`
-                  : `Match nul · score exact = max ${maxPts} pts`}
+                  ? lang === 'fr'
+                    ? `Victoire ${predictedWinner} · score exact = max ${maxPts} pts`
+                    : `${predictedWinner} win · exact score = max ${maxPts} pts`
+                  : lang === 'fr'
+                    ? `Match nul · score exact = max ${maxPts} pts`
+                    : `Draw · exact score = max ${maxPts} pts`}
               </p>
             )}
             {error && <p className="mt-1 text-center text-xs text-red-400">{error}</p>}

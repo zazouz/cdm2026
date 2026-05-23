@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { useLanguage } from './LanguageProvider'
+import { NAV_LABELS } from '@/lib/i18n'
 
 export default function NavBar({ username }: { username: string; isAdmin: boolean }) {
   const router = useRouter()
@@ -43,7 +44,7 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
           onClick={handleLogout}
           className="px-2 py-1 text-[11px] text-gray-600 transition-colors hover:text-red-400"
         >
-          Déco
+          {NAV_LABELS.logout[lang]}
         </button>
       </div>
     </header>
