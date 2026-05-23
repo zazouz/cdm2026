@@ -72,25 +72,11 @@ export default async function MatchesPage() {
     return new Date(match.match_date).getTime() - LOCK_MS > now.getTime()
   })
 
-  const nextUnlock = (() => {
-    for (const [stage, prevStage] of Object.entries(STAGE_CHAIN)) {
-      if (prevStage === null) continue
-      if (isStageVisible(stage, allMatches, now)) continue
-      if (!isStageVisible(prevStage, allMatches, now)) continue
-      const prevMatches = allMatches.filter(m => m.stage === prevStage)
-      if (prevMatches.length === 0) continue
-      const remaining = prevMatches.filter(m => new Date(m.match_date).getTime() > now.getTime()).length
-      return { stage, remaining }
-    }
-    return null
-  })()
-
   return (
     <MatchesList
       matches={matches}
       predictionByMatch={predictionByMatch}
       userId={user.id}
-      nextUnlock={nextUnlock}
     />
   )
 }
