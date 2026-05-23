@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ firstName: '', lastName: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const username = (form.firstName + form.lastName)
     .toLowerCase()
@@ -37,7 +38,7 @@ export default function RegisterPage() {
     setLoading(true)
     const supabase = createClient()
 
-    const email = `${username}@prono.internal`
+    const email = `${username}@prono.app`
     const { data, error: signUpError } = await supabase.auth.signUp({ email, password: form.password })
 
     if (signUpError) {
@@ -110,26 +111,33 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-sm text-gray-400 mb-1">Mot de passe</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="6 caractères minimum"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2.5 pr-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="6 caractères minimum"
+                required
+              />
+              <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                {showPassword ? '🙈' : '👁'}
+              </button>
+            </div>
           </div>
 
           <div>
             <label className="block text-sm text-gray-400 mb-1">Confirmer le mot de passe</label>
-            <input
-              type="password"
-              value={form.confirm}
-              onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))}
-              className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Répète le mot de passe"
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.confirm}
+                onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2.5 pr-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Répète le mot de passe"
+                required
+              />
+            </div>
           </div>
 
           {error && (
