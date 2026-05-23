@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Pronostics CDM 2026",
-  description: "Pronostics Coupe du Monde 2026 entre amis",
+  description: "Pronostics Coupe du Monde 2026",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
