@@ -19,8 +19,9 @@ const T = {
     howTitle: 'Comment ça marche',
     step1: 'Prédit le score de chaque match avant le coup d\'envoi.',
     step2: 'Les pronos se verrouillent 15 min avant le match.',
-    step3: 'Les points sont calculés automatiquement peu après la fin du match.',
-    step4: 'Suis ton score dans le classement.',
+    step3: 'Une fois le match commencé, consulte les pronos des autres dans "Les Pronos".',
+    step4: 'Les points sont calculés automatiquement peu après la fin du match.',
+    step5: 'Suis ton score dans le classement.',
     cta: 'Se connecter',
     register: 'Créer un compte',
   },
@@ -37,8 +38,9 @@ const T = {
     howTitle: 'How it works',
     step1: 'Predict the score of each match before kick-off.',
     step2: 'Predictions lock 15 min before the match.',
-    step3: 'Points are calculated automatically shortly after the final whistle.',
-    step4: 'Track your score on the leaderboard.',
+    step3: 'Once the match starts, check everyone\'s predictions in "Les Pronos".',
+    step4: 'Points are calculated automatically shortly after the final whistle.',
+    step5: 'Track your score on the leaderboard.',
     cta: 'Sign in',
     register: 'Create an account',
   },
@@ -135,6 +137,10 @@ export default function Home() {
           <div className="flex gap-3 text-sm">
             <span className="text-gray-600 font-mono shrink-0 w-4">4.</span>
             <p className="text-gray-400">{t.step4}</p>
+          </div>
+          <div className="flex gap-3 text-sm">
+            <span className="text-gray-600 font-mono shrink-0 w-4">5.</span>
+            <p className="text-gray-400">{t.step5}</p>
           </div>
         </div>
 
