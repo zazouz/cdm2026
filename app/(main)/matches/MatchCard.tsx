@@ -128,12 +128,12 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {match.home_flag
             ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
             : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-          <span className="text-center text-xs font-semibold leading-tight text-white">{homeTeam}</span>
+          <span className="text-center text-[11px] font-semibold leading-tight text-white">{homeTeam}</span>
         </div>
         <div className="flex w-16 flex-col items-center gap-0.5 text-gray-600">
           {isFinished && match.home_score !== null ? (
             <>
-              <span className="text-xl font-extrabold text-white">{match.home_score}–{match.away_score}</span>
+              <span className="text-lg font-extrabold text-white">{match.home_score}–{match.away_score}</span>
               <span className="text-[10px] uppercase tracking-wide text-gray-500">{t.result}</span>
             </>
           ) : (
@@ -144,7 +144,7 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           {match.away_flag
             ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={awayTeam} className="h-7 w-auto rounded-sm shadow object-cover" />
             : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-          <span className="text-center text-xs font-semibold leading-tight text-white">{awayTeam}</span>
+          <span className="text-center text-[11px] font-semibold leading-tight text-white">{awayTeam}</span>
         </div>
       </div>
 
@@ -153,15 +153,15 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         <div className="flex gap-1.5 px-4 pb-3">
           <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">1</span>
-            <span className="text-sm font-bold text-gray-300">{formatOdds(match.home_odds)}</span>
+            <span className="text-xs font-bold text-gray-300">{formatOdds(match.home_odds)}</span>
           </div>
           <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">N</span>
-            <span className="text-sm font-bold text-gray-300">{formatOdds(match.draw_odds)}</span>
+            <span className="text-xs font-bold text-gray-300">{formatOdds(match.draw_odds)}</span>
           </div>
           <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
             <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">2</span>
-            <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
+            <span className="text-xs font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
           </div>
         </div>
       )}

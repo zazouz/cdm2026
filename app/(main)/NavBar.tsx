@@ -9,6 +9,11 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
   const router = useRouter()
   const { lang, setLang } = useLanguage()
 
+  function handleSetLang(l: 'fr' | 'en') {
+    setLang(l)
+    router.refresh()
+  }
+
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -29,13 +34,13 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
       <div className="flex items-center gap-2">
         <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
           <button
-            onClick={() => setLang('fr')}
+            onClick={() => handleSetLang('fr')}
             className={`px-2.5 py-1 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
           >
             FR
           </button>
           <button
-            onClick={() => setLang('en')}
+            onClick={() => handleSetLang('en')}
             className={`px-2.5 py-1 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
           >
             EN

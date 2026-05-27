@@ -12,6 +12,7 @@ export default function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   const tabs = [
     { href: '/matches', icon: '⚽', label: NAV_LABELS.matches[lang] },
     { href: '/mes-pronos', icon: '📋', label: NAV_LABELS.pronos[lang] },
+    { href: '/groupes', icon: '📊', label: NAV_LABELS.groupes[lang] },
     { href: '/leaderboard', icon: '🏆', label: NAV_LABELS.leaderboard[lang] },
     ...(isAdmin ? [{ href: '/admin', icon: '⚙️', label: NAV_LABELS.admin[lang] }] : []),
   ]
