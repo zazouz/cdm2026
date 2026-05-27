@@ -1,12 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-server'
-import { redirect } from 'next/navigation'
 
-export default async function Home() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) redirect('/matches')
-
+export default function Home() {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
@@ -66,7 +60,7 @@ export default async function Home() {
           </div>
           <div className="flex gap-3 text-sm">
             <span className="text-gray-600 font-mono shrink-0 w-4">2.</span>
-            <p className="text-gray-400">Les pronos se <strong className="text-white">verrouillent 15 min</strong> avant le match — plus de modification après.</p>
+            <p className="text-gray-400">Les pronos se <strong className="text-white">verrouillent 15 min</strong> avant le match.</p>
           </div>
           <div className="flex gap-3 text-sm">
             <span className="text-gray-600 font-mono shrink-0 w-4">3.</span>
