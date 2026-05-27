@@ -25,14 +25,15 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const publicPaths = ['/login', '/register']
-  const isPublic = publicPaths.some(p => pathname.startsWith(p))
+  const publicPaths = ['/', '/login', '/register']
+  const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith(p + '/'))
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && isPublic) {
+  // Redirige les utilisateurs connectés vers /matches s'ils arrivent sur la landing ou le login/register
+  if (user && (pathname === '/' || publicPaths.slice(1).some(p => pathname.startsWith(p)))) {
     return NextResponse.redirect(new URL('/matches', request.url))
   }
 
