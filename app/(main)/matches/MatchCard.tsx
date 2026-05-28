@@ -89,11 +89,8 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
     ? (GROUP_BORDER[match.group_name] ?? '')
     : ''
 
-  const oddsFetchedLabel = match.odds_fetched_at
-    ? new Date(match.odds_fetched_at).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
-        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
-      })
-    : null
+  const relevantOdds = home > away ? match.home_odds : away > home ? match.away_odds : match.draw_odds
+  const maxPts = !isLocked && relevantOdds ? (3 * relevantOdds).toFixed(2) : null
 
   return (
     <div className={`overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 border-l-4 ${groupBorderClass} ${isFinished ? 'opacity-70' : ''}`}>
@@ -162,7 +159,9 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
         </div>
 
         <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{homeTeam}</p>
-        <div aria-hidden />
+        {maxPts
+          ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap">max {maxPts} pts</p>
+          : <div aria-hidden />}
         <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{awayTeam}</p>
       </div>
 
@@ -183,11 +182,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
               <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
             </div>
           </div>
-          {oddsFetchedLabel && (
-            <p className="text-center text-[9px] text-gray-700">
-              Betclic.fr · {lang === 'fr' ? 'récupérées le' : 'fetched'} {oddsFetchedLabel}
-            </p>
-          )}
+          <p className="text-center text-[9px] text-gray-700">Betclic.fr</p>
         </div>
       )}
 
