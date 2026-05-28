@@ -114,7 +114,8 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
       )}
 
       {/* Grid [flag | center | flag] puis [nom | espace | nom] */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-2 gap-y-1.5 px-3 pt-1 pb-3">
+      {/* minmax(0,1fr) permet aux colonnes de rétrécir sous la taille du contenu */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5 px-3 pt-1 pb-3">
 
         <div className="flex justify-center">
           {match.home_flag
@@ -160,9 +161,9 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
             : <div className="h-10 w-10 rounded-full bg-gray-800" />}
         </div>
 
-        <p className="text-center text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{homeTeam}</p>
         <div aria-hidden />
-        <p className="text-center text-xs font-semibold leading-tight text-white">{awayTeam}</p>
+        <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{awayTeam}</p>
       </div>
 
       {/* Cotes */}
