@@ -157,17 +157,38 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
         </div>
 
         {/* Noms — row 2 du même grid, débordent vers le centre */}
-        <p className="text-left text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        <p className="whitespace-nowrap text-left text-xs font-semibold leading-tight text-white">{homeTeam}</p>
         {maxPts
           ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap self-start">{lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}</p>
           : <div aria-hidden />}
-        <p className="text-right text-xs font-semibold leading-tight text-white">{awayTeam}</p>
+        <p className="whitespace-nowrap text-right text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
 
-      {/* Cotes */}
+      {/* Cotes + prono verrouillé sur la même ligne */}
       {match.home_odds && (
         <div className="px-4 pb-3 space-y-1.5">
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 items-stretch">
+
+            {/* Prédiction — uniquement si verrouillé */}
+            {isLocked && (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-800/50 px-2.5 py-1.5 shrink-0">
+                {prediction ? (
+                  <>
+                    <span className="font-mono text-sm font-bold text-gray-300 leading-none">
+                      {prediction.predicted_home}–{prediction.predicted_away}
+                    </span>
+                    {isFinished && prediction.points_earned !== null && (
+                      <span className={`text-[9px] font-bold mt-0.5 ${prediction.points_earned > 0 ? 'text-green-400' : 'text-gray-600'}`}>
+                        {prediction.points_earned > 0 ? `+${Number(prediction.points_earned).toFixed(2)}` : '0 pt'}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-[10px] italic text-gray-600">{t.noBet}</span>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">1</span>
               <span className="text-sm font-bold text-gray-300">{formatOdds(match.home_odds)}</span>
@@ -188,26 +209,6 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
                 day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
               })}
             </p>
-          )}
-        </div>
-      )}
-
-      {/* Prono verrouillé */}
-      {isLocked && (
-        <div className="border-t border-gray-800 px-4 py-2 flex items-center justify-end gap-2">
-          {prediction ? (
-            <>
-              <span className="font-mono text-sm font-bold text-gray-400">
-                {prediction.predicted_home} – {prediction.predicted_away}
-              </span>
-              {isFinished && prediction.points_earned !== null && (
-                <span className={`text-xs font-bold ${prediction.points_earned > 0 ? 'text-green-400' : 'text-gray-600'}`}>
-                  {prediction.points_earned > 0 ? `+${Number(prediction.points_earned).toFixed(2)} pts` : '0 pt'}
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="text-xs italic text-gray-600">{t.noBet}</span>
           )}
         </div>
       )}
