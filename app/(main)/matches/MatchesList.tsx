@@ -102,18 +102,30 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
 
   const saveButton = null
 
-  const floatingBtn = unlockedMatches.length > 0 && (dirtyCount > 0 || saving) && (
+  const showFloating = unlockedMatches.length > 0 && (dirtyCount > 0 || saving || lastSaved !== null)
+
+  const floatingBtn = showFloating && (
     <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 w-full max-w-lg px-4 pointer-events-none">
       <button
         onClick={saveAll}
-        disabled={saving}
-        className="pointer-events-auto w-full rounded-2xl py-3.5 text-sm font-bold shadow-lg shadow-black/40 transition-all bg-green-600 text-black hover:bg-green-500 active:bg-green-700 disabled:bg-gray-700 disabled:text-gray-400"
+        disabled={saving || dirtyCount === 0}
+        className={`pointer-events-auto w-full rounded-2xl py-3.5 text-sm font-bold shadow-lg shadow-black/40 transition-all ${
+          saving
+            ? 'bg-gray-700 text-gray-400'
+            : dirtyCount === 0
+            ? 'bg-green-900 text-green-400'
+            : 'bg-green-600 text-black hover:bg-green-500 active:bg-green-700'
+        }`}
       >
         {saving
           ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...')
-          : (lang === 'fr'
+          : dirtyCount > 0
+          ? (lang === 'fr'
               ? dirtyCount === 1 ? 'Valider mon pronostic' : `Valider mes ${dirtyCount} pronostics`
-              : dirtyCount === 1 ? 'Save my prediction' : `Save my ${dirtyCount} predictions`)}
+              : dirtyCount === 1 ? 'Save my prediction' : `Save my ${dirtyCount} predictions`)
+          : (lang === 'fr'
+              ? `✓ ${lastSaved} pronostic${(lastSaved ?? 0) > 1 ? 's' : ''} enregistré${(lastSaved ?? 0) > 1 ? 's' : ''}`
+              : `✓ ${lastSaved} prediction${(lastSaved ?? 0) > 1 ? 's' : ''} saved`)}
       </button>
     </div>
   )
