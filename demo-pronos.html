@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Les Pronos — Demo</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #030712;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 0 0 80px;
+}
+.app {
+  width: 100%;
+  max-width: 512px;
+  padding: 20px 16px;
+}
+
+/* Titre */
+.page-title { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: #fff; }
+.page-sub { font-size: 13px; color: #6b7280; margin-top: 4px; margin-bottom: 16px; }
+
+/* Cards */
+.cards { display: flex; flex-direction: column; gap: 8px; }
+
+.card {
+  border-radius: 16px;
+  border: 1px solid #1f2937;
+  background: #111827;
+  overflow: hidden;
+}
+
+/* Header cliquable */
+.card-header {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.card-header:active { opacity: 0.8; }
+
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 8px;
+}
+.team-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.team-side.right {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+}
+.flag {
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #1f2937;
+}
+.flag-placeholder {
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
+  background: #1f2937;
+  flex-shrink: 0;
+}
+.team-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.score-center {
+  flex-shrink: 0;
+  min-width: 52px;
+  text-align: center;
+}
+.score-value {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.live-badge {
+  font-size: 9px;
+  font-weight: 800;
+  color: #f87171;
+  letter-spacing: 0.5px;
+}
+.chevron {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #4b5563;
+  transition: transform 0.2s;
+  margin-left: 2px;
+}
+.card.open .chevron { transform: rotate(180deg); }
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px 10px;
+}
+.stat-label {
+  font-size: 10px;
+  color: #6b7280;
+}
+.badge {
+  border-radius: 99px;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.badge-green { background: rgba(20, 83, 45, 0.5); color: #4ade80; }
+.badge-blue  { background: rgba(30, 58, 138, 0.5); color: #60a5fa; }
+.badge-red   { background: rgba(127, 29, 29, 0.3); color: #f87171; }
+
+/* Expanded predictions */
+.preds {
+  border-top: 1px solid #1f2937;
+  display: none;
+}
+.card.open .preds { display: block; }
+
+.pred-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.5);
+}
+.pred-row:last-child { border-bottom: none; }
+.pred-row.me { background: rgba(20, 83, 45, 0.12); }
+
+.avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1f2937;
+  color: #9ca3af;
+  font-size: 8px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.avatar.me {
+  background: rgba(20, 83, 45, 0.6);
+  color: #4ade80;
+  box-shadow: 0 0 0 1px #166534;
+}
+
+.pred-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  color: #d1d5db;
+}
+.pred-name.me { color: #4ade80; font-weight: 600; }
+.pred-name .you-tag {
+  font-size: 9px;
+  color: #166534;
+  margin-left: 4px;
+}
+
+.pred-score {
+  flex-shrink: 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+.pred-score.exact  { color: #4ade80; }
+.pred-score.correct { color: #60a5fa; }
+
+.pred-pts {
+  flex-shrink: 0;
+  width: 54px;
+  text-align: right;
+  font-size: 10px;
+  font-weight: 700;
+}
+.pred-pts.exact  { color: #4ade80; }
+.pred-pts.correct { color: #60a5fa; }
+.pred-pts.wrong  { color: #4b5563; }
+.pred-pts.pending { color: #4b5563; font-style: italic; }
+.pred-pts.nobet  { color: #4b5563; font-style: italic; }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(3, 7, 18, 0.95);
+  border-top: 1px solid #1f2937;
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  backdrop-filter: blur(20px);
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-icon { font-size: 20px; opacity: 0.35; line-height: 1; }
+.nav-icon.active { opacity: 1; }
+.nav-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; }
+.nav-label.active { color: #22c55e; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <p class="page-title">Les Pronos</p>
+  <p class="page-sub">Les pronostics de chacun, par match.</p>
+
+  <div class="cards">
+
+    <!-- Match 1 : OUVERT par défaut (dernier match = premier dans la liste) -->
+    <div class="card open" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="match-row">
+          <div class="team-side">
+            <img class="flag" src="https://flagcdn.com/w40/fr.png" alt="">
+            <span class="team-name">France</span>
+          </div>
+          <div class="score-center">
+            <span class="score-value">2–1</span>
+          </div>
+          <div class="team-side right">
+            <span class="team-name">Maroc</span>
+            <img class="flag" src="https://flagcdn.com/w40/ma.png" alt="">
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="stats-bar">
+          <span class="stat-label">27/30 pronos</span>
+          <span class="badge badge-green">⭐ 6 exacts</span>
+          <span class="badge badge-blue">✓ 13 corrects</span>
+        </div>
+      </div>
+      <div class="preds">
+        <div class="pred-row me">
+          <div class="avatar me">DL</div>
+          <span class="pred-name me">David L. <span class="you-tag">(toi)</span></span>
+          <span class="pred-score exact">2–1</span>
+          <span class="pred-pts exact">⭐ +8.40</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">TM</div>
+          <span class="pred-name">Thomas M.</span>
+          <span class="pred-score exact">2–1</span>
+          <span class="pred-pts exact">⭐ +8.40</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">SC</div>
+          <span class="pred-name">Sophie C.</span>
+          <span class="pred-score exact">2–1</span>
+          <span class="pred-pts exact">⭐ +8.40</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">AB</div>
+          <span class="pred-name">Antoine B.</span>
+          <span class="pred-score correct">3–1</span>
+          <span class="pred-pts correct">+2.80</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">ML</div>
+          <span class="pred-name">Marie L.</span>
+          <span class="pred-score correct">1–0</span>
+          <span class="pred-pts correct">+2.80</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">JD</div>
+          <span class="pred-name">Julie D.</span>
+          <span class="pred-score correct">2–0</span>
+          <span class="pred-pts correct">+2.80</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">KP</div>
+          <span class="pred-name">Karim P.</span>
+          <span class="pred-score correct">3–2</span>
+          <span class="pred-pts correct">+2.80</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">NR</div>
+          <span class="pred-name">Nicolas R.</span>
+          <span class="pred-score">1–1</span>
+          <span class="pred-pts wrong">0 pt</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">LB</div>
+          <span class="pred-name">Lucie B.</span>
+          <span class="pred-score">0–1</span>
+          <span class="pred-pts wrong">0 pt</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">HM</div>
+          <span class="pred-name">Hugo M.</span>
+          <span class="pred-score">1–2</span>
+          <span class="pred-pts wrong">0 pt</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">CF</div>
+          <span class="pred-name">Clara F.</span>
+          <span class="pred-score correct">2–1</span>
+          <span class="pred-pts correct">— </span>
+        </div>
+        <!-- no bet -->
+        <div class="pred-row">
+          <div class="avatar">PD</div>
+          <span class="pred-name">Pierre D.</span>
+          <span class="pred-pts nobet" style="margin-left:auto">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match 2 : FERMÉ -->
+    <div class="card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="match-row">
+          <div class="team-side">
+            <img class="flag" src="https://flagcdn.com/w40/br.png" alt="">
+            <span class="team-name">Brésil</span>
+          </div>
+          <div class="score-center">
+            <span class="score-value">1–1</span>
+          </div>
+          <div class="team-side right">
+            <span class="team-name">Argentine</span>
+            <img class="flag" src="https://flagcdn.com/w40/ar.png" alt="">
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="stats-bar">
+          <span class="stat-label">30/30 pronos</span>
+          <span class="badge badge-green">⭐ 3 exacts</span>
+          <span class="badge badge-blue">✓ 8 corrects</span>
+        </div>
+      </div>
+      <div class="preds">
+        <div class="pred-row me">
+          <div class="avatar me">DL</div>
+          <span class="pred-name me">David L. <span class="you-tag">(toi)</span></span>
+          <span class="pred-score">2–1</span>
+          <span class="pred-pts wrong">0 pt</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">TM</div>
+          <span class="pred-name">Thomas M.</span>
+          <span class="pred-score exact">1–1</span>
+          <span class="pred-pts exact">⭐ +5.20</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">AB</div>
+          <span class="pred-name">Antoine B.</span>
+          <span class="pred-score correct">0–0</span>
+          <span class="pred-pts correct">+1.73</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">SC</div>
+          <span class="pred-name">Sophie C.</span>
+          <span class="pred-score">3–0</span>
+          <span class="pred-pts wrong">0 pt</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match 3 : EN COURS -->
+    <div class="card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="match-row">
+          <div class="team-side">
+            <img class="flag" src="https://flagcdn.com/w40/de.png" alt="">
+            <span class="team-name">Allemagne</span>
+          </div>
+          <div class="score-center">
+            <span class="live-badge">EN COURS</span>
+          </div>
+          <div class="team-side right">
+            <span class="team-name">Espagne</span>
+            <img class="flag" src="https://flagcdn.com/w40/es.png" alt="">
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="stats-bar">
+          <span class="stat-label">28/30 pronos</span>
+          <span class="badge badge-red">EN COURS</span>
+        </div>
+      </div>
+      <div class="preds">
+        <div class="pred-row me">
+          <div class="avatar me">DL</div>
+          <span class="pred-name me">David L. <span class="you-tag">(toi)</span></span>
+          <span class="pred-score">1–2</span>
+          <span class="pred-pts pending">…</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">ML</div>
+          <span class="pred-name">Marie L.</span>
+          <span class="pred-score">2–1</span>
+          <span class="pred-pts pending">…</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">KP</div>
+          <span class="pred-name">Karim P.</span>
+          <span class="pred-score">1–1</span>
+          <span class="pred-pts pending">…</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">HM</div>
+          <span class="pred-name">Hugo M.</span>
+          <span class="pred-score">0–2</span>
+          <span class="pred-pts pending">…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match 4 : FERMÉ -->
+    <div class="card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="match-row">
+          <div class="team-side">
+            <img class="flag" src="https://flagcdn.com/w40/pt.png" alt="">
+            <span class="team-name">Portugal</span>
+          </div>
+          <div class="score-center">
+            <span class="score-value">3–0</span>
+          </div>
+          <div class="team-side right">
+            <span class="team-name">Mexique</span>
+            <img class="flag" src="https://flagcdn.com/w40/mx.png" alt="">
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="stats-bar">
+          <span class="stat-label">25/30 pronos</span>
+          <span class="badge badge-green">⭐ 2 exacts</span>
+          <span class="badge badge-blue">✓ 15 corrects</span>
+        </div>
+      </div>
+      <div class="preds">
+        <div class="pred-row me">
+          <div class="avatar me">DL</div>
+          <span class="pred-name me">David L. <span class="you-tag">(toi)</span></span>
+          <span class="pred-score correct">2–0</span>
+          <span class="pred-pts correct">+1.40</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">JD</div>
+          <span class="pred-name">Julie D.</span>
+          <span class="pred-score exact">3–0</span>
+          <span class="pred-pts exact">⭐ +4.20</span>
+        </div>
+        <div class="pred-row">
+          <div class="avatar">NR</div>
+          <span class="pred-name">Nicolas R.</span>
+          <span class="pred-score correct">1–0</span>
+          <span class="pred-pts correct">+1.40</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match 5 : FERMÉ très ancien -->
+    <div class="card" onclick="toggle(this)">
+      <div class="card-header">
+        <div class="match-row">
+          <div class="team-side">
+            <img class="flag" src="https://flagcdn.com/w40/us.png" alt="">
+            <span class="team-name">États-Unis</span>
+          </div>
+          <div class="score-center">
+            <span class="score-value">0–0</span>
+          </div>
+          <div class="team-side right">
+            <span class="team-name">Canada</span>
+            <img class="flag" src="https://flagcdn.com/w40/ca.png" alt="">
+          </div>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="stats-bar">
+          <span class="stat-label">30/30 pronos</span>
+          <span class="badge badge-green">⭐ 1 exact</span>
+          <span class="badge badge-blue">✓ 4 corrects</span>
+        </div>
+      </div>
+      <div class="preds">
+        <div class="pred-row me">
+          <div class="avatar me">DL</div>
+          <span class="pred-name me">David L. <span class="you-tag">(toi)</span></span>
+          <span class="pred-score">2–1</span>
+          <span class="pred-pts wrong">0 pt</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <a class="nav-item">
+    <span class="nav-icon">⚽</span>
+    <span class="nav-label">Matchs</span>
+  </a>
+  <a class="nav-item">
+    <span class="nav-icon active">📋</span>
+    <span class="nav-label active">Les Pronos</span>
+  </a>
+  <a class="nav-item">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Groupes</span>
+  </a>
+  <a class="nav-item">
+    <span class="nav-icon">🏆</span>
+    <span class="nav-label">Classement</span>
+  </a>
+</nav>
+
+<script>
+function toggle(card) {
+  card.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
