@@ -160,7 +160,11 @@ select
   count(p.id) filter (where p.points_earned is not null) as predictions_scored,
   coalesce(sum(p.points_earned), 0) as total_points,
   count(p.id) filter (where p.points_earned > 0 and p.predicted_home = m.home_score and p.predicted_away = m.away_score) as exact_scores,
-  count(p.id) filter (where p.points_earned > 0) as correct_results
+  -- Bons résultats hors scores exacts (résultat correct mais score différent)
+  count(p.id) filter (
+    where p.points_earned > 0
+      and not (p.predicted_home = m.home_score and p.predicted_away = m.away_score)
+  ) as correct_results
 from public.users u
 left join public.predictions p on p.user_id = u.id
 left join public.matches m on m.id = p.match_id

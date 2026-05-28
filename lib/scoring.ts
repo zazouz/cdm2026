@@ -1,6 +1,6 @@
 import type { Match, Prediction } from './types'
 
-function resultSign(home: number, away: number): -1 | 0 | 1 {
+export function resultSign(home: number, away: number): -1 | 0 | 1 {
   if (home > away) return 1
   if (home < away) return -1
   return 0

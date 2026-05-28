@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { computePoints } from '@/lib/scoring'
 import { getFlag } from '@/lib/flags'
+import { canonicalTeam, normalizeTeam } from '@/lib/teams'
 import type { Match, Prediction } from '@/lib/types'
 
 async function isAdmin(): Promise<boolean> {
@@ -228,15 +229,8 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
 
   if (!matchesWithoutOdds) return 'no_matches'
 
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
-  const TEAM_ALIAS: Record<string, string> = {
-    'usa': 'unitedstates', 'unitedstates': 'unitedstates',
-    'irian': 'iran', 'korearep': 'southkorea', 'republicofkorea': 'southkorea',
-    'dprkorea': 'northkorea', 'chinapr': 'china',
-    'trinidadandtobago': 'trinidadtobago', 'trinidadtobago': 'trinidadtobago',
-    'nz': 'newzealand', 'newzealand': 'newzealand',
-  }
-  const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
+  const normalize = normalizeTeam
+  const canon = canonicalTeam
   const DAY_MS = 24 * 60 * 60 * 1000
   let updated = 0
 

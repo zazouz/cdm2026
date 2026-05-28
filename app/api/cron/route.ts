@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Vercel Cron Job - toutes les 2 heures
-// vercel.json configure la fréquence et l'URL
+// Vercel Cron Job — déclenché par vercel.json (quotidien) + cron externe si configuré
+// Pour les mises à jour en temps réel pendant le tournoi, configurer un cron externe (ex. cron-job.org) toutes les 30 min
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET

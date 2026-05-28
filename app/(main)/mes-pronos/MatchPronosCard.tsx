@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { Match, Prediction } from '@/lib/types'
 import type { Lang } from '@/lib/i18n'
 import { flagUrl } from '@/lib/flags'
-import { computePoints } from '@/lib/scoring'
+import { computePoints, resultSign } from '@/lib/scoring'
 
 export type UserRow = { id: string; first_name: string | null; last_name: string | null; username: string }
 export type PredEntry = { user: UserRow; pred: Prediction | null }
@@ -63,8 +63,6 @@ const T = {
     corrects: (n: number) => `${n} correct`,
   },
 }
-
-function resultSign(h: number, a: number) { return h > a ? 1 : h < a ? -1 : 0 }
 
 function shortName(u: UserRow): string {
   if (u.first_name && u.last_name) return `${u.first_name} ${u.last_name[0]}.`

@@ -2,6 +2,7 @@ import { createAdminClient, createClient } from '@/lib/supabase-server'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
 import { stageLabel } from '@/lib/i18n'
+import { resultSign } from '@/lib/scoring'
 import type { Match, Prediction } from '@/lib/types'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -36,12 +37,6 @@ const T = {
     noBet: 'No bet',
     group: (n: string) => `Group ${n}`,
   },
-}
-
-function resultSign(home: number, away: number): -1 | 0 | 1 {
-  if (home > away) return 1
-  if (home < away) return -1
-  return 0
 }
 
 export default async function UserPredictionsPage({ params }: { params: Promise<{ userId: string }> }) {

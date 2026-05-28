@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       : findByTeamsAndDate(fdMatches, pending.home_team, pending.away_team, pending.match_date)
 
     if (!fdMatch || fdMatch.status !== 'FINISHED') continue
-    if (fdMatch.score.fullTime.home === null) continue
+    if (fdMatch.score.fullTime.home === null || fdMatch.score.fullTime.away === null) continue
 
     const homeScore = fdMatch.score.fullTime.home
     const awayScore = fdMatch.score.fullTime.away

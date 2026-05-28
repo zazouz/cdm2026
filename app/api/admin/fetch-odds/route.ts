@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { canonicalTeam, normalizeTeam } from '@/lib/teams'
 
 async function isAdmin(): Promise<boolean> {
   const supabase = await createClient()
@@ -107,29 +108,14 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
   return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
 }
 
-// Canonical aliases so "USA" and "United States" resolve to the same key
-const TEAM_ALIAS: Record<string, string> = {
-  'usa': 'unitedstates',
-  'unitedstates': 'unitedstates',
-  'irian': 'iran',
-  'korearep': 'southkorea',
-  'republicofkorea': 'southkorea',
-  'dprkorea': 'northkorea',
-  'chinapr': 'china',
-  'trinidadandtobago': 'trinidadtobago',
-  'trinidadtobago': 'trinidadtobago',
-  'nz': 'newzealand',
-  'newzealand': 'newzealand',
-}
-
 function matchEvent(
   events: OddsApiEvent[],
   homeTeam: string,
   awayTeam: string,
   matchDate: string
 ): { home: number; draw: number; away: number } | null {
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
-  const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
+  const normalize = normalizeTeam
+  const canon = canonicalTeam
   const homeNorm = canon(homeTeam)
   const awayNorm = canon(awayTeam)
 
@@ -148,9 +134,8 @@ function matchEvent(
   const h2h = bookmaker.markets.find(m => m.key === 'h2h')
   if (!h2h) return null
 
-  const normalize2 = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
-  const homeOdds = h2h.outcomes.find(o => normalize2(o.name) === normalize2(event.home_team))?.price
-  const awayOdds = h2h.outcomes.find(o => normalize2(o.name) === normalize2(event.away_team))?.price
+  const homeOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.home_team))?.price
+  const awayOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.away_team))?.price
   const drawOdds = h2h.outcomes.find(o => o.name === 'Draw')?.price
 
   if (!homeOdds || !awayOdds || !drawOdds) return null

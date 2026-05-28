@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 
+const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "l'organisateur"
+
 const T = {
   fr: {
     title: 'Connecte-toi',
@@ -15,7 +17,7 @@ const T = {
     noAccount: 'Pas encore de compte ?',
     register: "S'inscrire",
     forgot: 'Mot de passe oublié ?',
-    forgotMsg: 'Contacte david.leroux@msccruises.com',
+    forgotMsg: `Contacte ${SUPPORT_EMAIL}`,
     error: 'Pseudo ou mot de passe incorrect.',
   },
   en: {
@@ -27,7 +29,7 @@ const T = {
     noAccount: 'No account yet?',
     register: 'Sign up',
     forgot: 'Forgot password?',
-    forgotMsg: 'Contact david.leroux@msccruises.com',
+    forgotMsg: `Contact ${SUPPORT_EMAIL}`,
     error: 'Incorrect username or password.',
   },
 }
