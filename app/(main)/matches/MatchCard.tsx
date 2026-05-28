@@ -160,7 +160,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
 
         <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{homeTeam}</p>
         {maxPts
-          ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap">max {maxPts} pts</p>
+          ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap">{lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}</p>
           : <div aria-hidden />}
         <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{awayTeam}</p>
       </div>
@@ -182,7 +182,14 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
               <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
             </div>
           </div>
-          <p className="text-center text-[9px] text-gray-700">Betclic.fr</p>
+          {match.odds_fetched_at && (
+            <p className="text-center text-[9px] text-gray-700">
+              Betclic.fr · {lang === 'fr' ? 'récupérées le' : 'fetched'}{' '}
+              {new Date(match.odds_fetched_at).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
+              })}
+            </p>
+          )}
         </div>
       )}
 
