@@ -14,13 +14,15 @@ async function isAdmin(): Promise<boolean> {
 }
 
 const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
-const ODDS_AUTO_FETCH_DELAY_HOURS = 12
+const ODDS_AUTO_FETCH_DELAY_HOURS = 2
+// Délai avant de tenter l'API-Football : 2h15 après le coup d'envoi
+const AF_FALLBACK_DELAY_MS = (2 * 60 + 15) * 60 * 1000
 
-// Appelé par le cron Vercel (toutes les 2h) ou manuellement par l'admin.
-// 1. Récupère les 104 matchs CDM depuis football-data.org, upserte tout.
-// 2. Calcule les points pour les matchs qui viennent de se terminer.
-// 3. Auto-fetch des côtes : 12h après la fin de chaque phase, si la suivante
-//    a des matchs avec équipes réelles mais sans côtes.
+// ─────────────────────────────────────────────────────────────────────────────
+// Règle métier : le score du jeu est TOUJOURS le score à 90 minutes.
+// Prolongations et tirs au but ne comptent jamais.
+// ─────────────────────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
   const secret =
     req.headers.get('x-admin-secret') ??
@@ -48,32 +50,30 @@ export async function POST(req: NextRequest) {
 
   const fdData = await fdRes.json() as { matches: FDMatch[] }
   const fdMatches = fdData.matches ?? []
-  console.log('[CDM2026][sync] started', { fdMatchCount: fdMatches.length, ts: new Date().toISOString() })
+  console.log('[CDM2026][sync] start', { fdMatchCount: fdMatches.length, ts: new Date().toISOString() })
 
   const supabase = await createAdminClient()
-  let created = 0
-  let updated = 0
-  let pointsCalculated = 0
+  let created = 0, updated = 0, pointsCalculated = 0
+  // IDs des matchs en DB qui ont besoin du fallback API-Football
+  const needsFallback: number[] = []
 
+  // ─── Phase 1 : calendrier + scores football-data ────────────────────────
   for (const fdMatch of fdMatches) {
     const homeTeam = fdMatch.homeTeam.name ?? 'TBD'
     const awayTeam = fdMatch.awayTeam.name ?? 'TBD'
     const stage = mapStage(fdMatch.stage)
     const groupName = fdMatch.group ? fdMatch.group.replace('GROUP_', '') : null
     const isFinished = fdMatch.status === 'FINISHED'
-    const hasScore =
-      fdMatch.score.fullTime.home !== null &&
-      fdMatch.score.fullTime.away !== null
 
-    // Cherche si ce match est déjà en DB
     const { data: existing } = await supabase
       .from('matches')
-      .select('id, status, home_score, away_score, home_team, away_team, home_flag, away_flag, stage')
+      .select('id, status, home_score, away_score, home_team, away_team, home_flag, away_flag, stage, match_date, score_source, score_confirmed, score_needs_review, api_football_fixture_id')
       .eq('fd_match_id', fdMatch.id)
       .maybeSingle()
 
     if (!existing) {
-      // Crée le match
+      const rtScore = isFinished ? extractFDRegularScore(fdMatch) : null
+      const canScore = rtScore !== null
       await supabase.from('matches').insert({
         home_team: homeTeam,
         away_team: awayTeam,
@@ -82,40 +82,133 @@ export async function POST(req: NextRequest) {
         match_date: fdMatch.utcDate,
         stage,
         group_name: groupName,
-        status: isFinished && hasScore ? 'finished' : 'scheduled',
-        home_score: isFinished ? fdMatch.score.fullTime.home : null,
-        away_score: isFinished ? fdMatch.score.fullTime.away : null,
         fd_match_id: fdMatch.id,
+        status: canScore ? 'finished' : 'scheduled',
+        ...(canScore && {
+          home_score: rtScore!.home,
+          away_score: rtScore!.away,
+          score_source: 'football_data',
+          score_confirmed: true,
+          score_needs_review: false,
+          score_period: 'regular_time',
+          score_fetched_at: new Date().toISOString(),
+        }),
       })
       created++
-    } else {
-      // Met à jour si les équipes ont changé (TBD → nom réel) ou si le match vient de se terminer
-      const teamsChanged = existing.home_team !== homeTeam || existing.away_team !== awayTeam
-      const justFinished = isFinished && hasScore && existing.status !== 'finished'
-      const wrongFlag = existing.home_flag !== getFlag(homeTeam) || existing.away_flag !== getFlag(awayTeam)
-      const wrongStage = existing.stage !== stage
+      continue
+    }
 
-      if (teamsChanged || justFinished || wrongFlag || wrongStage) {
+    const teamsChanged = existing.home_team !== homeTeam || existing.away_team !== awayTeam
+    const wrongFlag = existing.home_flag !== getFlag(homeTeam) || existing.away_flag !== getFlag(awayTeam)
+    const wrongStage = existing.stage !== stage
+    const metaChanged = teamsChanged || wrongFlag || wrongStage
+    const metaUpdate = metaChanged ? { home_team: homeTeam, away_team: awayTeam, home_flag: getFlag(homeTeam), away_flag: getFlag(awayTeam), stage } : {}
+
+    // Ne jamais toucher au score si source manuelle
+    if (existing.score_source === 'manual') {
+      if (metaChanged) {
+        await supabase.from('matches').update(metaUpdate).eq('id', existing.id)
+        updated++
+      }
+      continue
+    }
+
+    if (isFinished) {
+      const rtScore = extractFDRegularScore(fdMatch)
+
+      if (rtScore === null) {
+        // football-data FINISHED mais pas de score 90min exploitable
+        if (existing.status !== 'finished') {
+          const reviewReason = `football-data FINISHED (${fdMatch.score.duration ?? '?'}) sans score regularTime exploitable`
+          await supabase.from('matches').update({
+            ...metaUpdate,
+            score_needs_review: true,
+            score_review_reason: reviewReason,
+          }).eq('id', existing.id)
+          console.warn('[CDM2026][sync] no-regular-score', { matchId: existing.id, duration: fdMatch.score.duration })
+          // Ajoute au fallback : API-Football peut avoir le score à 90min
+          needsFallback.push(existing.id)
+          updated++
+        }
+        continue
+      }
+
+      if (existing.status === 'finished' && existing.score_confirmed) {
+        // Déjà confirmé par football-data, juste mise à jour méta si besoin
+        if (metaChanged) {
+          await supabase.from('matches').update(metaUpdate).eq('id', existing.id)
+          updated++
+        }
+        continue
+      }
+
+      if (existing.status === 'finished' && !existing.score_confirmed && existing.score_source === 'api_football') {
+        // Confirmation football-data d'un score provisoire api_football
+        if (existing.home_score === rtScore.home && existing.away_score === rtScore.away) {
+          await supabase.from('matches').update({
+            ...metaUpdate,
+            score_source: 'football_data',
+            score_confirmed: true,
+            score_needs_review: false,
+            score_review_reason: null,
+            score_fetched_at: new Date().toISOString(),
+          }).eq('id', existing.id)
+          console.log('[CDM2026][sync] confirmed', { matchId: existing.id, score: `${rtScore.home}-${rtScore.away}` })
+        } else {
+          const reviewReason = `Conflit : football-data ${rtScore.home}-${rtScore.away} vs api_football ${existing.home_score}-${existing.away_score}`
+          await supabase.from('matches').update({
+            score_needs_review: true,
+            score_review_reason: reviewReason,
+          }).eq('id', existing.id)
+          console.warn('[CDM2026][sync] CONFLICT', { matchId: existing.id, reviewReason })
+        }
+        updated++
+        continue
+      }
+
+      if (existing.status !== 'finished') {
+        // Premier score depuis football-data
         await supabase.from('matches').update({
-          home_team: homeTeam,
-          away_team: awayTeam,
-          home_flag: getFlag(homeTeam),
-          away_flag: getFlag(awayTeam),
-          stage,
-          ...(justFinished && {
-            home_score: fdMatch.score.fullTime.home,
-            away_score: fdMatch.score.fullTime.away,
-            status: 'finished',
-          }),
+          ...metaUpdate,
+          home_score: rtScore.home,
+          away_score: rtScore.away,
+          status: 'finished',
+          score_source: 'football_data',
+          score_confirmed: true,
+          score_needs_review: false,
+          score_period: 'regular_time',
+          score_fetched_at: new Date().toISOString(),
         }).eq('id', existing.id)
         updated++
       }
-
+    } else {
+      // Match non terminé — mise à jour méta si besoin
+      if (metaChanged) {
+        await supabase.from('matches').update(metaUpdate).eq('id', existing.id)
+        updated++
+      }
     }
   }
 
-  // Sweep : calcule les points pour tout match terminé avec côtes mais pronos encore non calculés.
-  // Couvre aussi le cas où un match s'est terminé sans côtes et les côtes sont arrivées après.
+  // ─── Phase 2 : collecter les matchs scheduled > 2h15 sans score ─────────
+  const cutoff = new Date(Date.now() - AF_FALLBACK_DELAY_MS).toISOString()
+  const { data: pendingOld } = await supabase
+    .from('matches')
+    .select('id')
+    .eq('status', 'scheduled')
+    .lt('match_date', cutoff)
+
+  for (const m of (pendingOld ?? [])) {
+    if (!needsFallback.includes(m.id)) needsFallback.push(m.id)
+  }
+
+  // ─── Phase 3 : fallback API-Football si nécessaire ─────────────────────
+  let afProcessed = 0
+  if (needsFallback.length > 0) {
+    afProcessed = await apiFallback(supabase, needsFallback)
+  }
+
+  // ─── Phase 4 : calcul des points (sweep global) ─────────────────────────
   const { data: finishedWithOdds } = await supabase
     .from('matches')
     .select('*')
@@ -123,6 +216,7 @@ export async function POST(req: NextRequest) {
     .not('home_odds', 'is', null)
 
   for (const matchRow of (finishedWithOdds ?? []) as Match[]) {
+    if (matchRow.score_needs_review) continue // ne pas scorer un match en attente de validation
     const { data: pending } = await supabase
       .from('predictions')
       .select('*')
@@ -130,7 +224,7 @@ export async function POST(req: NextRequest) {
       .is('calculated_at', null)
 
     for (const pred of (pending ?? []) as Prediction[]) {
-      const points = computePoints(matchRow as Match, pred)
+      const points = computePoints(matchRow, pred)
       await supabase.from('predictions').update({
         points_earned: points,
         calculated_at: new Date().toISOString(),
@@ -139,25 +233,141 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ─── Phase 5 : auto-fetch des cotes si phase suivante débloquée ─────────
   const oddsAutoFetched = await autoFetchOddsIfNeeded(supabase)
-  console.log('[CDM2026][sync] done', { created, updated, pointsCalculated, oddsAutoFetched })
 
-  return NextResponse.json({ ok: true, created, updated, pointsCalculated, oddsAutoFetched })
+  console.log('[CDM2026][sync] done', { created, updated, pointsCalculated, afProcessed, oddsAutoFetched })
+  return NextResponse.json({ ok: true, created, updated, pointsCalculated, afProcessed, oddsAutoFetched })
 }
 
-// Vérifie s'il faut déclencher un fetch automatique des côtes.
-// Conditions : il existe une phase avec des matchs sans côtes + équipes réelles,
-// ET la phase précédente est 100% terminée depuis plus de 12h.
-// Pour la phase de groupes, les côtes sont disponibles avant le tournoi :
-// on les fetche dès que les matchs existent et qu'on est à moins de 14 jours du premier match.
+// ─────────────────────────────────────────────────────────────────────────────
+// Extraction du score à 90 minutes depuis football-data
+// Priorité : regularTime → fullTime si duration === REGULAR
+// ─────────────────────────────────────────────────────────────────────────────
+function extractFDRegularScore(fdMatch: FDMatch): { home: number; away: number } | null {
+  const rt = fdMatch.score.regularTime
+  if (rt) {
+    // La doc montre deux variantes historiques des noms de champs
+    const home = rt.home ?? (rt as Record<string, unknown>).homeTeam
+    const away = rt.away ?? (rt as Record<string, unknown>).awayTeam
+    if (typeof home === 'number' && typeof away === 'number') return { home, away }
+  }
+  // Si durée = REGULAR, fullTime === score 90min
+  if (fdMatch.score.duration === 'REGULAR') {
+    const { home, away } = fdMatch.score.fullTime
+    if (typeof home === 'number' && typeof away === 'number') return { home, away }
+  }
+  // EXTRA_TIME ou PENALTY_SHOOTOUT sans regularTime : on ne peut pas scorer en sécurité
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fallback API-Football
+// ─────────────────────────────────────────────────────────────────────────────
+async function apiFallback(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  matchIds: number[]
+): Promise<number> {
+  const afKey = process.env.API_FOOTBALL_KEY
+  if (!afKey) return 0
+
+  // Un seul appel batch pour tous les matchs WC 2026
+  const res = await fetch('https://v3.football.api-sports.io/fixtures?league=1&season=2026', {
+    headers: { 'x-apisports-key': afKey },
+    next: { revalidate: 0 },
+  })
+
+  if (!res.ok) {
+    console.warn('[CDM2026][sync] api-football erreur', res.status)
+    return 0
+  }
+
+  const data = await res.json() as { response: AFFixture[] }
+  const afFixtures = data.response ?? []
+
+  const { data: matches } = await supabase
+    .from('matches')
+    .select('*')
+    .in('id', matchIds)
+
+  let processed = 0
+
+  for (const match of (matches ?? []) as Match[]) {
+    if (match.score_source === 'manual') continue
+
+    const afFixture = match.api_football_fixture_id
+      ? afFixtures.find(f => f.fixture.id === match.api_football_fixture_id)
+      : findAFMatch(afFixtures, match.home_team, match.away_team, match.match_date)
+
+    if (!afFixture) continue
+
+    const score = extractAFRegularScore(afFixture)
+    if (!score) continue
+
+    // Déjà scoré via api_football avec le même score → ne rien faire
+    if (match.score_source === 'api_football' && match.home_score === score.home && match.away_score === score.away) continue
+
+    await supabase.from('matches').update({
+      home_score: score.home,
+      away_score: score.away,
+      status: 'finished',
+      score_source: 'api_football',
+      score_confirmed: false,
+      score_needs_review: false,
+      score_period: 'regular_time',
+      score_fetched_at: new Date().toISOString(),
+      api_football_fixture_id: afFixture.fixture.id,
+    }).eq('id', match.id)
+
+    console.log('[CDM2026][sync] af-fallback saved', {
+      matchId: match.id, score: `${score.home}-${score.away}`, afStatus: afFixture.fixture.status.short,
+    })
+    processed++
+  }
+
+  return processed
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Extraction score 90min depuis API-Football
+// On utilise score.fulltime pour FT, AET, PEN, ET, BT, P
+// On n'utilise jamais extratime, penalty ni goals
+// ─────────────────────────────────────────────────────────────────────────────
+function extractAFRegularScore(fixture: AFFixture): { home: number; away: number } | null {
+  const status = fixture.fixture.status.short
+  if (!['FT', 'AET', 'PEN', 'ET', 'BT', 'P'].includes(status)) return null
+  const { home, away } = fixture.score.fulltime
+  if (typeof home === 'number' && typeof away === 'number') return { home, away }
+  return null
+}
+
+function findAFMatch(fixtures: AFFixture[], homeTeam: string, awayTeam: string, matchDate: string): AFFixture | undefined {
+  const canon = canonicalTeam
+  const homeNorm = canon(homeTeam)
+  const awayNorm = canon(awayTeam)
+  const matchDateMs = new Date(matchDate).getTime()
+  const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000
+
+  return fixtures.find(f => {
+    const h = canon(f.teams.home.name)
+    const a = canon(f.teams.away.name)
+    const nameMatch =
+      (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
+      (a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4)))
+    return nameMatch && Math.abs(new Date(f.fixture.date).getTime() - matchDateMs) < TWO_DAYS_MS
+  })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auto-fetch des cotes : 2h après la fin du tour précédent
+// ─────────────────────────────────────────────────────────────────────────────
 async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createAdminClient>>): Promise<string | null> {
   const oddsApiKey = process.env.ODDS_API_KEY
   if (!oddsApiKey) return null
 
-  // Matchs sans côtes, avec de vraies équipes, pas encore terminés
   const { data: needsOdds } = await supabase
     .from('matches')
-    .select('id, stage, match_date, home_team, away_team, home_odds')
+    .select('id, stage, match_date, home_team, away_team')
     .is('home_odds', null)
     .eq('status', 'scheduled')
     .not('home_team', 'ilike', '%TBD%')
@@ -172,27 +382,22 @@ async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createA
     const stageIdx = STAGE_ORDER.indexOf(stage)
 
     if (stageIdx === 0) {
-      // Phase de groupes : fetch si on est à moins de 14 jours du premier match
+      // Groupes : fetch si on est à moins de 14 jours du premier match
       const firstMatchDate = needsOdds
         .filter(m => m.stage === 'group')
         .map(m => new Date(m.match_date).getTime())
         .sort()[0]
-      const daysUntilStart = (firstMatchDate - Date.now()) / (1000 * 60 * 60 * 24)
-      if (daysUntilStart <= 14) {
+      if ((firstMatchDate - Date.now()) / (1000 * 60 * 60 * 24) <= 14) {
         return await triggerOddsFetch(supabase)
       }
     } else {
-      // Phase suivante : fetch si la phase précédente est terminée depuis >12h
       const previousStage = STAGE_ORDER[stageIdx - 1]
       const { data: prevMatches } = await supabase
         .from('matches')
         .select('status, match_date')
         .eq('stage', previousStage)
 
-      if (!prevMatches || prevMatches.length === 0) continue
-
-      const allFinished = prevMatches.every(m => m.status === 'finished')
-      if (!allFinished) continue
+      if (!prevMatches?.length || !prevMatches.every(m => m.status === 'finished')) continue
 
       const lastMatchTime = Math.max(...prevMatches.map(m => new Date(m.match_date).getTime()))
       const hoursSinceLast = (Date.now() - lastMatchTime) / (1000 * 60 * 60)
@@ -209,15 +414,12 @@ async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createA
 async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminClient>>): Promise<string> {
   const apiKey = process.env.ODDS_API_KEY!
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
-  let events: OddsApiEvent[] = []
 
   const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
-  if (eu.ok) {
-    const evts = await eu.json() as OddsApiEvent[]
-    if (evts.some(e => e.bookmakers.length > 0)) events = evts
-  }
+  if (!eu.ok) return 'odds_api_error'
 
-  if (events.length === 0) return 'no_odds_available'
+  const events = await eu.json() as OddsApiEvent[]
+  if (!events.some(e => e.bookmakers.length > 0)) return 'no_odds_available'
 
   const { data: matchesWithoutOdds } = await supabase
     .from('matches')
@@ -229,27 +431,31 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
 
   if (!matchesWithoutOdds) return 'no_matches'
 
-  const normalize = normalizeTeam
   const canon = canonicalTeam
-  const DAY_MS = 24 * 60 * 60 * 1000
-  let updated = 0
+  const normalize = normalizeTeam
+  const DAY_MS = 2 * 24 * 60 * 60 * 1000
+  let updatedOdds = 0
 
   for (const match of matchesWithoutOdds) {
     const homeNorm = canon(match.home_team)
     const awayNorm = canon(match.away_team)
+    const matchDateMs = new Date(match.match_date).getTime()
 
     const event = events.find(e => {
       const h = canon(e.home_team)
       const a = canon(e.away_team)
-      return (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
+      const nameMatch =
+        (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
         (a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4)))
+      return nameMatch && Math.abs(new Date(e.commence_time).getTime() - matchDateMs) < DAY_MS
     })
 
     if (!event) continue
-    const bookmaker = event.bookmakers.find((b: { key: string; markets: { key: string }[] }) => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
-      ?? event.bookmakers.find((b: { markets: { key: string }[] }) => b.markets.some(m => m.key === 'h2h'))
+    const bookmaker =
+      event.bookmakers.find((b: BookmakerEntry) => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
+      ?? event.bookmakers.find((b: BookmakerEntry) => b.markets.some(m => m.key === 'h2h'))
     if (!bookmaker) continue
-    const h2h = bookmaker.markets.find((m: { key: string }) => m.key === 'h2h')
+    const h2h = bookmaker.markets.find(m => m.key === 'h2h')
     if (!h2h) continue
 
     const homeOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.home_team))?.price
@@ -262,44 +468,28 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
       draw_odds: Math.round(drawOdds * 100) / 100,
       away_odds: Math.round(awayOdds * 100) / 100,
       odds_fetched_at: new Date().toISOString(),
+      odds_bookmaker: bookmaker.key,
     }).eq('id', match.id)
-    updated++
+    updatedOdds++
   }
 
-  return `fetched_${updated}_odds`
-}
-
-type OddsApiEvent = {
-  id: string
-  home_team: string
-  away_team: string
-  commence_time: string
-  bookmakers: Array<{
-    key: string
-    markets: Array<{
-      key: string
-      outcomes: Array<{ name: string; price: number }>
-    }>
-  }>
+  return `fetched_${updatedOdds}_odds`
 }
 
 function mapStage(fdStage: string): string {
   const map: Record<string, string> = {
-    GROUP_STAGE: 'group',
-    ROUND_OF_32: 'r32',
-    LAST_32: 'r32',
-    ROUND_OF_16: 'r16',
-    LAST_16: 'r16',
-    QUARTER_FINAL: 'qf',
-    QUARTER_FINALS: 'qf',
-    SEMI_FINAL: 'sf',
-    SEMI_FINALS: 'sf',
-    THIRD_PLACE: 'final',
-    FINAL: 'final',
+    GROUP_STAGE: 'group', ROUND_OF_32: 'r32', LAST_32: 'r32',
+    ROUND_OF_16: 'r16', LAST_16: 'r16',
+    QUARTER_FINAL: 'qf', QUARTER_FINALS: 'qf',
+    SEMI_FINAL: 'sf', SEMI_FINALS: 'sf',
+    THIRD_PLACE: 'final', FINAL: 'final',
   }
   return map[fdStage] ?? 'group'
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 type FDMatch = {
   id: number
   utcDate: string
@@ -308,5 +498,41 @@ type FDMatch = {
   group: string | null
   homeTeam: { id: number; name: string | null }
   awayTeam: { id: number; name: string | null }
-  score: { fullTime: { home: number | null; away: number | null } }
+  score: {
+    duration: 'REGULAR' | 'EXTRA_TIME' | 'PENALTY_SHOOTOUT' | null
+    fullTime: { home: number | null; away: number | null }
+    regularTime?: { home?: number | null; away?: number | null }
+    extraTime?: { home: number | null; away: number | null }
+    penalties?: { home: number | null; away: number | null }
+  }
+}
+
+type AFFixture = {
+  fixture: {
+    id: number
+    date: string
+    status: { short: string; elapsed: number | null }
+  }
+  teams: {
+    home: { id: number; name: string }
+    away: { id: number; name: string }
+  }
+  score: {
+    fulltime: { home: number | null; away: number | null }
+    extratime: { home: number | null; away: number | null }
+    penalty: { home: number | null; away: number | null }
+  }
+}
+
+type OddsApiEvent = {
+  id: string
+  home_team: string
+  away_team: string
+  commence_time: string
+  bookmakers: BookmakerEntry[]
+}
+
+type BookmakerEntry = {
+  key: string
+  markets: Array<{ key: string; outcomes: Array<{ name: string; price: number }> }>
 }

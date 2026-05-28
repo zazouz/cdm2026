@@ -22,6 +22,13 @@ export type Match = {
   away_odds: number | null
   odds_fetched_at: string | null
   odds_bookmaker: string | null
+  score_source: 'football_data' | 'api_football' | 'manual' | null
+  score_confirmed: boolean
+  score_needs_review: boolean
+  score_fetched_at: string | null
+  score_review_reason: string | null
+  score_period: string | null
+  api_football_fixture_id: number | null
   home_score: number | null
   away_score: number | null
   status: 'scheduled' | 'finished'

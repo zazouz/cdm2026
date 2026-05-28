@@ -24,7 +24,17 @@ export async function POST(req: NextRequest) {
   // 1. Met à jour le match
   const { data: match, error: matchError } = await supabase
     .from('matches')
-    .update({ home_score: homeScore, away_score: awayScore, status: 'finished' })
+    .update({
+      home_score: homeScore,
+      away_score: awayScore,
+      status: 'finished',
+      score_source: 'manual',
+      score_confirmed: true,
+      score_needs_review: false,
+      score_review_reason: null,
+      score_period: 'regular_time',
+      score_fetched_at: new Date().toISOString(),
+    })
     .eq('id', matchId)
     .select()
     .single()
