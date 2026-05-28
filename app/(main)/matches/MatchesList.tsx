@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Match, PredictionWithMatch } from '@/lib/types'
 import { useLanguage } from '../LanguageProvider'
 import { stageLabel } from '@/lib/i18n'
@@ -21,9 +22,67 @@ function formatDayHeader(dateStr: string, lang: string) {
   })
 }
 
+function isMatchLocked(match: Match) {
+  return new Date(match.match_date).getTime() - 15 * 60 * 1000 <= Date.now() || match.status === 'finished'
+}
+
 export default function MatchesList({ matches, predictionByMatch, userId }: Props) {
+  const router = useRouter()
   const [view, setView] = useState<'chrono' | 'group'>('chrono')
   const { lang } = useLanguage()
+
+  const [scores, setScores] = useState<Record<number, { home: number; away: number }>>(() => {
+    const init: Record<number, { home: number; away: number }> = {}
+    for (const m of matches) {
+      const pred = predictionByMatch[m.id]
+      init[m.id] = { home: pred?.predicted_home ?? 0, away: pred?.predicted_away ?? 0 }
+    }
+    return init
+  })
+
+  const [saving, setSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<number | null>(null)
+  const [saveError, setSaveError] = useState('')
+
+  const handleScoreChange = useCallback((matchId: number, home: number, away: number) => {
+    setScores(prev => ({ ...prev, [matchId]: { home, away } }))
+  }, [])
+
+  const unlockedMatches = matches.filter(m => !isMatchLocked(m))
+
+  const dirtyCount = unlockedMatches.filter(m => {
+    const score = scores[m.id]
+    const saved = predictionByMatch[m.id]
+    if (!score) return false
+    if (!saved) return score.home !== 0 || score.away !== 0
+    return score.home !== saved.predicted_home || score.away !== saved.predicted_away
+  }).length
+
+  async function saveAll() {
+    setSaving(true)
+    setSaveError('')
+    let count = 0
+    try {
+      await Promise.all(
+        unlockedMatches.map(async m => {
+          const score = scores[m.id]
+          if (!score) return
+          const res = await fetch('/api/predictions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matchId: m.id, predictedHome: score.home, predictedAway: score.away }),
+          })
+          if (res.ok) count++
+        })
+      )
+      setLastSaved(count)
+      router.refresh()
+    } catch {
+      setSaveError(lang === 'fr' ? 'Erreur réseau' : 'Network error')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (matches.length === 0) {
     return (
@@ -31,7 +90,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
         <p className="text-4xl mb-4">⏳</p>
         <p>{lang === 'fr' ? 'Tous les pronostics sont verrouillés.' : 'All predictions are locked.'}</p>
         <p className="text-sm mt-2 text-gray-500">
-          {lang === 'fr' ? 'Retrouve tes pronos dans « Les Pronos ».' : 'Check your bets in "Bets".'}
+          {lang === 'fr' ? 'Retrouve tes pronos dans « Live ».' : 'Check your bets in "Live".'}
         </p>
       </div>
     )
@@ -41,7 +100,27 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
     new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
   )
 
+  const saveButton = null
+
+  const floatingBtn = unlockedMatches.length > 0 && (dirtyCount > 0 || saving) && (
+    <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 w-full max-w-lg px-4 pointer-events-none">
+      <button
+        onClick={saveAll}
+        disabled={saving}
+        className="pointer-events-auto w-full rounded-2xl py-3.5 text-sm font-bold shadow-lg shadow-black/40 transition-all bg-green-600 text-black hover:bg-green-500 active:bg-green-700 disabled:bg-gray-700 disabled:text-gray-400"
+      >
+        {saving
+          ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...')
+          : (lang === 'fr'
+              ? `Valider mes ${dirtyCount} pronostic${dirtyCount > 1 ? 's' : ''}`
+              : `Save my ${dirtyCount} prediction${dirtyCount > 1 ? 's' : ''}`)}
+      </button>
+    </div>
+  )
+
   return (
+    <>
+    {floatingBtn}
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-white">
@@ -80,15 +159,39 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
       </div>
 
       {view === 'chrono' ? (
-        <ChronoView matches={sorted} predictionByMatch={predictionByMatch} userId={userId} lang={lang} />
+        <ChronoView
+          matches={sorted}
+          predictionByMatch={predictionByMatch}
+          scores={scores}
+          onScoreChange={handleScoreChange}
+          userId={userId}
+          lang={lang}
+          saveButton={saveButton}
+        />
       ) : (
-        <GroupView matches={sorted} predictionByMatch={predictionByMatch} userId={userId} lang={lang} />
+        <GroupView
+          matches={sorted}
+          predictionByMatch={predictionByMatch}
+          scores={scores}
+          onScoreChange={handleScoreChange}
+          userId={userId}
+          lang={lang}
+          saveButton={saveButton}
+        />
       )}
     </div>
+    </>
   )
 }
 
-function ChronoView({ matches, predictionByMatch, userId, lang }: Props & { lang: string }) {
+type ViewProps = Props & {
+  lang: string
+  scores: Record<number, { home: number; away: number }>
+  onScoreChange: (matchId: number, home: number, away: number) => void
+  saveButton: React.ReactNode
+}
+
+function ChronoView({ matches, predictionByMatch, scores, onScoreChange, userId, lang, saveButton }: ViewProps) {
   const byDay: Record<string, Match[]> = {}
   for (const m of matches) {
     const day = new Date(m.match_date).toLocaleDateString('en-CA', { timeZone: 'Europe/Paris' })
@@ -109,17 +212,20 @@ function ChronoView({ matches, predictionByMatch, userId, lang }: Props & { lang
                 key={match.id}
                 match={match}
                 prediction={predictionByMatch[match.id] ?? null}
-                userId={userId}
+                home={scores[match.id]?.home ?? 0}
+                away={scores[match.id]?.away ?? 0}
+                onScoreChange={(h, a) => onScoreChange(match.id, h, a)}
               />
             ))}
           </div>
         </section>
       ))}
+      {saveButton}
     </div>
   )
 }
 
-function GroupView({ matches, predictionByMatch, userId, lang }: Props & { lang: string }) {
+function GroupView({ matches, predictionByMatch, scores, onScoreChange, userId, lang, saveButton }: ViewProps) {
   const grouped: Record<string, Match[]> = {}
   for (const m of matches) {
     const key = `${m.stage}__${m.group_name ?? ''}`
@@ -154,13 +260,16 @@ function GroupView({ matches, predictionByMatch, userId, lang }: Props & { lang:
                   key={match.id}
                   match={match}
                   prediction={predictionByMatch[match.id] ?? null}
-                  userId={userId}
+                  home={scores[match.id]?.home ?? 0}
+                  away={scores[match.id]?.away ?? 0}
+                  onScoreChange={(h, a) => onScoreChange(match.id, h, a)}
                 />
               ))}
             </div>
           </section>
         )
       })}
+      {saveButton}
     </div>
   )
 }

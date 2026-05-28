@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
@@ -69,14 +70,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-8">
       <div className="pointer-events-none fixed inset-0 z-0">
         <img src="/bg-fifa-2026.jpg" alt="" aria-hidden className="h-full w-full object-cover opacity-[0.06]" />
       </div>
-      <div className="relative z-10 w-full flex justify-center px-4">
-      <div className="w-full max-w-sm">
+      <div className="relative z-10 w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" className="h-28 w-auto mx-auto mb-3 object-contain" />
+          <Image src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" width={160} height={200} priority className="h-28 w-auto mx-auto mb-3 object-contain" />
           <h1 className="text-2xl font-bold text-white">{lang === 'fr' ? 'Pronostics Coupe du Monde 2026' : 'World Cup 2026 Predictions'}</h1>
           <p className="text-gray-400 mt-1">{t.title}</p>
           <div className="flex justify-center mt-3">
@@ -166,7 +166,6 @@ export default function LoginPage() {
             {t.noAccount} {t.register}
           </Link>
         </form>
-      </div>
       </div>
     </div>
   )
