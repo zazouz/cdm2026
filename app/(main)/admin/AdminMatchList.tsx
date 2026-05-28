@@ -282,11 +282,21 @@ function AdminMatchRow({ match }: { match: Match }) {
         </div>
 
         {/* Score */}
+        {match.score_needs_review && (
+          <div className="w-full mb-1 rounded bg-red-950/60 border border-red-800 px-2 py-1 text-xs text-red-400">
+            ⚠️ Score à vérifier — {match.score_review_reason ?? 'conflit de sources'}
+          </div>
+        )}
         {finished ? (
           <div className="flex items-center gap-2">
-            <span className="text-green-400 font-mono font-bold">
+            <span className={`font-mono font-bold ${match.score_needs_review ? 'text-yellow-400' : 'text-green-400'}`}>
               {homeScore !== '' ? homeScore : match.home_score} – {awayScore !== '' ? awayScore : match.away_score}
             </span>
+            {match.score_source && !match.score_needs_review && (
+              <span className="text-[10px] text-gray-600">
+                {match.score_source === 'manual' ? '✏️' : match.score_source === 'football_data' ? (match.score_confirmed ? '✓ fd' : 'fd') : '⏳ af'}
+              </span>
+            )}
             {confirmState === 'reset' ? (
               <>
                 <span className="text-xs text-gray-500">{t.confirmReset}</span>

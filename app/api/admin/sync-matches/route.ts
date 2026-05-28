@@ -160,7 +160,12 @@ export async function POST(req: NextRequest) {
             score_needs_review: true,
             score_review_reason: reviewReason,
           }).eq('id', existing.id)
-          console.warn('[CDM2026][sync] CONFLICT', { matchId: existing.id, reviewReason })
+          // Reset les points : le classement ne doit pas conserver un score contesté
+          await supabase.from('predictions').update({
+            points_earned: null,
+            calculated_at: null,
+          }).eq('match_id', existing.id)
+          console.warn('[CDM2026][sync] CONFLICT — points reset', { matchId: existing.id, reviewReason })
         }
         updated++
         continue

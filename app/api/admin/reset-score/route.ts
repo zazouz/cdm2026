@@ -19,7 +19,17 @@ export async function POST(req: NextRequest) {
 
   const { error: matchError } = await supabase
     .from('matches')
-    .update({ home_score: null, away_score: null, status: 'scheduled' })
+    .update({
+      home_score: null,
+      away_score: null,
+      status: 'scheduled',
+      score_source: null,
+      score_confirmed: false,
+      score_needs_review: false,
+      score_review_reason: null,
+      score_period: 'regular_time',
+      score_fetched_at: null,
+    })
     .eq('id', matchId)
 
   if (matchError) return NextResponse.json({ error: matchError.message }, { status: 500 })
