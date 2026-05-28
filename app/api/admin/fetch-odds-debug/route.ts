@@ -28,12 +28,7 @@ export async function GET(req: NextRequest) {
     .or('home_team.ilike.%Iran%,away_team.ilike.%Iran%')
 
   // Trace the matching for every event vs "Iran" / "New Zealand"
-  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
-  const TEAM_ALIAS: Record<string, string> = {
-    'usa': 'unitedstates', 'unitedstates': 'unitedstates',
-    'irian': 'iran', 'korearep': 'southkorea', 'nz': 'newzealand', 'newzealand': 'newzealand',
-  }
-  const canon = (s: string) => { const n = normalize(s); return TEAM_ALIAS[n] ?? n }
+  const { normalizeTeam: normalize, canonicalTeam: canon } = await import('@/lib/teams')
 
   const homeTeam = 'Iran'
   const awayTeam = 'New Zealand'
