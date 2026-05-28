@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
+import { translateTeam } from '@/lib/i18n'
 import type { Match } from '@/lib/types'
 import { flagUrl } from '@/lib/flags'
 
@@ -195,7 +196,7 @@ export default async function GroupesPage() {
                       {flagCode
                         ? <img src={flagUrl(flagCode)} alt={team.team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
                         : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
-                      <span className="text-xs font-semibold text-white truncate">{team.team}</span>
+                      <span className="text-xs font-semibold text-white truncate">{translateTeam(team.team, lang)}</span>
                     </div>
                     <div className="w-6 text-center text-xs text-gray-400">{team.gp}</div>
                     <div className="w-6 text-center text-xs text-gray-400">{team.w}</div>
@@ -233,11 +234,11 @@ export default async function GroupesPage() {
                     {m.home_flag
                       ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
-                    <span className="flex-1 truncate text-xs font-semibold text-white">{m.home_team}</span>
+                    <span className="flex-1 truncate text-xs font-semibold text-white">{translateTeam(m.home_team, lang)}</span>
                     <span className="shrink-0 font-mono text-sm font-extrabold text-white px-3">
                       {m.home_score} – {m.away_score}
                     </span>
-                    <span className="flex-1 truncate text-right text-xs font-semibold text-white">{m.away_team}</span>
+                    <span className="flex-1 truncate text-right text-xs font-semibold text-white">{translateTeam(m.away_team, lang)}</span>
                     {m.away_flag
                       ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
@@ -259,9 +260,9 @@ export default async function GroupesPage() {
                     {m.home_flag
                       ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-4 w-6 rounded-sm object-cover shrink-0 opacity-50" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0 opacity-50" />}
-                    <span className="flex-1 truncate text-xs text-gray-500">{m.home_team}</span>
+                    <span className="flex-1 truncate text-xs text-gray-500">{translateTeam(m.home_team, lang)}</span>
                     <span className="shrink-0 text-[10px] text-gray-600 px-2">{formatMatchDate(m.match_date, lang)}</span>
-                    <span className="flex-1 truncate text-right text-xs text-gray-500">{m.away_team}</span>
+                    <span className="flex-1 truncate text-right text-xs text-gray-500">{translateTeam(m.away_team, lang)}</span>
                     {m.away_flag
                       ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-4 w-6 rounded-sm object-cover shrink-0 opacity-50" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0 opacity-50" />}
