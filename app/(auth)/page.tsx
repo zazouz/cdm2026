@@ -7,7 +7,7 @@ import { useState } from 'react'
 
 const T = {
   fr: {
-    subtitle: 'Pronostique tous les matchs. Les points se calculent sur les côtes bookmaker.',
+    subtitle: 'Pronostique tous les matchs. Les points se calculent sur les cotes bookmaker.',
     scoring: 'Barème des points',
     exact: 'Score exact',
     exactDesc: 'Bon score ET bon résultat',
@@ -15,7 +15,7 @@ const T = {
     correctDesc: 'Victoire ou nul correct, score faux',
     wrong: 'Mauvais résultat',
     wrongDesc: 'Résultat incorrect',
-    oddsNote: "La côte utilisée est celle du résultat que tu as prédit, figée au moment du match. Plus la surprise est grande, plus tu gagnes.",
+    oddsNote: "La cote utilisée est celle du résultat que tu as prédit, figée au moment du match. Plus la surprise est grande, plus tu gagnes.",
     howTitle: 'Comment ça marche',
     step1: 'Prédit le score de chaque match avant le coup d\'envoi.',
     step2: 'Les pronos se verrouillent 15 min avant le match.',
@@ -95,7 +95,7 @@ export default function Home() {
               <p className="text-sm font-semibold text-white">{t.exact}</p>
               <p className="text-xs text-gray-500">{t.exactDesc}</p>
             </div>
-            <span className="text-sm font-extrabold text-green-400 font-mono whitespace-nowrap">3 × {lang === 'fr' ? 'côte' : 'odds'}</span>
+            <span className="text-sm font-extrabold text-green-400 font-mono whitespace-nowrap">3 × {lang === 'fr' ? 'cote' : 'odds'}</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export default function Home() {
               <p className="text-sm font-semibold text-white">{t.correct}</p>
               <p className="text-xs text-gray-500">{t.correctDesc}</p>
             </div>
-            <span className="text-sm font-extrabold text-blue-400 font-mono whitespace-nowrap">1 × {lang === 'fr' ? 'côte' : 'odds'}</span>
+            <span className="text-sm font-extrabold text-blue-400 font-mono whitespace-nowrap">1 × {lang === 'fr' ? 'cote' : 'odds'}</span>
           </div>
 
           <div className="flex items-center gap-3">

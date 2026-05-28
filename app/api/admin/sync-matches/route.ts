@@ -246,7 +246,7 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
     })
 
     if (!event) continue
-    const bookmaker = event.bookmakers.find((b: { key: string; markets: { key: string }[] }) => b.key === 'winamax_fr' && b.markets.some(m => m.key === 'h2h'))
+    const bookmaker = event.bookmakers.find((b: { key: string; markets: { key: string }[] }) => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
       ?? event.bookmakers.find((b: { markets: { key: string }[] }) => b.markets.some(m => m.key === 'h2h'))
     if (!bookmaker) continue
     const h2h = bookmaker.markets.find((m: { key: string }) => m.key === 'h2h')

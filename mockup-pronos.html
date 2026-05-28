@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les Pronos — mockup</title>
+<style>
+:root {
+  --bg: #0c1220;
+  --surface: #131c2e;
+  --surface2: #1a2540;
+  --border: #1e2d48;
+  --border2: #243255;
+  --green: #22c55e;
+  --green-dim: #166534;
+  --green-bg: #052e0f;
+  --blue: #60a5fa;
+  --blue-bg: #0c1a3a;
+  --amber: #f59e0b;
+  --red: #f87171;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --faint: #475569;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.shell {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 72px;
+}
+
+/* TOP BAR */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(12,18,32,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px; height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; color: var(--text); }
+.topbar-user { font-size: 11px; color: var(--faint); font-family: monospace; background: var(--surface); padding: 4px 8px; border-radius: 20px; border: 1px solid var(--border); }
+
+/* BOTTOM NAV */
+.bottomnav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: rgba(12,18,32,.95); backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  display: flex; z-index: 50;
+}
+.nav-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 10px 0 8px; gap: 3px;
+}
+.nav-tab-icon { font-size: 20px; opacity: .4; }
+.nav-tab-label { font-size: 10px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .2px; }
+.nav-tab.active .nav-tab-icon { opacity: 1; }
+.nav-tab.active .nav-tab-label { color: var(--green); }
+
+/* SCREEN */
+.screen { padding: 16px; }
+.page-title { font-size: 22px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 4px; }
+.page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+/* MATCH BLOCK */
+.match-block {
+  margin-bottom: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* match header */
+.match-header {
+  display: flex; align-items: center; padding: 12px 14px;
+  gap: 4px;
+}
+.team {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.team img {
+  height: 28px; width: auto; border-radius: 3px; object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+.team-flag-placeholder { height: 28px; width: 40px; border-radius: 3px; background: var(--surface2); }
+.team-name { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; color: var(--text); }
+.score-center { width: 56px; flex-shrink: 0; text-align: center; }
+.score-value { font-size: 20px; font-weight: 800; color: var(--text); line-height: 1; }
+.score-label { font-size: 9px; text-transform: uppercase; color: var(--faint); margin-top: 2px; letter-spacing: .4px; }
+.score-live { font-size: 10px; font-weight: 700; color: var(--red); }
+.score-date { font-size: 9px; color: var(--faint); margin-top: 2px; }
+
+/* predictions list */
+.preds-list {
+  border-top: 1px solid var(--border);
+}
+.pred-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(30,45,72,.5);
+  background: var(--surface);
+}
+.pred-row:last-child { border-bottom: none; }
+.pred-row.is-me { background: rgba(5,46,15,.25); }
+
+.pred-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #4ade80;
+  background: linear-gradient(135deg, #052e0f, #131c2e);
+  border: 1px solid var(--green-dim);
+}
+.pred-name {
+  flex: 1; min-width: 0;
+}
+.pred-name-text {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  display: flex; align-items: center; gap: 5px; truncate: true;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pred-name-text.is-me { color: #4ade80; }
+.pred-you-badge {
+  font-size: 9px; color: #16a34a; background: #052e0f;
+  padding: 1px 5px; border-radius: 20px; flex-shrink: 0;
+}
+.pred-score-box {
+  font-family: monospace; font-size: 13px; font-weight: 700; color: var(--text);
+  background: var(--surface2); padding: 3px 8px; border-radius: 6px;
+  border: 1px solid var(--border2); flex-shrink: 0;
+}
+.pred-pts {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: 20px; flex-shrink: 0; white-space: nowrap;
+}
+.pred-pts.exact { background: var(--green-bg); color: #4ade80; }
+.pred-pts.correct { background: var(--blue-bg); color: var(--blue); }
+.pred-pts.wrong { background: var(--surface2); color: var(--faint); }
+.pred-pts.pending { color: var(--faint); font-style: italic; background: none; }
+.pred-no-prono { font-size: 11px; color: var(--faint); font-style: italic; }
+
+/* EMPTY STATE */
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 80px 16px; text-align: center; gap: 12px;
+}
+.empty-icon { font-size: 40px; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--muted); }
+.empty-hint { font-size: 13px; color: var(--faint); max-width: 280px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">⚽ CDM 2026</div>
+    <div class="topbar-user">@david_l</div>
+  </div>
+
+  <!-- SCREEN -->
+  <div class="screen">
+    <div class="page-title">Les Pronos</div>
+    <div class="page-subtitle">Les pronostics de chacun, par match.</div>
+
+    <!-- Match 1 : terminé -->
+    <div class="match-block">
+      <div class="match-header">
+        <div class="team">
+          <img src="https://flagcdn.com/w40/mx.png" alt="Mexique" />
+          <span class="team-name">Mexique</span>
+        </div>
+        <div class="score-center">
+          <div class="score-value">3 – 1</div>
+          <div class="score-label">résultat</div>
+        </div>
+        <div class="team">
+          <img src="https://flagcdn.com/w40/za.png" alt="Afr. du Sud" />
+          <span class="team-name">Afr. du Sud</span>
+        </div>
+      </div>
+      <div class="preds-list">
+        <!-- exact -->
+        <div class="pred-row is-me">
+          <div class="pred-avatar">DL</div>
+          <div class="pred-name">
+            <div class="pred-name-text is-me">David L. <span class="pred-you-badge">toi</span></div>
+          </div>
+          <div class="pred-score-box">2 – 1</div>
+          <div class="pred-pts exact">⭐ +9.50 pts</div>
+        </div>
+        <!-- correct -->
+        <div class="pred-row">
+          <div class="pred-avatar">AM</div>
+          <div class="pred-name">
+            <div class="pred-name-text">Alice M.</div>
+          </div>
+          <div class="pred-score-box">1 – 0</div>
+          <div class="pred-pts correct">+3.17 pts</div>
+        </div>
+        <!-- wrong -->
+        <div class="pred-row">
+          <div class="pred-avatar">BK</div>
+          <div class="pred-name">
+            <div class="pred-name-text">Bob K.</div>
+          </div>
+          <div class="pred-score-box">0 – 1</div>
+          <div class="pred-pts wrong">0 pt</div>
+        </div>
+        <!-- no bet -->
+        <div class="pred-row">
+          <div class="pred-avatar" style="color:var(--faint); border-color: var(--border);">JP</div>
+          <div class="pred-name">
+            <div class="pred-name-text" style="color:var(--faint);">Jules P.</div>
+          </div>
+          <span class="pred-no-prono">Pas de prono</span>
+          <div class="pred-pts wrong">0 pt</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match 2 : terminé -->
+    <div class="match-block">
+      <div class="match-header">
+        <div class="team">
+          <img src="https://flagcdn.com/w40/fr.png" alt="France" />
+          <span class="team-name">France</span>
+        </div>
+        <div class="score-center">
+          <div class="score-value">2 – 0</div>
+          <div class="score-label">résultat</div>
+        </div>
+        <div class="team">
+          <img src="https://flagcdn.com/w40/br.png" alt="Brésil" />
+          <span class="team-name">Brésil</span>
+        </div>
+      </div>
+      <div class="preds-list">
+        <div class="pred-row">
+          <div class="pred-avatar">AM</div>
+          <div class="pred-name"><div class="pred-name-text">Alice M.</div></div>
+          <div class="pred-score-box">2 – 0</div>
+          <div class="pred-pts exact">⭐ +12.60 pts</div>
+        </div>
+        <div class="pred-row is-me">
+          <div class="pred-avatar">DL</div>
+          <div class="pred-name">
+            <div class="pred-name-text is-me">David L. <span class="pred-you-badge">toi</span></div>
+          </div>
+          <div class="pred-score-box">1 – 0</div>
+          <div class="pred-pts correct">+4.20 pts</div>
+        </div>
+        <div class="pred-row">
+          <div class="pred-avatar">BK</div>
+          <div class="pred-name"><div class="pred-name-text">Bob K.</div></div>
+          <div class="pred-score-box">1 – 1</div>
+          <div class="pred-pts wrong">0 pt</div>
+        </div>
+        <div class="pred-row">
+          <div class="pred-avatar">JP</div>
+          <div class="pred-name"><div class="pred-name-text">Jules P.</div></div>
+          <div class="pred-score-box">3 – 1</div>
+          <div class="pred-pts wrong">0 pt</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match 3 : en cours -->
+    <div class="match-block">
+      <div class="match-header">
+        <div class="team">
+          <img src="https://flagcdn.com/w40/de.png" alt="Allemagne" />
+          <span class="team-name">Allemagne</span>
+        </div>
+        <div class="score-center">
+          <div class="score-live">EN COURS</div>
+          <div class="score-date">jeu. 19 juin, 21h00</div>
+        </div>
+        <div class="team">
+          <img src="https://flagcdn.com/w40/ar.png" alt="Argentine" />
+          <span class="team-name">Argentine</span>
+        </div>
+      </div>
+      <div class="preds-list">
+        <div class="pred-row is-me">
+          <div class="pred-avatar">DL</div>
+          <div class="pred-name">
+            <div class="pred-name-text is-me">David L. <span class="pred-you-badge">toi</span></div>
+          </div>
+          <div class="pred-score-box">1 – 1</div>
+          <div class="pred-pts pending">en attente…</div>
+        </div>
+        <div class="pred-row">
+          <div class="pred-avatar">AM</div>
+          <div class="pred-name"><div class="pred-name-text">Alice M.</div></div>
+          <div class="pred-score-box">2 – 1</div>
+          <div class="pred-pts pending">en attente…</div>
+        </div>
+        <div class="pred-row">
+          <div class="pred-avatar">BK</div>
+          <div class="pred-name"><div class="pred-name-text">Bob K.</div></div>
+          <div class="pred-score-box">0 – 2</div>
+          <div class="pred-pts pending">en attente…</div>
+        </div>
+        <div class="pred-row">
+          <div class="pred-avatar" style="color:var(--faint); border-color: var(--border);">JP</div>
+          <div class="pred-name"><div class="pred-name-text" style="color:var(--faint);">Jules P.</div></div>
+          <span class="pred-no-prono">Pas de prono</span>
+          <div class="pred-pts wrong">0 pt</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottomnav">
+    <div class="nav-tab">
+      <div class="nav-tab-icon">⚽</div>
+      <div class="nav-tab-label">Matchs</div>
+    </div>
+    <div class="nav-tab active">
+      <div class="nav-tab-icon">📋</div>
+      <div class="nav-tab-label">Les Pronos</div>
+    </div>
+    <div class="nav-tab">
+      <div class="nav-tab-icon">🏆</div>
+      <div class="nav-tab-label">Classement</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

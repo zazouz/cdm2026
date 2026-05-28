@@ -15,10 +15,10 @@ export async function GET(req: NextRequest) {
   const apiKey = process.env.ODDS_API_KEY
   if (!apiKey) return NextResponse.json({ error: 'ODDS_API_KEY manquant' }, { status: 500 })
 
-  // Fetch winamax events
+  // Fetch betclic events
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
-  const winamaxRes = await fetch(`${base}&bookmakers=winamax_fr`, { next: { revalidate: 0 } })
-  const events = winamaxRes.ok ? await winamaxRes.json() : []
+  const betclicRes = await fetch(`${base}&bookmakers=betclic_fr`, { next: { revalidate: 0 } })
+  const events = betclicRes.ok ? await betclicRes.json() : []
 
   // Check DB for Iran vs New Zealand
   const supabase = await createAdminClient()

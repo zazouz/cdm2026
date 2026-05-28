@@ -69,7 +69,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="relative min-h-screen flex items-center justify-center px-4">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <img src="/bg-fifa-2026.jpg" alt="" aria-hidden className="h-full w-full object-cover opacity-[0.06]" />
+      </div>
+      <div className="relative z-10 w-full flex justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" className="h-28 w-auto mx-auto mb-3 object-contain" />
@@ -162,6 +166,7 @@ export default function LoginPage() {
             {t.noAccount} {t.register}
           </Link>
         </form>
+      </div>
       </div>
     </div>
   )
