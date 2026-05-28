@@ -46,22 +46,16 @@ const GROUP_COLORS: Record<string, string> = {
 const T = {
   fr: {
     result: 'résultat',
-    yourBetLocked: 'Ton prono',
-    noBet: 'pas de pronostic',
-    yourBetLabel: 'Ton pronostic',
-    lockWarning: (min: number) => `⏱ Verrouillage dans ${min} min — modifie ton prono maintenant !`,
-    winHint: (team: string, pts: string) => `Victoire ${team} · score exact = max ${pts} pts`,
-    drawHint: (pts: string) => `Match nul · score exact = max ${pts} pts`,
+    noBet: 'pas de prono',
+    lockWarning: (min: number) => `⏱ Verrouillage dans ${min} min`,
+    maxHint: (pts: string) => `max ${pts} pts si score exact`,
     error: 'Erreur',
   },
   en: {
     result: 'result',
-    yourBetLocked: 'Your bet',
     noBet: 'no prediction',
-    yourBetLabel: 'Your prediction',
-    lockWarning: (min: number) => `⏱ Locking in ${min} min — update your prediction now!`,
-    winHint: (team: string, pts: string) => `${team} win · exact score = max ${pts} pts`,
-    drawHint: (pts: string) => `Draw · exact score = max ${pts} pts`,
+    lockWarning: (min: number) => `⏱ Locking in ${min} min`,
+    maxHint: (pts: string) => `max ${pts} pts for exact score`,
     error: 'Error',
   },
 }
@@ -246,13 +240,12 @@ export default function MatchCard({ match, prediction, userId }: Props) {
       )}
 
       {/* Bottom: save button or locked summary */}
-      <div className="border-t border-gray-800 bg-gray-900/80 px-4 py-3">
+      <div className="border-t border-gray-800 px-4 py-2">
         {isLocked ? (
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t.yourBetLocked}</span>
+          <div className="flex items-center justify-end gap-2">
             {prediction ? (
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-sm font-bold text-gray-300">
+              <>
+                <span className="font-mono text-sm font-bold text-gray-400">
                   {prediction.predicted_home} – {prediction.predicted_away}
                 </span>
                 {isFinished && prediction.points_earned !== null && (
@@ -260,36 +253,30 @@ export default function MatchCard({ match, prediction, userId }: Props) {
                     {prediction.points_earned > 0 ? `+${Number(prediction.points_earned).toFixed(2)} pts` : '0 pt'}
                   </span>
                 )}
-              </div>
+              </>
             ) : (
-              <span className="text-xs italic text-gray-500">{t.noBet}</span>
+              <span className="text-xs italic text-gray-600">{t.noBet}</span>
             )}
           </div>
         ) : (
-          <>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">{t.yourBetLabel}</p>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                aria-label={saved ? t.yourBetLocked : t.yourBetLabel}
-                className={`h-9 rounded-xl px-6 text-sm font-bold transition-all ${
-                  saved
-                    ? 'bg-green-900 text-green-400'
-                    : 'bg-green-600 text-black hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500'
-                }`}
-              >
-                {saved ? '✓' : saving ? '…' : 'OK'}
-              </button>
-            </div>
-
-            {maxPts && (
-              <p className="mt-1.5 text-center text-[10px] text-gray-500">
-                {predictedWinner ? t.winHint(predictedWinner, maxPts) : t.drawHint(maxPts)}
-              </p>
-            )}
-            {error && <p className="mt-1 text-center text-xs text-red-400">{error}</p>}
-          </>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[10px] text-gray-600 leading-tight">
+              {error
+                ? <span className="text-red-400">{error}</span>
+                : maxPts ? t.maxHint(maxPts) : null}
+            </p>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className={`h-9 shrink-0 rounded-xl px-6 text-sm font-bold transition-all ${
+                saved
+                  ? 'bg-green-900 text-green-400'
+                  : 'bg-green-600 text-black hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500'
+              }`}
+            >
+              {saved ? '✓' : saving ? '…' : 'OK'}
+            </button>
+          </div>
         )}
       </div>
     </div>
