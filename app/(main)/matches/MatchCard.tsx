@@ -110,9 +110,9 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
         </p>
       )}
 
-      {/* Flags + center */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 px-3 pt-1 pb-1.5">
-        <div className="flex justify-center">
+      {/* Grid : flags + steppers (row 1) et noms (row 2) */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-2 gap-y-1.5 px-3 pt-1 pb-2.5">
+        <div className="flex items-center justify-start">
           {match.home_flag
             ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-7 w-12 rounded-md object-cover shadow-md" />
             : <div className="h-7 w-12 rounded-md bg-gray-800" />}
@@ -150,25 +150,19 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
           )}
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex items-center justify-end">
           {match.away_flag
             ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-7 w-12 rounded-md object-cover shadow-md" />
             : <div className="h-7 w-12 rounded-md bg-gray-800" />}
         </div>
-      </div>
 
-      {/* Noms — hors du grid pour avoir la pleine largeur */}
-      <div className="flex px-3 pb-2.5 gap-2">
-        <p className="flex-1 text-center text-xs font-semibold leading-tight text-white">{homeTeam}</p>
-        <p className="flex-1 text-center text-xs font-semibold leading-tight text-white">{awayTeam}</p>
+        {/* Noms — row 2 du même grid, débordent vers le centre */}
+        <p className="text-left text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        {maxPts
+          ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap self-start">{lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}</p>
+          : <div aria-hidden />}
+        <p className="text-right text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
-
-      {/* Hint score exact */}
-      {maxPts && (
-        <p className="pb-2 -mt-1 text-center text-[9px] text-gray-600">
-          {lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}
-        </p>
-      )}
 
       {/* Cotes */}
       {match.home_odds && (
