@@ -79,7 +79,9 @@ export default function LeaderboardTable({
               isMe ? 'bg-green-950/20 hover:bg-green-950/30' : 'hover:bg-gray-800/40'
             }`}
           >
-            <span className="w-5 shrink-0 text-center text-xs font-bold text-gray-500">{i + 1}</span>
+            <span className="w-5 shrink-0 text-center text-xs font-bold text-gray-500">
+              {sortKey === 'total_points' && sortDir === 'desc' && i === 0 ? '🥇' : sortKey === 'total_points' && sortDir === 'desc' && i === 1 ? '🥈' : sortKey === 'total_points' && sortDir === 'desc' && i === 2 ? '🥉' : i + 1}
+            </span>
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-semibold truncate ${isMe ? 'text-green-400' : 'text-white'}`}>
                 {entry.first_name} {entry.last_name}

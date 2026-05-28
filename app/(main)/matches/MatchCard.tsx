@@ -13,6 +13,21 @@ type Props = {
   userId: string
 }
 
+const GROUP_BORDER: Record<string, string> = {
+  A: 'border-l-green-500',
+  B: 'border-l-cyan-400',
+  C: 'border-l-orange-500',
+  D: 'border-l-blue-500',
+  E: 'border-l-yellow-400',
+  F: 'border-l-lime-400',
+  G: 'border-l-pink-500',
+  H: 'border-l-teal-500',
+  I: 'border-l-red-500',
+  J: 'border-l-purple-500',
+  K: 'border-l-orange-600',
+  L: 'border-l-sky-400',
+}
+
 const GROUP_COLORS: Record<string, string> = {
   A: 'bg-green-500/20 text-green-400',
   B: 'bg-cyan-400/20 text-cyan-300',
@@ -123,8 +138,18 @@ export default function MatchCard({ match, prediction, userId }: Props) {
     ? (GROUP_COLORS[match.group_name] ?? 'bg-gray-800 text-gray-500')
     : 'bg-gray-800 text-gray-500'
 
+  const groupBorderClass = match.stage === 'group' && match.group_name
+    ? (GROUP_BORDER[match.group_name] ?? '')
+    : ''
+
+  const oddsFetchedLabel = match.odds_fetched_at
+    ? new Date(match.odds_fetched_at).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
+      })
+    : null
+
   return (
-    <div className={`overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 ${isFinished ? 'opacity-70' : ''}`}>
+    <div className={`overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 border-l-4 ${groupBorderClass} ${isFinished ? 'opacity-70' : ''}`}>
 
       {/* Meta row */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
@@ -223,19 +248,26 @@ export default function MatchCard({ match, prediction, userId }: Props) {
 
       {/* Odds row */}
       {match.home_odds && (
-        <div className="flex gap-1.5 px-4 pb-3">
-          <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">1</span>
-            <span className="text-sm font-bold text-gray-300">{formatOdds(match.home_odds)}</span>
+        <div className="px-4 pb-3 space-y-1.5">
+          <div className="flex gap-1.5">
+            <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">1</span>
+              <span className="text-sm font-bold text-gray-300">{formatOdds(match.home_odds)}</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">N</span>
+              <span className="text-sm font-bold text-gray-300">{formatOdds(match.draw_odds)}</span>
+            </div>
+            <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">2</span>
+              <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
+            </div>
           </div>
-          <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">N</span>
-            <span className="text-sm font-bold text-gray-300">{formatOdds(match.draw_odds)}</span>
-          </div>
-          <div className="flex flex-1 flex-col items-center rounded-xl border border-gray-800 bg-gray-800/50 py-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">2</span>
-            <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
-          </div>
+          {oddsFetchedLabel && (
+            <p className="text-center text-[9px] text-gray-700">
+              Betclic.fr · {lang === 'fr' ? 'récupérées le' : 'fetched'} {oddsFetchedLabel}
+            </p>
+          )}
         </div>
       )}
 
