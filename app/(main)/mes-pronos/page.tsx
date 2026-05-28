@@ -39,7 +39,7 @@ export default async function LesPronos() {
 
   const [{ data: matchesData }, { data: usersData }] = await Promise.all([
     admin.from('matches').select('*').lte('match_date', lockCutoff).order('match_date', { ascending: false }),
-    admin.from('users').select('id, first_name, last_name, username'),
+    admin.from('users').select('id, first_name, last_name, username').eq('is_admin', false),
   ])
 
   const matches = (matchesData ?? []) as Match[]

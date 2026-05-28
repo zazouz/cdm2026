@@ -28,6 +28,7 @@ create table if not exists public.matches (
   draw_odds numeric(5,2),
   away_odds numeric(5,2),
   odds_fetched_at timestamptz,
+  odds_bookmaker  text,
   -- Résultat
   home_score integer,
   away_score integer,

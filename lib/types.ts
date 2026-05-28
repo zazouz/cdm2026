@@ -21,6 +21,7 @@ export type Match = {
   draw_odds: number | null
   away_odds: number | null
   odds_fetched_at: string | null
+  odds_bookmaker: string | null
   home_score: number | null
   away_score: number | null
   status: 'scheduled' | 'finished'

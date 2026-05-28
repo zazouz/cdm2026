@@ -63,8 +63,15 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
     setSaveError('')
     let count = 0
     try {
+      const dirty = unlockedMatches.filter(m => {
+        const score = scores[m.id]
+        const saved = predictionByMatch[m.id]
+        if (!score) return false
+        if (!saved) return score.home !== 0 || score.away !== 0
+        return score.home !== saved.predicted_home || score.away !== saved.predicted_away
+      })
       await Promise.all(
-        unlockedMatches.map(async m => {
+        dirty.map(async m => {
           const score = scores[m.id]
           if (!score) return
           const res = await fetch('/api/predictions', {
@@ -166,7 +173,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
             : 'Predictions lock 15 minutes before kick-off.'}
         </p>
         <p className="text-gray-700">
-          {lang === 'fr' ? 'Cotes : Betclic.fr' : 'Odds: Betclic.fr'}
+          {lang === 'fr' ? 'Cotes : Betclic.fr (priorité), fallback possible' : 'Odds: Betclic.fr (priority), fallback possible'}
         </p>
       </div>
 

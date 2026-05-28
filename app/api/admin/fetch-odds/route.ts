@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
     draw_odds: odds.draw,
     away_odds: odds.away,
     odds_fetched_at: new Date().toISOString(),
+    odds_bookmaker: odds.bookmaker,
   }).eq('id', matchId)
 
   return NextResponse.json({ ok: true, home_odds: odds.home, draw_odds: odds.draw, away_odds: odds.away, bookmaker: odds.bookmaker })
@@ -123,11 +124,17 @@ function matchEvent(
   const homeNorm = canon(homeTeam)
   const awayNorm = canon(awayTeam)
 
+  const matchDateMs = new Date(matchDate).getTime()
+  const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000
+
   const event = events.find(e => {
     const h = canon(e.home_team)
     const a = canon(e.away_team)
-    return (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
+    const nameMatch =
+      (h.includes(homeNorm.slice(0, 4)) || homeNorm.includes(h.slice(0, 4))) &&
       (a.includes(awayNorm.slice(0, 4)) || awayNorm.includes(a.slice(0, 4)))
+    if (!nameMatch) return false
+    return Math.abs(new Date(e.commence_time).getTime() - matchDateMs) < TWO_DAYS_MS
   })
 
   if (!event) return null

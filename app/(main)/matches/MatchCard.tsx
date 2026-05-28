@@ -205,7 +205,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
               </p>
               {match.odds_fetched_at && (
                 <p className="shrink-0 text-[9px] text-gray-700">
-                  Betclic.fr · {lang === 'fr' ? 'récupérées le' : 'fetched'}{' '}
+                  {match.odds_bookmaker === 'betclic_fr' ? 'Betclic.fr' : (match.odds_bookmaker ?? 'Bookmaker')} · {lang === 'fr' ? 'récupérées le' : 'fetched'}{' '}
                   {new Date(match.odds_fetched_at).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
                     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
                   })}
