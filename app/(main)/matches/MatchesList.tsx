@@ -112,8 +112,8 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
         {saving
           ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...')
           : (lang === 'fr'
-              ? `Valider mes ${dirtyCount} pronostic${dirtyCount > 1 ? 's' : ''}`
-              : `Save my ${dirtyCount} prediction${dirtyCount > 1 ? 's' : ''}`)}
+              ? dirtyCount === 1 ? 'Valider mon pronostic' : `Valider mes ${dirtyCount} pronostics`
+              : dirtyCount === 1 ? 'Save my prediction' : `Save my ${dirtyCount} predictions`)}
       </button>
     </div>
   )

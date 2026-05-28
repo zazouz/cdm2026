@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
@@ -122,7 +121,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Image src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" width={160} height={200} priority className="h-28 w-auto mx-auto mb-3 object-contain" />
+          <img src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" className="h-28 w-auto mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-white">{t.title}</h1>
           <p className="text-gray-400 mt-1">{t.subtitle}</p>
           <div className="flex justify-center mt-3">

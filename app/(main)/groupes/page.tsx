@@ -2,6 +2,21 @@ import { createClient } from '@/lib/supabase-server'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
 import { translateTeam } from '@/lib/i18n'
+
+const GROUP_COLORS: Record<string, { border: string; text: string; bg: string }> = {
+  A: { border: 'border-l-green-500',   text: 'text-green-400',  bg: 'bg-green-500/10'  },
+  B: { border: 'border-l-cyan-400',    text: 'text-cyan-300',   bg: 'bg-cyan-400/10'   },
+  C: { border: 'border-l-orange-500',  text: 'text-orange-400', bg: 'bg-orange-500/10' },
+  D: { border: 'border-l-blue-500',    text: 'text-blue-400',   bg: 'bg-blue-500/10'   },
+  E: { border: 'border-l-yellow-400',  text: 'text-yellow-300', bg: 'bg-yellow-400/10' },
+  F: { border: 'border-l-lime-400',    text: 'text-lime-300',   bg: 'bg-lime-400/10'   },
+  G: { border: 'border-l-pink-500',    text: 'text-pink-400',   bg: 'bg-pink-500/10'   },
+  H: { border: 'border-l-teal-500',    text: 'text-teal-400',   bg: 'bg-teal-500/10'   },
+  I: { border: 'border-l-red-500',     text: 'text-red-400',    bg: 'bg-red-500/10'    },
+  J: { border: 'border-l-purple-500',  text: 'text-purple-400', bg: 'bg-purple-500/10' },
+  K: { border: 'border-l-orange-600',  text: 'text-orange-500', bg: 'bg-orange-600/10' },
+  L: { border: 'border-l-sky-400',     text: 'text-sky-300',    bg: 'bg-sky-400/10'    },
+}
 import type { Match } from '@/lib/types'
 import { flagUrl } from '@/lib/flags'
 
@@ -150,20 +165,22 @@ export default async function GroupesPage() {
         const finishedMatches = groupMatches.filter(m => m.status === 'finished')
         const scheduledMatches = groupMatches.filter(m => m.status !== 'finished')
 
+        const gc = GROUP_COLORS[groupName]
+
         return (
           <section key={groupName} className="space-y-2">
 
             {/* Group header */}
             <div className="flex items-center gap-2">
               <div className="h-px flex-1 bg-gray-800" />
-              <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 px-2">
+              <span className={`text-xs font-extrabold uppercase tracking-widest px-3 py-0.5 rounded-full ${gc ? `${gc.text} ${gc.bg}` : 'text-gray-400'}`}>
                 {t.group} {groupName}
               </span>
               <div className="h-px flex-1 bg-gray-800" />
             </div>
 
             {/* Standings table */}
-            <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
+            <div className={`overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 border-l-4 ${gc ? gc.border : ''}`}>
 
               {/* Column headers */}
               <div className="flex items-center gap-1 border-b border-gray-800 px-3 py-2">
