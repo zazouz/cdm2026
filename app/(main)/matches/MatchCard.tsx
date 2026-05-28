@@ -158,11 +158,11 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
             : <div className="h-10 w-10 rounded-full bg-gray-800" />}
         </div>
 
-        <p className="min-w-0 truncate text-center text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white">{homeTeam}</p>
         {maxPts
           ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap">{lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}</p>
           : <div aria-hidden />}
-        <p className="min-w-0 truncate text-center text-xs font-semibold leading-tight text-white">{awayTeam}</p>
+        <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
 
       {/* Cotes */}
