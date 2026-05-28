@@ -166,19 +166,18 @@ export default function MatchCard({ match, prediction, userId }: Props) {
         </p>
       )}
 
-      {/* Teams + center score */}
-      <div className="flex items-center px-3 pb-3 gap-2">
+      {/* Teams + center — grid [flag | steppers | flag] puis [nom | espace | nom] */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-2 gap-y-1.5 px-3 pt-2 pb-3">
 
-        {/* Home team */}
-        <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
+        {/* Flags row */}
+        <div className="flex justify-center">
           {match.home_flag
-            ? <img src={`https://flagcdn.com/w80/${match.home_flag}.png`} alt={match.home_team} className="h-10 w-10 rounded-full object-cover shadow-md" />
+            ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-10 w-10 rounded-full object-cover shadow-md" />
             : <div className="h-10 w-10 rounded-full bg-gray-800" />}
-          <span className="w-full text-center text-xs font-semibold leading-tight text-white line-clamp-2">{homeTeam}</span>
         </div>
 
-        {/* Center: steppers or score display */}
-        <div className="flex shrink-0 flex-col items-center gap-1">
+        {/* Center: steppers or score */}
+        <div className="flex flex-col items-center gap-1">
           {isLocked ? (
             <div className="flex items-center gap-2">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-800 text-xl font-extrabold text-white">
@@ -191,44 +190,16 @@ export default function MatchCard({ match, prediction, userId }: Props) {
             </div>
           ) : (
             <div className="flex items-center gap-1.5">
-              {/* Home stepper */}
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
-                <button
-                  onClick={() => step('home', -1)}
-                  aria-label={`${homeTeam} −1`}
-                  className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
-                >
-                  −
-                </button>
+                <button onClick={() => step('home', -1)} aria-label={`${homeTeam} −1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">−</button>
                 <span className="w-9 text-center text-xl font-extrabold text-white" aria-label={`${homeTeam} : ${home}`}>{home}</span>
-                <button
-                  onClick={() => step('home', 1)}
-                  aria-label={`${homeTeam} +1`}
-                  className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
-                >
-                  +
-                </button>
+                <button onClick={() => step('home', 1)} aria-label={`${homeTeam} +1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">+</button>
               </div>
-
               <span className="text-sm font-bold text-gray-600" aria-hidden="true">–</span>
-
-              {/* Away stepper */}
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
-                <button
-                  onClick={() => step('away', -1)}
-                  aria-label={`${awayTeam} −1`}
-                  className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
-                >
-                  −
-                </button>
+                <button onClick={() => step('away', -1)} aria-label={`${awayTeam} −1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">−</button>
                 <span className="w-9 text-center text-xl font-extrabold text-white" aria-label={`${awayTeam} : ${away}`}>{away}</span>
-                <button
-                  onClick={() => step('away', 1)}
-                  aria-label={`${awayTeam} +1`}
-                  className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600"
-                >
-                  +
-                </button>
+                <button onClick={() => step('away', 1)} aria-label={`${awayTeam} +1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">+</button>
               </div>
             </div>
           )}
@@ -237,13 +208,16 @@ export default function MatchCard({ match, prediction, userId }: Props) {
           )}
         </div>
 
-        {/* Away team */}
-        <div className="flex flex-1 flex-col items-center gap-1.5 min-w-0">
+        <div className="flex justify-center">
           {match.away_flag
-            ? <img src={`https://flagcdn.com/w80/${match.away_flag}.png`} alt={match.away_team} className="h-10 w-10 rounded-full object-cover shadow-md" />
+            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-10 w-10 rounded-full object-cover shadow-md" />
             : <div className="h-10 w-10 rounded-full bg-gray-800" />}
-          <span className="w-full text-center text-xs font-semibold leading-tight text-white line-clamp-2">{awayTeam}</span>
         </div>
+
+        {/* Names row — aligned sous les drapeaux grâce au grid */}
+        <p className="text-center text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        <div aria-hidden="true" />
+        <p className="text-center text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
 
       {/* Odds row */}

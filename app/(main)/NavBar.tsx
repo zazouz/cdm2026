@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { useLanguage } from './LanguageProvider'
@@ -23,7 +24,7 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
 
   return (
     <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-gray-800 bg-gray-950/90 px-4 backdrop-blur-xl">
-      <img src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" className="h-8 w-auto object-contain" />
+      <Image src="/logo-fifa-2026.jpg" alt="FIFA World Cup 2026" width={64} height={80} className="h-8 w-auto object-contain" priority />
       <div className="flex items-center gap-2">
         <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
           <button
