@@ -14,6 +14,7 @@ export default function BottomNav({ isAdmin }: { isAdmin: boolean }) {
     { href: '/mes-pronos', icon: '📋', label: NAV_LABELS.pronos[lang] },
     { href: '/groupes', icon: '📊', label: NAV_LABELS.groupes[lang] },
     { href: '/leaderboard', icon: '🏆', label: NAV_LABELS.leaderboard[lang] },
+    { href: '/comment-ca-marche', icon: '❓', label: NAV_LABELS.howItWorks[lang] },
     ...(isAdmin ? [{ href: '/admin', icon: '⚙️', label: NAV_LABELS.admin[lang] }] : []),
   ]
 

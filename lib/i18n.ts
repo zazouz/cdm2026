@@ -142,9 +142,10 @@ export const STAGE_LABELS: Record<string, { fr: string; en: string }> = {
 
 export const NAV_LABELS: Record<string, { fr: string; en: string }> = {
   matches: { fr: 'Matchs', en: 'Matches' },
-  pronos: { fr: 'Les Pronos', en: 'Bets' },
+  pronos: { fr: 'Live', en: 'Live' },
   groupes: { fr: 'Groupes', en: 'Groups' },
   leaderboard: { fr: 'Classement', en: 'Standings' },
+  howItWorks: { fr: 'Règles', en: 'Rules' },
   admin: { fr: 'Admin', en: 'Admin' },
   logout: { fr: 'Déco', en: 'Logout' },
 }

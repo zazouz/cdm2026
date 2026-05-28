@@ -17,10 +17,15 @@ export async function GET(req: NextRequest) {
 
   const matchId = req.nextUrl.searchParams.get('matchId')
   if (!matchId) return NextResponse.json({ error: 'matchId requis' }, { status: 400 })
+  const force = req.nextUrl.searchParams.get('force') === 'true'
 
   const supabase = await createAdminClient()
   const { data: match } = await supabase.from('matches').select('*').eq('id', matchId).single()
   if (!match) return NextResponse.json({ error: 'Match introuvable' }, { status: 404 })
+
+  if (!force && match.home_odds !== null) {
+    return NextResponse.json({ ok: true, skipped: true, reason: 'côtes déjà présentes (ajouter ?force=true pour forcer)' })
+  }
 
   // Un seul appel API pour récupérer tous les events, puis matching local
   const { events, error: oddsError } = await fetchAllOddsEvents()
@@ -36,7 +41,7 @@ export async function GET(req: NextRequest) {
     odds_fetched_at: new Date().toISOString(),
   }).eq('id', matchId)
 
-  return NextResponse.json({ ok: true, home_odds: odds.home, draw_odds: odds.draw, away_odds: odds.away })
+  return NextResponse.json({ ok: true, home_odds: odds.home, draw_odds: odds.draw, away_odds: odds.away, bookmaker: odds.bookmaker })
 }
 
 export async function POST(req: NextRequest) {
@@ -91,8 +96,7 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
 
   const base = `https://api.the-odds-api.com/v4/sports/soccer_fifa_world_cup/odds?apiKey=${apiKey}&markets=h2h&oddsFormat=decimal`
 
-  // EU inclut Winamax FR + autres bookmakers — couverture complète même si Winamax
-  // n'a pas encore les cotes pour certains matchs
+  // EU inclut Betclic FR + autres bookmakers — priorité Betclic, fallback sur n'importe quel bookmaker disponible
   const eu = await fetch(`${base}&regions=eu`, { next: { revalidate: 0 } })
   if (eu.ok) {
     const events = await eu.json() as OddsApiEvent[]
@@ -105,7 +109,7 @@ async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; er
   }
 
   console.warn('[CDM2026][fetch-odds] no odds available')
-  return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API pour l\'instant' }
+  return { events: null, error: 'Aucune cote disponible pour la CDM 2026 sur The Odds API' }
 }
 
 function matchEvent(
@@ -113,7 +117,7 @@ function matchEvent(
   homeTeam: string,
   awayTeam: string,
   matchDate: string
-): { home: number; draw: number; away: number } | null {
+): { home: number; draw: number; away: number; bookmaker: string } | null {
   const normalize = normalizeTeam
   const canon = canonicalTeam
   const homeNorm = canon(homeTeam)
@@ -128,9 +132,13 @@ function matchEvent(
 
   if (!event) return null
 
-  const bookmaker = event.bookmakers.find(b => b.key === 'winamax_fr' && b.markets.some(m => m.key === 'h2h'))
+  const bookmaker =
+    event.bookmakers.find(b => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
     ?? event.bookmakers.find(b => b.markets.some(m => m.key === 'h2h'))
   if (!bookmaker) return null
+
+  console.log(`[CDM2026][fetch-odds] bookmaker for ${homeTeam} vs ${awayTeam}: ${bookmaker.key}`)
+
   const h2h = bookmaker.markets.find(m => m.key === 'h2h')
   if (!h2h) return null
 
@@ -144,6 +152,7 @@ function matchEvent(
     home: Math.round(homeOdds * 100) / 100,
     draw: Math.round(drawOdds * 100) / 100,
     away: Math.round(awayOdds * 100) / 100,
+    bookmaker: bookmaker.key,
   }
 }
 

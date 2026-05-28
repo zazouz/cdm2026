@@ -20,12 +20,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
   return (
     <LanguageProvider>
-      <div className="min-h-screen flex flex-col bg-gray-950">
-        <NavBar username={profile?.username ?? ''} isAdmin={isAdmin} />
-        <main className="flex-1 mx-auto w-full max-w-lg px-4 py-5 pb-24">
-          {children}
-        </main>
-        <BottomNav isAdmin={isAdmin} />
+      <div className="relative min-h-screen flex flex-col bg-gray-950">
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <img src="/bg-fifa-2026.jpg" alt="" aria-hidden className="h-full w-full object-cover opacity-[0.06]" />
+        </div>
+        <div className="relative z-10 flex flex-col flex-1">
+          <NavBar username={profile?.username ?? ''} isAdmin={isAdmin} />
+          <main className="flex-1 mx-auto w-full max-w-lg px-4 py-5 pb-24">
+            {children}
+          </main>
+          <BottomNav isAdmin={isAdmin} />
+        </div>
       </div>
     </LanguageProvider>
   )
