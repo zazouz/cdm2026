@@ -50,6 +50,10 @@ const T = {
   },
 }
 
+function capitalize(s: string): string {
+  return s.trim().replace(/\b\w/g, c => c.toUpperCase()).replace(/\B\w/g, c => c.toLowerCase())
+}
+
 export default function RegisterPage() {
   const router = useRouter()
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
@@ -98,8 +102,8 @@ export default function RegisterPage() {
       const { error: insertError } = await supabase.from('users').insert({
         id: data.user.id,
         username,
-        first_name: form.firstName.trim(),
-        last_name: form.lastName.trim(),
+        first_name: capitalize(form.firstName),
+        last_name: capitalize(form.lastName),
       })
 
       if (insertError) {

@@ -155,8 +155,8 @@ create or replace view public.leaderboard as
 select
   u.id,
   u.username,
-  u.first_name,
-  u.last_name,
+  initcap(u.first_name) as first_name,
+  initcap(u.last_name)  as last_name,
   count(p.id) filter (where p.points_earned is not null) as predictions_scored,
   coalesce(sum(p.points_earned), 0) as total_points,
   count(p.id) filter (where p.points_earned > 0 and p.predicted_home = m.home_score and p.predicted_away = m.away_score) as exact_scores,
