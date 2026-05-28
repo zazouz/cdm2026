@@ -154,10 +154,10 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
         </div>
       </div>
 
-      {/* Noms — positionnés absolus : domicile part du bord gauche, extérieur finit au bord droit */}
-      <div className="relative px-3 h-5 mb-1">
-        <p className="absolute left-0 top-0 whitespace-nowrap text-xs font-semibold leading-tight text-white">{homeTeam}</p>
-        <p className="absolute right-0 top-0 whitespace-nowrap text-xs font-semibold leading-tight text-white">{awayTeam}</p>
+      {/* Noms — calés sous les drapeaux (left-3/right-3 = même px-3 que le grid) */}
+      <div className="relative h-5 mb-1">
+        <p className="absolute left-3 top-0 whitespace-nowrap text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        <p className="absolute right-3 top-0 whitespace-nowrap text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
 
       {/* Cotes + prono verrouillé sur la même ligne */}
