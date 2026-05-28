@@ -3,8 +3,18 @@
 import { useState } from 'react'
 import type { Match, Prediction } from '@/lib/types'
 import type { Lang } from '@/lib/i18n'
+import { translateTeam, stageLabel } from '@/lib/i18n'
 import { flagUrl } from '@/lib/flags'
 import { computePoints, resultSign } from '@/lib/scoring'
+
+const GROUP_BORDER: Record<string, string> = {
+  A: 'border-l-green-500',  B: 'border-l-cyan-400',
+  C: 'border-l-orange-500', D: 'border-l-blue-500',
+  E: 'border-l-yellow-400', F: 'border-l-lime-400',
+  G: 'border-l-pink-500',   H: 'border-l-teal-500',
+  I: 'border-l-red-500',    J: 'border-l-purple-500',
+  K: 'border-l-orange-600', L: 'border-l-sky-400',
+}
 
 export type UserRow = { id: string; first_name: string | null; last_name: string | null; username: string }
 export type PredEntry = { user: UserRow; pred: Prediction | null }
@@ -155,8 +165,12 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
     })
   }
 
+  const borderClass = match.stage === 'group' && match.group_name
+    ? (GROUP_BORDER[match.group_name] ?? '')
+    : ''
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
+    <div className={`overflow-hidden rounded-2xl border border-l-4 border-gray-800 bg-gray-900 ${borderClass}`}>
 
       {/* ── Header (toujours visible, cliquable) ── */}
       <button onClick={() => setOpen(v => !v)} className="w-full text-left focus:outline-none" aria-expanded={open}>
@@ -167,7 +181,7 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
             {match.home_flag
               ? <img src={flagUrl(match.home_flag)} alt={match.home_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
               : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
-            <span className="text-[11px] font-semibold text-white truncate">{match.home_team}</span>
+            <span className="text-[11px] font-semibold text-white truncate">{translateTeam(match.home_team, lang)}</span>
           </div>
 
           {/* Score / statut */}
@@ -183,7 +197,7 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
 
           {/* Away */}
           <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
-            <span className="text-[11px] font-semibold text-white truncate text-right">{match.away_team}</span>
+            <span className="text-[11px] font-semibold text-white truncate text-right">{translateTeam(match.away_team, lang)}</span>
             {match.away_flag
               ? <img src={flagUrl(match.away_flag)} alt={match.away_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
               : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}

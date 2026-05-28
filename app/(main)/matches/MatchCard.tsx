@@ -116,7 +116,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
 
         <div className="flex justify-center">
           {match.home_flag
-            ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-10 w-10 rounded-full object-cover shadow-md" />
+            ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-10 w-10 rounded-full object-contain bg-gray-800 p-0.5 shadow-md" />
             : <div className="h-10 w-10 rounded-full bg-gray-800" />}
         </div>
 
@@ -154,15 +154,15 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
 
         <div className="flex justify-center">
           {match.away_flag
-            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-10 w-10 rounded-full object-cover shadow-md" />
+            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-10 w-10 rounded-full object-contain bg-gray-800 p-0.5 shadow-md" />
             : <div className="h-10 w-10 rounded-full bg-gray-800" />}
         </div>
 
-        <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{homeTeam}</p>
+        <p className="min-w-0 truncate text-center text-xs font-semibold leading-tight text-white">{homeTeam}</p>
         {maxPts
           ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap">{lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}</p>
           : <div aria-hidden />}
-        <p className="min-w-0 overflow-hidden text-center text-xs font-semibold leading-tight text-white break-words">{awayTeam}</p>
+        <p className="min-w-0 truncate text-center text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
 
       {/* Cotes */}

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo — Les Pronos (Live)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { darkMode: 'class' }</script>
+<style>
+  body { background: #030712; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .bar { transition: width 0.3s; }
+</style>
+</head>
+<body class="text-gray-100 min-h-screen">
+
+<!-- Nav simulée -->
+<header class="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-gray-800 bg-gray-950/90 px-4 backdrop-blur-xl">
+  <img src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg" class="h-8 w-auto" alt="FIFA 2026">
+  <div class="flex items-center gap-2">
+    <span class="rounded-full border border-gray-800 bg-gray-900 px-3 py-1 font-mono text-[11px] text-gray-500">davidl</span>
+    <button class="px-2 py-1 text-[11px] text-gray-500">Déco</button>
+  </div>
+</header>
+
+<!-- Contenu -->
+<main class="mx-auto w-full max-w-lg px-4 py-5 pb-24 space-y-5">
+
+  <div>
+    <h1 class="text-2xl font-extrabold tracking-tight text-white">Les Pronos</h1>
+    <p class="text-sm text-gray-500 mt-1">Les pronostics de chacun, par match.</p>
+  </div>
+
+  <div class="space-y-2">
+
+    <!-- ══════════════════════════════════════════════ -->
+    <!-- MATCH 1 : Mexique vs Afrique du Sud — TERMINÉ -->
+    <!-- ══════════════════════════════════════════════ -->
+    <div class="overflow-hidden rounded-2xl border border-l-4 border-green-500 border-gray-800 bg-gray-900">
+
+      <!-- Header -->
+      <div class="px-3 pt-3 pb-2">
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img src="https://flagcdn.com/w40/mx.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Mexique">
+            <span class="text-[11px] font-semibold text-white truncate">Mexique</span>
+          </div>
+          <div class="shrink-0 min-w-[56px] text-center">
+            <span class="font-mono text-sm font-extrabold text-white">2–1</span>
+          </div>
+          <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+            <span class="text-[11px] font-semibold text-white truncate text-right">Afrique du Sud</span>
+            <img src="https://flagcdn.com/w40/za.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Afrique du Sud">
+          </div>
+          <span class="text-[10px] text-gray-600 ml-1 rotate-180">▾</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-[10px] text-gray-500">18/20 pronos</span>
+          <span class="rounded-full bg-green-950 px-1.5 py-0.5 text-[9px] font-bold text-green-400">⭐ 3 exacts</span>
+          <span class="rounded-full bg-blue-950 px-1.5 py-0.5 text-[9px] font-bold text-blue-400">✓ 9 corrects</span>
+        </div>
+      </div>
+
+      <!-- Contenu déplié -->
+      <div class="border-t border-gray-800">
+
+        <!-- Ton prono -->
+        <div class="px-3 pt-3 pb-3">
+          <p class="text-[9px] font-bold uppercase tracking-wider text-gray-600 mb-2">Ton prono</p>
+          <div class="flex items-center gap-2 rounded-xl bg-green-950/20 border border-green-900/25 px-3 py-2">
+            <div class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-950 text-[8px] font-extrabold text-green-400 ring-1 ring-green-900">DL</div>
+            <span class="flex-1 text-[11px] font-semibold text-green-400 truncate min-w-0">
+              David L. <span class="text-[9px] text-green-800">(toi)</span>
+            </span>
+            <span class="font-mono text-[11px] font-bold shrink-0 text-green-400">2–1</span>
+            <span class="text-[10px] font-bold w-14 text-right shrink-0 text-green-400">⭐ +5.10</span>
+          </div>
+        </div>
+
+        <!-- Répartition -->
+        <div class="border-t border-gray-800/50 px-3 pt-2.5 pb-3">
+          <p class="text-[9px] font-bold uppercase tracking-wider text-gray-600 mb-2">Répartition</p>
+          <div class="space-y-1">
+
+            <!-- 2-1 exact -->
+            <div class="rounded-xl overflow-hidden border border-green-900/40">
+              <div class="w-full flex items-center gap-2 px-2.5 py-1.5">
+                <span class="font-mono text-[11px] font-bold w-8 shrink-0 text-green-400">2–1</span>
+                <div class="flex items-center gap-1 flex-1 min-w-0">
+                  <div class="h-1 rounded-full bg-gray-800 flex-1 overflow-hidden">
+                    <div class="bar h-full rounded-full bg-green-600" style="width:17%"></div>
+                  </div>
+                  <span class="text-[10px] text-gray-500 shrink-0">3 joueurs</span>
+                </div>
+                <span class="text-[9px] font-bold shrink-0 px-1.5 py-0.5 rounded-full bg-green-950 text-green-400">⭐ +5.10</span>
+                <span class="text-[10px] text-gray-600 shrink-0">▾</span>
+              </div>
+              <div class="px-2.5 pt-1 pb-2 border-t border-gray-800/40 flex flex-wrap gap-x-2.5 gap-y-0.5">
+                <span class="text-[10px] text-green-400 font-semibold">David L. (toi)</span>
+                <span class="text-[10px] text-gray-500">Sophie R.</span>
+                <span class="text-[10px] text-gray-500">Marc T.</span>
+              </div>
+            </div>
+
+            <!-- 1-0 correct -->
+            <div class="rounded-xl overflow-hidden border border-gray-800/50">
+              <div class="w-full flex items-center gap-2 px-2.5 py-1.5">
+                <span class="font-mono text-[11px] font-bold w-8 shrink-0 text-blue-400">1–0</span>
+                <div class="flex items-center gap-1 flex-1 min-w-0">
+                  <div class="h-1 rounded-full bg-gray-800 flex-1 overflow-hidden">
+                    <div class="bar h-full rounded-full bg-blue-600" style="width:28%"></div>
+                  </div>
+                  <span class="text-[10px] text-gray-500 shrink-0">5 joueurs</span>
+                </div>
+                <span class="text-[9px] font-bold shrink-0 px-1.5 py-0.5 rounded-full bg-blue-950 text-blue-400">✓ +1.70</span>
+                <span class="text-[10px] text-gray-600 shrink-0">▾</span>
+              </div>
+            </div>
+
+            <!-- 2-0 correct -->
+            <div class="rounded-xl overflow-hidden border border-gray-800/50">
+              <div class="w-full flex items-center gap-2 px-2.5 py-1.5">
+                <span class="font-mono text-[11px] font-bold w-8 shrink-0 text-blue-400">2–0</span>
+                <div class="flex items-center gap-1 flex-1 min-w-0">
+                  <div class="h-1 rounded-full bg-gray-800 flex-1 overflow-hidden">
+                    <div class="bar h-full rounded-full bg-blue-600" style="width:22%"></div>
+                  </div>
+                  <span class="text-[10px] text-gray-500 shrink-0">4 joueurs</span>
+                </div>
+                <span class="text-[9px] font-bold shrink-0 px-1.5 py-0.5 rounded-full bg-blue-950 text-blue-400">✓ +1.70</span>
+                <span class="text-[10px] text-gray-600 shrink-0">▾</span>
+              </div>
+            </div>
+
+            <!-- 1-1 mauvais -->
+            <div class="rounded-xl overflow-hidden border border-gray-800/50">
+              <div class="w-full flex items-center gap-2 px-2.5 py-1.5">
+                <span class="font-mono text-[11px] font-bold w-8 shrink-0 text-gray-500">1–1</span>
+                <div class="flex items-center gap-1 flex-1 min-w-0">
+                  <div class="h-1 rounded-full bg-gray-800 flex-1 overflow-hidden">
+                    <div class="bar h-full rounded-full bg-gray-700" style="width:17%"></div>
+                  </div>
+                  <span class="text-[10px] text-gray-500 shrink-0">3 joueurs</span>
+                </div>
+                <span class="text-[9px] font-bold shrink-0 text-gray-600">0 pt</span>
+                <span class="text-[10px] text-gray-600 shrink-0">▾</span>
+              </div>
+            </div>
+
+            <!-- 0-1 mauvais -->
+            <div class="rounded-xl overflow-hidden border border-gray-800/50">
+              <div class="w-full flex items-center gap-2 px-2.5 py-1.5">
+                <span class="font-mono text-[11px] font-bold w-8 shrink-0 text-gray-500">0–1</span>
+                <div class="flex items-center gap-1 flex-1 min-w-0">
+                  <div class="h-1 rounded-full bg-gray-800 flex-1 overflow-hidden">
+                    <div class="bar h-full rounded-full bg-gray-700" style="width:11%"></div>
+                  </div>
+                  <span class="text-[10px] text-gray-500 shrink-0">2 joueurs</span>
+                </div>
+                <span class="text-[9px] font-bold shrink-0 text-gray-600">0 pt</span>
+                <span class="text-[10px] text-gray-600 shrink-0">▾</span>
+              </div>
+            </div>
+
+            <!-- 0-0 mauvais -->
+            <div class="rounded-xl overflow-hidden border border-gray-800/50">
+              <div class="w-full flex items-center gap-2 px-2.5 py-1.5">
+                <span class="font-mono text-[11px] font-bold w-8 shrink-0 text-gray-500">0–0</span>
+                <div class="flex items-center gap-1 flex-1 min-w-0">
+                  <div class="h-1 rounded-full bg-gray-800 flex-1 overflow-hidden">
+                    <div class="bar h-full rounded-full bg-gray-700" style="width:6%"></div>
+                  </div>
+                  <span class="text-[10px] text-gray-500 shrink-0">1 joueur</span>
+                </div>
+                <span class="text-[9px] font-bold shrink-0 text-gray-600">0 pt</span>
+                <span class="text-[10px] text-gray-600 shrink-0">▾</span>
+              </div>
+            </div>
+
+            <!-- Sans prono -->
+            <div class="flex items-center px-2.5 py-1.5">
+              <span class="text-[10px] italic text-gray-600">2 sans prono</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- MATCH 2 : Canada vs Bosnie — EN COURS -->
+    <!-- ══════════════════════════════════════ -->
+    <div class="overflow-hidden rounded-2xl border border-l-4 border-cyan-400 border-gray-800 bg-gray-900">
+      <div class="px-3 pt-3 pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img src="https://flagcdn.com/w40/ca.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Canada">
+            <span class="text-[11px] font-semibold text-white truncate">Canada</span>
+          </div>
+          <div class="shrink-0 min-w-[56px] text-center">
+            <span class="text-[10px] font-bold text-red-400">EN COURS</span>
+          </div>
+          <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+            <span class="text-[11px] font-semibold text-white truncate text-right">Bosnie-Herz.</span>
+            <img src="https://flagcdn.com/w40/ba.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Bosnie">
+          </div>
+          <span class="text-[10px] text-gray-600 ml-1">▾</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-[10px] text-gray-500">17/20 pronos</span>
+          <span class="rounded-full bg-red-950/40 px-1.5 py-0.5 text-[9px] font-bold text-red-400">EN COURS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════ -->
+    <!-- MATCH 3 : Brésil vs Maroc — BIENTÔT -->
+    <!-- ════════════════════════════════════ -->
+    <div class="overflow-hidden rounded-2xl border border-l-4 border-orange-500 border-gray-800 bg-gray-900">
+      <div class="px-3 pt-3 pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img src="https://flagcdn.com/w40/br.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Brésil">
+            <span class="text-[11px] font-semibold text-white truncate">Brésil</span>
+          </div>
+          <div class="shrink-0 min-w-[56px] text-center">
+            <span class="text-[10px] font-semibold text-yellow-600">Bientôt</span>
+          </div>
+          <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+            <span class="text-[11px] font-semibold text-white truncate text-right">Maroc</span>
+            <img src="https://flagcdn.com/w40/ma.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Maroc">
+          </div>
+          <span class="text-[10px] text-gray-600 ml-1">▾</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-[10px] text-gray-500">20/20 pronos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MATCH 4 : Allemagne vs Curaçao — TERMINÉ, pas de prono -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="overflow-hidden rounded-2xl border border-l-4 border-yellow-400 border-gray-800 bg-gray-900 opacity-70">
+      <div class="px-3 pt-3 pb-2.5">
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img src="https://flagcdn.com/w40/de.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Allemagne">
+            <span class="text-[11px] font-semibold text-white truncate">Allemagne</span>
+          </div>
+          <div class="shrink-0 min-w-[56px] text-center">
+            <span class="font-mono text-sm font-extrabold text-white">4–0</span>
+          </div>
+          <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+            <span class="text-[11px] font-semibold text-white truncate text-right">Curaçao</span>
+            <img src="https://flagcdn.com/w40/cw.png" class="h-4 w-6 rounded-sm object-cover shrink-0" alt="Curaçao">
+          </div>
+          <span class="text-[10px] text-gray-600 ml-1">▾</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-1">
+          <span class="text-[10px] text-gray-500">16/20 pronos</span>
+          <span class="rounded-full bg-green-950 px-1.5 py-0.5 text-[9px] font-bold text-green-400">⭐ 1 exact</span>
+          <span class="rounded-full bg-blue-950 px-1.5 py-0.5 text-[9px] font-bold text-blue-400">✓ 12 corrects</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Bottom nav simulée -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gray-800 bg-gray-950/95 backdrop-blur-xl">
+  <a class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5" href="#">
+    <span class="text-xl leading-none opacity-40">⚽</span>
+    <span class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Matchs</span>
+  </a>
+  <a class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5" href="#">
+    <span class="text-xl leading-none opacity-100">📋</span>
+    <span class="text-[10px] font-semibold uppercase tracking-wide text-green-500">Live</span>
+  </a>
+  <a class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5" href="#">
+    <span class="text-xl leading-none opacity-40">🏆</span>
+    <span class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Classement</span>
+  </a>
+  <a class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5" href="#">
+    <span class="text-xl leading-none opacity-40">❓</span>
+    <span class="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Règles</span>
+  </a>
+</nav>
+
+</body>
+</html>
