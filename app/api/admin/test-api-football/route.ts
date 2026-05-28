@@ -20,21 +20,36 @@ export async function GET(req: NextRequest) {
     next: { revalidate: 0 },
   })
 
+  // API-Football v3 quota headers
   const quota = {
-    remaining: res.headers.get('x-ratelimit-requests-remaining'),
-    limit: res.headers.get('x-ratelimit-requests-limit'),
+    remaining: res.headers.get('X-RateLimit-requests-Remaining') ?? res.headers.get('x-ratelimit-requests-remaining'),
+    limit: res.headers.get('X-RateLimit-requests-Limit') ?? res.headers.get('x-ratelimit-requests-limit'),
   }
+
+  // Tous les headers pour debug
+  const allHeaders: Record<string, string> = {}
+  res.headers.forEach((v, k) => { allHeaders[k] = v })
 
   if (!res.ok) {
-    return NextResponse.json({ error: `API-Football ${res.status}`, quota }, { status: 502 })
+    return NextResponse.json({ error: `API-Football ${res.status}`, quota, allHeaders }, { status: 502 })
   }
 
-  const data = await res.json() as { results: number; response: unknown[] }
+  const data = await res.json() as { results: number; errors: unknown; response: unknown[] }
+
+  // Vérifie aussi avec une ligue active (Euro, WC actuel) pour confirmer que la clé fonctionne
+  const statusRes = await fetch('https://v3.football.api-sports.io/status', {
+    headers: { 'x-apisports-key': key },
+    next: { revalidate: 0 },
+  })
+  const statusData = statusRes.ok ? await statusRes.json() : null
 
   return NextResponse.json({
     ok: true,
-    fixtures_count: data.results,
+    wc2026_fixtures: data.results,
+    errors: data.errors,
     quota,
-    sample: data.response?.slice(0, 2), // 2 premiers matchs pour vérifier la structure
+    allHeaders,
+    account: (statusData as Record<string, unknown>)?.response ?? null,
+    sample: data.response?.slice(0, 2),
   })
 }
