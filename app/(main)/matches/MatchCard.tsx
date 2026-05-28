@@ -110,15 +110,13 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
         </p>
       )}
 
-      {/* Grid : flags + steppers (row 1) et noms (row 2) */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-2 gap-y-1.5 px-3 pt-1 pb-2.5">
+      {/* Flags + steppers */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-2 px-3 pt-1 pb-1">
         <div className="flex items-center justify-start">
           {match.home_flag
             ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-7 w-12 rounded-md object-cover shadow-md" />
             : <div className="h-7 w-12 rounded-md bg-gray-800" />}
         </div>
-
-        {/* Center */}
         <div className="flex flex-col items-center gap-1">
           {isLocked ? (
             <div className="flex items-center gap-2">
@@ -149,19 +147,17 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
             <span className="text-[10px] uppercase tracking-wide text-gray-500">{t.result}</span>
           )}
         </div>
-
         <div className="flex items-center justify-end">
           {match.away_flag
             ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-7 w-12 rounded-md object-cover shadow-md" />
             : <div className="h-7 w-12 rounded-md bg-gray-800" />}
         </div>
+      </div>
 
-        {/* Noms — row 2 du même grid, débordent vers le centre */}
-        <p className="whitespace-nowrap text-left text-xs font-semibold leading-tight text-white">{homeTeam}</p>
-        {maxPts
-          ? <p className="text-center text-[9px] leading-tight text-gray-600 whitespace-nowrap self-start">{lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`}</p>
-          : <div aria-hidden />}
-        <p className="whitespace-nowrap text-right text-xs font-semibold leading-tight text-white">{awayTeam}</p>
+      {/* Noms — positionnés absolus : domicile part du bord gauche, extérieur finit au bord droit */}
+      <div className="relative px-3 h-5 mb-1">
+        <p className="absolute left-0 top-0 whitespace-nowrap text-xs font-semibold leading-tight text-white">{homeTeam}</p>
+        <p className="absolute right-0 top-0 whitespace-nowrap text-xs font-semibold leading-tight text-white">{awayTeam}</p>
       </div>
 
       {/* Cotes + prono verrouillé sur la même ligne */}
@@ -202,13 +198,20 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
               <span className="text-sm font-bold text-gray-300">{formatOdds(match.away_odds)}</span>
             </div>
           </div>
-          {match.odds_fetched_at && (
-            <p className="text-center text-[9px] text-gray-700">
-              Betclic.fr · {lang === 'fr' ? 'récupérées le' : 'fetched'}{' '}
-              {new Date(match.odds_fetched_at).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
-                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
-              })}
-            </p>
+          {(maxPts || match.odds_fetched_at) && (
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[9px] text-gray-600">
+                {maxPts ? (lang === 'fr' ? `Si score exact : ${maxPts} pts` : `Exact score: ${maxPts} pts`) : ''}
+              </p>
+              {match.odds_fetched_at && (
+                <p className="shrink-0 text-[9px] text-gray-700">
+                  Betclic.fr · {lang === 'fr' ? 'récupérées le' : 'fetched'}{' '}
+                  {new Date(match.odds_fetched_at).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris',
+                  })}
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}
