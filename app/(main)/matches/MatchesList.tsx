@@ -173,7 +173,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
             : 'Predictions lock 15 minutes before kick-off.'}
         </p>
         <p className="text-gray-700">
-          {lang === 'fr' ? 'Cotes : Betclic.fr (priorité), fallback possible' : 'Odds: Betclic.fr (priority), fallback possible'}
+          {lang === 'fr' ? 'Cotes : Betclic.fr' : 'Odds: Betclic.fr'}
         </p>
       </div>
 
