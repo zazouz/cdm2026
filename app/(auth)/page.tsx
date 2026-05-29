@@ -51,7 +51,7 @@ export default function Home() {
   const t = T[lang]
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center px-4 py-12">
+    <main className="min-h-screen bg-gray-950 flex flex-col items-center px-4 py-12">
       <div className="w-full max-w-lg space-y-6">
 
         {/* Lang switcher */}
@@ -150,7 +150,7 @@ export default function Home() {
         <div className="space-y-3 pb-8">
           <Link
             href="/login"
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 text-base font-bold text-black transition-all hover:bg-green-500 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 py-4 text-base font-bold text-gray-950 transition-all hover:bg-green-400 active:scale-[0.98]"
           >
             {t.cta}
           </Link>
@@ -163,6 +163,6 @@ export default function Home() {
         </div>
 
       </div>
-    </div>
+    </main>
   )
 }

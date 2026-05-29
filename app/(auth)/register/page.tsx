@@ -118,7 +118,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
@@ -184,7 +184,7 @@ export default function RegisterPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2.5 pr-10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full bg-gray-800 rounded-lg px-3 py-2.5 pr-14 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder={t.passwordPlaceholder}
                 required
               />
@@ -192,7 +192,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setShowPassword(v => !v)}
                 aria-label={showPassword ? (lang === 'fr' ? 'Masquer le mot de passe' : 'Hide password') : (lang === 'fr' ? 'Afficher le mot de passe' : 'Show password')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-r-lg text-gray-400 hover:text-white"
               >
                 {showPassword ? '🙈' : '👁'}
               </button>
@@ -221,7 +221,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold rounded-lg py-3 transition-colors"
+            className="w-full bg-green-500 hover:bg-green-400 disabled:bg-gray-700 disabled:text-gray-300 text-gray-950 font-semibold rounded-lg py-3 transition-colors"
           >
             {loading ? t.loading : t.submit}
           </button>
@@ -234,6 +234,6 @@ export default function RegisterPage() {
           </p>
         </form>
       </div>
-    </div>
+    </main>
   )
 }
