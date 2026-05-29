@@ -178,7 +178,7 @@ left join public.predictions p on p.user_id = u.id
 left join public.matches m on m.id = p.match_id
 where u.is_admin = false
 group by u.id, u.username, u.first_name, u.last_name
-order by total_points desc;
+order by total_points desc, exact_scores desc, correct_results desc, username asc;
 
 -- Vue des pronostics avec infos match (pour affichage perso)
 create or replace view public.predictions_with_match

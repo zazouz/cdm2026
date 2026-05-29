@@ -44,7 +44,7 @@ export default async function LeaderboardPage() {
   const supabase = await createClient()
 
   const [{ data: entries }, { data: { user } }] = await Promise.all([
-    supabase.from('leaderboard').select('*').order('total_points', { ascending: false }),
+    supabase.from('leaderboard').select('*').order('total_points', { ascending: false }).order('exact_scores', { ascending: false }).order('correct_results', { ascending: false }).order('username', { ascending: true }),
     supabase.auth.getUser(),
   ])
 
