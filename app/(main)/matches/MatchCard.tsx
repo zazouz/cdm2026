@@ -118,7 +118,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-x-2 px-3 pt-1 pb-1">
         <div className="flex items-center justify-start">
           {match.home_flag
-            ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} className="h-7 w-12 rounded-md object-cover shadow-md" />
+            ? <img src={`https://flagcdn.com/w40/${match.home_flag}.png`} alt={match.home_team} width={48} height={28} loading="lazy" decoding="async" className="h-7 w-12 rounded-md object-cover shadow-md" />
             : <div className="h-7 w-12 rounded-md bg-gray-800" />}
         </div>
         <div className="flex flex-col items-center gap-1">
@@ -153,7 +153,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
         </div>
         <div className="flex items-center justify-end">
           {match.away_flag
-            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} className="h-7 w-12 rounded-md object-cover shadow-md" />
+            ? <img src={`https://flagcdn.com/w40/${match.away_flag}.png`} alt={match.away_team} width={48} height={28} loading="lazy" decoding="async" className="h-7 w-12 rounded-md object-cover shadow-md" />
             : <div className="h-7 w-12 rounded-md bg-gray-800" />}
         </div>
       </div>

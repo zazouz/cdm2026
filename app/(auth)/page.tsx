@@ -75,9 +75,11 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center space-y-3">
           <img
-            src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg"
+            src="/logo-wc2026.svg"
             alt="FIFA World Cup 2026"
+            width={112} height={112}
             className="h-28 w-auto mx-auto"
+            fetchPriority="high"
           />
           <h1 className="text-3xl font-extrabold tracking-tight text-white">
             {lang === 'fr' ? 'Coupe du Monde 2026' : 'World Cup 2026'}

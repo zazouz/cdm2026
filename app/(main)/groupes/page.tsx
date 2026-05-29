@@ -211,7 +211,7 @@ export default async function GroupesPage() {
                     </div>
                     <div className="flex flex-1 items-center gap-1.5 pl-1 min-w-0">
                       {flagCode
-                        ? <img src={flagUrl(flagCode)} alt={team.team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
+                        ? <img src={flagUrl(flagCode)} alt={team.team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0" />
                         : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
                       <span className="text-xs font-semibold text-white truncate">{translateTeam(team.team, lang)}</span>
                     </div>
@@ -249,7 +249,7 @@ export default async function GroupesPage() {
                     }`}
                   >
                     {m.home_flag
-                      ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
+                      ? <img src={flagUrl(m.home_flag)} alt={m.home_team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
                     <span className="flex-1 truncate text-xs font-semibold text-white">{translateTeam(m.home_team, lang)}</span>
                     <span className="shrink-0 font-mono text-sm font-extrabold text-white px-3">
@@ -257,7 +257,7 @@ export default async function GroupesPage() {
                     </span>
                     <span className="flex-1 truncate text-right text-xs font-semibold text-white">{translateTeam(m.away_team, lang)}</span>
                     {m.away_flag
-                      ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
+                      ? <img src={flagUrl(m.away_flag)} alt={m.away_team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
                   </div>
                 ))}
@@ -275,13 +275,13 @@ export default async function GroupesPage() {
                     }`}
                   >
                     {m.home_flag
-                      ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-4 w-6 rounded-sm object-cover shrink-0 opacity-50" />
+                      ? <img src={flagUrl(m.home_flag)} alt={m.home_team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0 opacity-50" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0 opacity-50" />}
                     <span className="flex-1 truncate text-xs text-gray-500">{translateTeam(m.home_team, lang)}</span>
                     <span className="shrink-0 text-[10px] text-gray-600 px-2">{formatMatchDate(m.match_date, lang)}</span>
                     <span className="flex-1 truncate text-right text-xs text-gray-500">{translateTeam(m.away_team, lang)}</span>
                     {m.away_flag
-                      ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-4 w-6 rounded-sm object-cover shrink-0 opacity-50" />
+                      ? <img src={flagUrl(m.away_flag)} alt={m.away_team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0 opacity-50" />
                       : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0 opacity-50" />}
                   </div>
                 ))}

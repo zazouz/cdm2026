@@ -23,7 +23,7 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
 
   return (
     <header className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-gray-800 bg-gray-950/90 px-4 backdrop-blur-xl">
-      <img src="https://upload.wikimedia.org/wikipedia/en/1/17/2026_FIFA_World_Cup_emblem.svg" alt="FIFA World Cup 2026" className="h-8 w-auto" />
+      <img src="/logo-wc2026.svg" alt="FIFA World Cup 2026" width={32} height={32} className="h-8 w-auto" />
       <div className="flex items-center gap-2">
         <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
           <button

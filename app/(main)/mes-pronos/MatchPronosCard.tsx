@@ -104,7 +104,7 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
           {/* Home */}
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             {match.home_flag
-              ? <img src={flagUrl(match.home_flag)} alt={match.home_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
+              ? <img src={flagUrl(match.home_flag)} alt={match.home_team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0" />
               : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
             <span className="text-[11px] font-semibold text-white truncate">{translateTeam(match.home_team, lang)}</span>
           </div>
@@ -124,7 +124,7 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
           <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
             <span className="text-[11px] font-semibold text-white truncate text-right">{translateTeam(match.away_team, lang)}</span>
             {match.away_flag
-              ? <img src={flagUrl(match.away_flag)} alt={match.away_team} className="h-4 w-6 rounded-sm object-cover shrink-0" />
+              ? <img src={flagUrl(match.away_flag)} alt={match.away_team} width={24} height={16} loading="lazy" decoding="async" className="h-4 w-6 rounded-sm object-cover shrink-0" />
               : <div className="h-4 w-6 rounded-sm bg-gray-800 shrink-0" />}
           </div>
 
