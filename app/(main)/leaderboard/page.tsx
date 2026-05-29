@@ -62,28 +62,12 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="space-y-5">
-      <div>
+      <div className="text-center">
         <h1 className="text-2xl font-extrabold tracking-tight text-white">{t.title}</h1>
         <p className="text-sm text-gray-500 mt-1">{t.subtitle}</p>
       </div>
 
       <LeaderboardTable entries={rows} currentUserId={user!.id} lang={lang} />
-
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-4 space-y-1.5">
-        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-2">{t.scale}</p>
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>{t.exact}</span>
-          <span className="text-green-600">{t.exactPoints}</span>
-        </div>
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>{t.correct}</span>
-          <span className="text-blue-600">{t.correctPoints}</span>
-        </div>
-        <div className="flex justify-between text-xs text-gray-500">
-          <span>{t.wrong}</span>
-          <span className="text-gray-500">{t.wrongPoints}</span>
-        </div>
-      </div>
     </div>
   )
 }

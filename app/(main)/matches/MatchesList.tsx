@@ -161,22 +161,6 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-800 bg-gray-900/50 px-4 py-3 text-xs text-gray-500 space-y-1">
-        <p>
-          {lang === 'fr'
-            ? 'Score exact → 3 × la cote · Bon résultat → 1 × la cote · Mauvais résultat → 0 pt'
-            : 'Exact score → 3 × the odds · Correct result → 1 × the odds · Wrong result → 0 pt'}
-        </p>
-        <p>
-          {lang === 'fr'
-            ? 'Les pronos se verrouillent 15 min avant le coup d\'envoi.'
-            : 'Predictions lock 15 minutes before kick-off.'}
-        </p>
-        <p className="text-gray-700">
-          {lang === 'fr' ? 'Cotes : Betclic.fr' : 'Odds: Betclic.fr'}
-        </p>
-      </div>
-
       {view === 'chrono' ? (
         <ChronoView
           matches={sorted}
