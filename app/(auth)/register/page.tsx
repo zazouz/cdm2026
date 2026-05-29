@@ -132,8 +132,8 @@ export default function RegisterPage() {
           <p className="text-gray-400 mt-1">{t.subtitle}</p>
           <div className="flex justify-center mt-3">
             <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
-              <button type="button" onClick={() => setLang('fr')} className={`px-3 py-1 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}>FR</button>
-              <button type="button" onClick={() => setLang('en')} className={`px-3 py-1 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}>EN</button>
+              <button type="button" onClick={() => setLang('fr')} className={`flex items-center justify-center min-h-[44px] px-3 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'}`}>FR</button>
+              <button type="button" onClick={() => setLang('en')} className={`flex items-center justify-center min-h-[44px] px-3 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'}`}>EN</button>
             </div>
           </div>
         </div>
@@ -141,8 +141,9 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="bg-gray-900 rounded-2xl p-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">{t.firstName}</label>
+              <label htmlFor="firstName" className="block text-sm text-gray-400 mb-1">{t.firstName}</label>
               <input
+                id="firstName"
                 type="text"
                 value={form.firstName}
                 onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
@@ -152,8 +153,9 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">{t.lastName}</label>
+              <label htmlFor="lastName" className="block text-sm text-gray-400 mb-1">{t.lastName}</label>
               <input
+                id="lastName"
                 type="text"
                 value={form.lastName}
                 onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
@@ -175,9 +177,10 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">{t.password}</label>
+            <label htmlFor="reg-password" className="block text-sm text-gray-400 mb-1">{t.password}</label>
             <div className="relative">
               <input
+                id="reg-password"
                 type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
@@ -197,9 +200,10 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">{t.confirm}</label>
+            <label htmlFor="reg-confirm" className="block text-sm text-gray-400 mb-1">{t.confirm}</label>
             <div className="relative">
               <input
+                id="reg-confirm"
                 type={showPassword ? 'text' : 'password'}
                 value={form.confirm}
                 onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))}

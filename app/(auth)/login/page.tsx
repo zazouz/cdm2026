@@ -83,16 +83,17 @@ export default function LoginPage() {
           <p className="text-gray-400 mt-1">{t.title}</p>
           <div className="flex justify-center mt-3">
             <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
-              <button type="button" onClick={() => setLang('fr')} className={`px-3 py-1 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}>FR</button>
-              <button type="button" onClick={() => setLang('en')} className={`px-3 py-1 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}>EN</button>
+              <button type="button" onClick={() => setLang('fr')} className={`flex items-center justify-center min-h-[44px] px-3 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'}`}>FR</button>
+              <button type="button" onClick={() => setLang('en')} className={`flex items-center justify-center min-h-[44px] px-3 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'}`}>EN</button>
             </div>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-gray-900 rounded-2xl p-6 space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">{t.pseudo}</label>
+            <label htmlFor="username" className="block text-sm text-gray-400 mb-1">{t.pseudo}</label>
             <input
+              id="username"
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
@@ -104,9 +105,10 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-1">{t.password}</label>
+            <label htmlFor="password" className="block text-sm text-gray-400 mb-1">{t.password}</label>
             <div className="relative">
               <input
+                id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
@@ -150,12 +152,12 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowForgot(v => !v)}
-              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+              className="text-sm text-gray-400 hover:text-gray-300 transition-colors py-3 px-3 block"
             >
               {t.forgot}
             </button>
             {showForgot && (
-              <p className="mt-1 text-xs text-gray-500 bg-gray-800 rounded-lg px-3 py-2">
+              <p className="mt-1 text-xs text-gray-300 bg-gray-800 rounded-lg px-3 py-2">
                 {t.forgotMsg}
               </p>
             )}

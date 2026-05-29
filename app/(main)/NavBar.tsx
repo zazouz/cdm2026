@@ -28,13 +28,13 @@ export default function NavBar({ username }: { username: string; isAdmin: boolea
         <div className="flex overflow-hidden rounded-full border border-gray-800 text-[10px] font-bold">
           <button
             onClick={() => handleSetLang('fr')}
-            className={`px-2.5 py-1 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
+            className={`flex items-center justify-center min-h-[44px] px-2.5 transition-colors ${lang === 'fr' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'}`}
           >
             FR
           </button>
           <button
             onClick={() => handleSetLang('en')}
-            className={`px-2.5 py-1 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-500 hover:text-gray-300'}`}
+            className={`flex items-center justify-center min-h-[44px] px-2.5 transition-colors ${lang === 'en' ? 'bg-green-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'}`}
           >
             EN
           </button>
