@@ -15,9 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://flagcdn.com" />
       </head>
       <body className="bg-gray-950 text-gray-100 min-h-screen antialiased">
-        <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
-          <img src="/bg-fifa-2026.jpg" alt="" className="h-full w-full object-cover" />
-        </div>
+        <div className="pointer-events-none fixed inset-0 z-0" aria-hidden style={{ backgroundImage: "url('/bg-fifa-2026.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative z-[1]">
           {children}
         </div>
