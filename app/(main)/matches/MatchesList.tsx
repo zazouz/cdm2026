@@ -97,7 +97,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
         <p className="text-4xl mb-4">⏳</p>
         <p>{lang === 'fr' ? 'Tous les pronostics sont verrouillés.' : 'All predictions are locked.'}</p>
         <p className="text-sm mt-2 text-gray-500">
-          {lang === 'fr' ? 'Retrouve tes pronos dans « Live ».' : 'Check your bets in "Live".'}
+          {lang === 'fr' ? 'Retrouve tes pronos dans « Résultats ».' : 'Check your bets in "Results".'}
         </p>
       </div>
     )

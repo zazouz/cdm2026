@@ -9,7 +9,7 @@ const T = {
     steps: [
       'Pronostique le score de tous les matchs et valide-les avant le coup d\'envoi.',
       'Les pronostics sont verrouillés 15 minutes avant le début du match : aucune modification n\'est possible après ce délai.',
-      'Une fois le match commencé, suis tes pronostics et ceux des autres joueurs dans l\'onglet "Live".',
+      'Une fois le match commencé, suis tes pronostics et ceux des autres joueurs dans l\'onglet "Résultats".',
       'Suis ton évolution dans l\'onglet Classement tout au long de la compétition.',
       'Les points sont calculés automatiquement peu après la fin du match selon le barème ci-dessous.',
     ],
@@ -31,7 +31,7 @@ const T = {
     steps: [
       'Predict the score of every match and confirm before kick-off.',
       'Predictions lock 15 minutes before kick-off — no changes allowed after that.',
-      'Once the match starts, follow your predictions and everyone else\'s in the "Live" tab.',
+      'Once the match starts, follow your predictions and everyone else\'s in the "Results" tab.',
       'Track your ranking in the Standings tab throughout the tournament.',
       'Points are calculated automatically shortly after each match ends, based on the scale below.',
     ],
