@@ -152,7 +152,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowForgot(v => !v)}
-              className="text-sm text-gray-400 hover:text-gray-300 transition-colors py-3 px-3 block"
+              className="mx-auto flex min-h-11 items-center justify-center px-3 text-sm text-gray-400 transition-colors hover:text-gray-300"
             >
               {t.forgot}
             </button>
