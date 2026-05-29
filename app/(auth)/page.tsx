@@ -75,7 +75,7 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center space-y-3">
           <img
-            src="/logo-wc2026.svg"
+            src="/logo-fifa-2026.jpg"
             alt="FIFA World Cup 2026"
             width={112} height={112}
             className="h-28 w-auto mx-auto"
