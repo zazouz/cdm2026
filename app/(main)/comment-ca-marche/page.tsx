@@ -24,6 +24,7 @@ const T = {
     wrongDesc: 'Mauvais vainqueur',
     wrongPts: '0 pt',
     note: 'La cote prise en compte est celle de Betclic.fr au moment où elle a été récupérée — elle est figée et ne change plus ensuite.',
+    timeNote: 'Seul le score à la fin du temps réglementaire (90 min) est pris en compte. Les prolongations et les tirs au but ne comptent pas.',
   },
   en: {
     title: 'How it works',
@@ -45,6 +46,7 @@ const T = {
     wrongDesc: 'Wrong winner',
     wrongPts: '0 pt',
     note: 'The odds used are those from Betclic.fr at the time they were fetched — they are locked in and never updated afterwards.',
+    timeNote: 'Only the score at the end of regular time (90 min) counts. Extra time and penalty shootouts are not included.',
   },
 }
 
@@ -100,7 +102,8 @@ export default async function HowItWorksPage() {
             </span>
           </div>
         </div>
-        <p className="text-xs text-gray-600 border-t border-gray-800 pt-3">{t.note}</p>
+        <p className="text-xs text-gray-600 border-t border-gray-800 pt-3">{t.timeNote}</p>
+        <p className="text-xs text-gray-600">{t.note}</p>
       </div>
     </div>
   )
