@@ -11,13 +11,14 @@
       --panel: #111827;
       --panel-soft: rgba(17, 24, 39, .72);
       --line: #1f2937;
+      --line-soft: rgba(31, 41, 55, .55);
       --muted: #6b7280;
       --muted-2: #4b5563;
       --text: #f9fafb;
       --green: #22c55e;
+      --green-soft: rgba(5, 46, 22, .24);
       --blue: #60a5fa;
       --red: #f87171;
-      --yellow: #ca8a04;
     }
 
     * { box-sizing: border-box; }
@@ -34,12 +35,11 @@
       inset: 0;
       z-index: -1;
       background: url("public/bg-fifa-2026.jpg") center / cover no-repeat;
-      opacity: .06;
+      opacity: .055;
       pointer-events: none;
     }
 
     button { font: inherit; color: inherit; }
-    .app { max-width: 512px; margin: 0 auto; padding: 20px 16px 92px; }
     .topbar {
       position: sticky;
       top: 0;
@@ -53,7 +53,23 @@
       backdrop-filter: blur(14px);
       padding: 0 16px;
     }
-    .logo { height: 32px; width: auto; display: block; }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.05;
+    }
+    .brand strong {
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    .brand span {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 600;
+    }
     .user { display: flex; align-items: center; gap: 8px; }
     .pill {
       border: 1px solid var(--line);
@@ -72,19 +88,40 @@
       padding: 4px 2px;
     }
 
-    h1 { margin: 0; font-size: 24px; line-height: 1.15; letter-spacing: 0; }
-    .subtitle { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .app {
+      width: 100%;
+      max-width: 512px;
+      margin: 0 auto;
+      padding: 20px 16px 96px;
+    }
+    h1 {
+      margin: 0;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
     .demo-note {
-      margin-top: 12px;
+      margin: 14px 0 0;
       border: 1px solid var(--line);
-      background: rgba(17, 24, 39, .58);
       border-radius: 14px;
+      background: rgba(17, 24, 39, .58);
       padding: 10px 12px;
       color: #9ca3af;
       font-size: 12px;
       line-height: 1.45;
     }
-    .stack { display: grid; gap: 8px; margin-top: 20px; }
+    .cards {
+      display: grid;
+      gap: 8px;
+      margin-top: 20px;
+    }
 
     .card {
       overflow: hidden;
@@ -102,9 +139,10 @@
       width: 100%;
       border: 0;
       background: transparent;
-      text-align: left;
       padding: 0;
+      text-align: left;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .teams {
       display: flex;
@@ -119,43 +157,51 @@
       align-items: center;
       gap: 6px;
     }
-    .team.away { justify-content: flex-end; text-align: right; }
+    .team.away {
+      justify-content: flex-end;
+      text-align: right;
+    }
     .flag {
       width: 24px;
       height: 16px;
+      flex: 0 0 auto;
       border-radius: 3px;
       object-fit: cover;
-      flex: 0 0 auto;
       background: #1f2937;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, .28);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, .25);
     }
     .name {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: #fff;
       font-size: 11px;
       font-weight: 700;
     }
     .status {
       min-width: 58px;
-      text-align: center;
       flex: 0 0 auto;
+      text-align: center;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 900;
     }
     .score {
+      color: #fff;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 14px;
       font-weight: 900;
     }
-    .live { color: var(--red); }
-    .soon { color: var(--yellow); }
+    .live {
+      color: var(--red);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
     .chev {
+      flex: 0 0 auto;
       color: var(--muted-2);
       font-size: 11px;
       transition: transform .18s ease;
     }
-    .card.open .chev { transform: rotate(180deg); }
+    .card.open > .card-head .chev { transform: rotate(180deg); }
 
     .stats {
       display: flex;
@@ -172,59 +218,60 @@
       border-radius: 999px;
       padding: 2px 6px;
       font-size: 9px;
-      font-weight: 800;
+      font-weight: 900;
       white-space: nowrap;
     }
     .badge.green { background: #052e16; color: #4ade80; }
     .badge.blue { background: #172554; color: #60a5fa; }
     .badge.red { background: rgba(127, 29, 29, .42); color: var(--red); }
 
-    .content { display: none; border-top: 1px solid var(--line); }
-    .card.open .content { display: block; }
-    .section { padding: 12px; }
-    .section + .section { border-top: 1px solid rgba(31, 41, 55, .62); }
-    .label {
-      margin: 0 0 8px;
-      color: var(--muted-2);
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      font-size: 9px;
-      font-weight: 900;
+    .rows {
+      display: none;
+      border-top: 1px solid var(--line);
+      padding: 8px 12px 10px;
     }
-    .my-row {
+    .card.open .rows { display: block; }
+    .row {
       display: flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid rgba(20, 83, 45, .55);
+      min-height: 32px;
       border-radius: 12px;
-      background: rgba(5, 46, 22, .24);
-      padding: 8px 10px;
+      padding: 6px 8px;
     }
+    .row.me { background: var(--green-soft); }
     .avatar {
       width: 20px;
       height: 20px;
+      flex: 0 0 auto;
       display: grid;
       place-items: center;
       border-radius: 999px;
-      background: #052e16;
-      color: #4ade80;
-      box-shadow: inset 0 0 0 1px rgba(34, 197, 94, .22);
+      background: #1f2937;
+      color: #9ca3af;
       font-size: 8px;
       font-weight: 900;
-      flex: 0 0 auto;
+      line-height: 1;
     }
-    .my-name {
+    .row.me .avatar {
+      background: #052e16;
+      color: #4ade80;
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, .35);
+    }
+    .player {
       min-width: 0;
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #4ade80;
+      color: #d1d5db;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 650;
     }
+    .row.me .player { color: #4ade80; font-weight: 800; }
     .you { color: rgba(34, 197, 94, .48); font-size: 9px; }
-    .pred-score {
+    .pred {
+      flex: 0 0 auto;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 11px;
       font-weight: 900;
@@ -232,94 +279,35 @@
     }
     .pts {
       width: 56px;
+      flex: 0 0 auto;
       text-align: right;
+      color: var(--muted-2);
       font-size: 10px;
       font-weight: 900;
-      color: var(--muted-2);
       white-space: nowrap;
     }
     .exact { color: #4ade80; }
     .correct { color: #60a5fa; }
-    .wrong { color: #6b7280; }
+    .wrong { color: var(--muted); }
     .pending { color: var(--muted-2); }
-    .no-bet { color: var(--muted-2); font-size: 11px; font-style: italic; }
-
-    .groups { display: grid; gap: 4px; }
-    .score-group {
-      overflow: hidden;
-      border: 1px solid rgba(31, 41, 55, .76);
-      border-radius: 12px;
+    .no-bet {
+      margin-left: auto;
+      color: var(--muted-2);
+      font-size: 10px;
+      font-style: italic;
     }
-    .score-group.mine { border-color: rgba(20, 83, 45, .75); }
-    .group-button {
+    .more {
       width: 100%;
       border: 0;
       background: transparent;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
+      padding: 4px 0 1px;
+      color: var(--muted-2);
+      font-size: 10px;
+      font-weight: 650;
+      text-align: center;
       cursor: pointer;
-      text-align: left;
     }
-    .group-score {
-      width: 34px;
-      flex: 0 0 auto;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 11px;
-      font-weight: 900;
-    }
-    .pop {
-      min-width: 0;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .track {
-      height: 4px;
-      flex: 1;
-      overflow: hidden;
-      border-radius: 999px;
-      background: #1f2937;
-    }
-    .bar {
-      height: 100%;
-      border-radius: 999px;
-      background: #374151;
-    }
-    .bar.exact { background: #16a34a; }
-    .bar.correct { background: #2563eb; }
-    .count {
-      color: var(--muted);
-      font-size: 10px;
-      white-space: nowrap;
-    }
-    .result-badge {
-      flex: 0 0 auto;
-      border-radius: 999px;
-      padding: 2px 6px;
-      font-size: 9px;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-    .result-badge.exact { background: #052e16; color: #4ade80; }
-    .result-badge.correct { background: #172554; color: #60a5fa; }
-    .result-badge.wrong { color: var(--muted-2); }
-    .names {
-      display: none;
-      flex-wrap: wrap;
-      gap: 2px 10px;
-      border-top: 1px solid rgba(31, 41, 55, .55);
-      padding: 6px 10px 8px;
-    }
-    .score-group.expanded .names { display: flex; }
-    .person {
-      color: var(--muted);
-      font-size: 10px;
-    }
-    .person.me { color: #4ade80; font-weight: 800; }
-    .without { padding: 7px 10px; color: var(--muted-2); font-size: 10px; font-style: italic; }
+    .more:hover { color: #9ca3af; }
 
     .bottom {
       position: fixed;
@@ -331,6 +319,7 @@
       border-top: 1px solid var(--line);
       background: rgba(3, 7, 18, .95);
       backdrop-filter: blur(14px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     .tab {
       flex: 1;
@@ -350,11 +339,19 @@
     }
     .tab.active { color: var(--green); }
     .tab.active .tab-icon { opacity: 1; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .55; }
+    }
   </style>
 </head>
 <body>
   <header class="topbar">
-    <img src="public/logo-fifa-2026.jpg" class="logo" alt="FIFA World Cup 2026">
+    <div class="brand">
+      <strong>Coupe du Monde</strong>
+      <span>11 Juin - 19 Juillet 2026</span>
+    </div>
     <div class="user">
       <span class="pill">davidl</span>
       <button class="logout" type="button">Déco</button>
@@ -365,24 +362,24 @@
     <h1>Les Pronos</h1>
     <p class="subtitle">Les pronostics de chacun, par match.</p>
     <p class="demo-note">
-      Démo statique avec 20 joueurs, 3 matchs terminés et 1 match en cours. Les scores de groupe sont cliquables pour afficher les joueurs.
+      Démo statique fidèle au composant actuel : 30 participants, 3 matchs terminés, 1 match en cours. Chaque match affiche 5 lignes puis un bouton pour dérouler les autres.
     </p>
-    <div id="cards" class="stack"></div>
+    <div id="cards" class="cards"></div>
   </main>
 
   <nav class="bottom" aria-label="Navigation simulée">
     <a class="tab" href="#"><span class="tab-icon">⚽</span><span class="tab-label">Matchs</span></a>
-    <a class="tab active" href="#"><span class="tab-icon">📋</span><span class="tab-label">Live</span></a>
+    <a class="tab active" href="#"><span class="tab-icon">📋</span><span class="tab-label">Pronos</span></a>
     <a class="tab" href="#"><span class="tab-icon">📊</span><span class="tab-label">Groupes</span></a>
     <a class="tab" href="#"><span class="tab-icon">🏆</span><span class="tab-label">Classement</span></a>
-    <a class="tab" href="#"><span class="tab-icon">?</span><span class="tab-label">Règles</span></a>
   </nav>
 
   <script>
     const currentUserId = "u01";
+    const visibleCount = 5;
 
     const users = [
-      ["u01", "David", "Leroy", "davidl"],
+      ["u01", "David", "Leroux", "davidl"],
       ["u02", "Sophie", "Roux", "sophier"],
       ["u03", "Marc", "Tessier", "marct"],
       ["u04", "Alice", "Martin", "alicem"],
@@ -393,21 +390,91 @@
       ["u09", "Lucas", "Faure", "lucasf"],
       ["u10", "Nina", "Caron", "ninac"],
       ["u11", "Karim", "Amrani", "karima"],
-      ["u12", "Léa", "Garnier", "leag"],
-      ["u13", "Hugo", "Noël", "hugon"],
+      ["u12", "Lea", "Garnier", "leag"],
+      ["u13", "Hugo", "Noel", "hugon"],
       ["u14", "Manon", "Simon", "manons"],
       ["u15", "Antoine", "Robert", "antoiner"],
       ["u16", "Sarah", "Klein", "sarahk"],
-      ["u17", "Théo", "Mercier", "theom"],
-      ["u18", "Inès", "Blanc", "inesb"],
+      ["u17", "Theo", "Mercier", "theom"],
+      ["u18", "Ines", "Blanc", "inesb"],
       ["u19", "Paul", "Chevalier", "paulc"],
-      ["u20", "Camille", "Joly", "camillej"]
+      ["u20", "Camille", "Joly", "camillej"],
+      ["u21", "Nicolas", "Moreau", "nicolasm"],
+      ["u22", "Julie", "Fontaine", "julief"],
+      ["u23", "Mehdi", "Bensaid", "mehdib"],
+      ["u24", "Laura", "Perrin", "laurap"],
+      ["u25", "Victor", "Lambert", "victorl"],
+      ["u26", "Amina", "Diallo", "aminad"],
+      ["u27", "Pierre", "Renard", "pierrer"],
+      ["u28", "Elsa", "Marchand", "elsam"],
+      ["u29", "Romain", "Colin", "romainc"],
+      ["u30", "Maya", "Nguyen", "mayan"]
     ].map(([id, firstName, lastName, username]) => ({ id, firstName, lastName, username }));
 
     const matches = [
       {
+        id: 4,
+        date: "2026-06-12T22:00:00+02:00",
+        groupClass: "group-d",
+        home: "France",
+        away: "Japon",
+        homeFlag: "fr",
+        awayFlag: "jp",
+        status: "live",
+        score: null,
+        odds: { home: 1.82, draw: 3.40, away: 4.80 },
+        preds: {
+          u01: [2, 1], u02: [1, 1], u03: [1, 1], u04: [2, 0], u05: [1, 0],
+          u06: [0, 0], u07: [2, 2], u08: [0, 0], u09: [2, 0], u10: [3, 1],
+          u11: [2, 1], u12: [1, 0], u13: [0, 1], u14: [1, 2], u15: [2, 0],
+          u16: [3, 2], u17: [0, 2], u18: [2, 1], u19: [3, 0], u20: [1, 1],
+          u21: [2, 1], u22: [0, 0], u23: [1, 0], u24: [2, 2], u25: [1, 1],
+          u26: [3, 1], u27: [0, 1], u28: [2, 0]
+        }
+      },
+      {
+        id: 3,
+        date: "2026-06-12T18:00:00+02:00",
+        groupClass: "group-c",
+        home: "Canada",
+        away: "Bosnie-Herzégovine",
+        homeFlag: "ca",
+        awayFlag: "ba",
+        status: "finished",
+        score: [1, 1],
+        odds: { home: 2.45, draw: 3.15, away: 2.95 },
+        preds: {
+          u01: [1, 1], u02: [1, 1], u03: [1, 1], u04: [2, 2], u05: [0, 0],
+          u06: [2, 1], u07: [1, 0], u08: [0, 1], u09: [1, 2], u10: [2, 0],
+          u11: [3, 1], u12: [1, 0], u13: [0, 2], u14: [2, 1], u15: [1, 1],
+          u16: [0, 0], u17: [2, 2], u18: [1, 2], u19: [2, 0], u20: [1, 0],
+          u21: [0, 1], u22: [1, 1], u23: [3, 2], u24: [2, 1], u25: [0, 0],
+          u26: [2, 2], u27: [1, 0], u28: [0, 1], u29: [1, 1]
+        }
+      },
+      {
+        id: 2,
+        date: "2026-06-11T21:00:00+02:00",
+        groupClass: "group-b",
+        home: "Brésil",
+        away: "Maroc",
+        homeFlag: "br",
+        awayFlag: "ma",
+        status: "finished",
+        score: [0, 2],
+        odds: { home: 1.55, draw: 4.10, away: 6.20 },
+        preds: {
+          u01: [2, 1], u02: [0, 2], u03: [0, 1], u04: [1, 2], u05: [0, 3],
+          u06: [2, 0], u07: [1, 0], u08: [3, 1], u09: [2, 1], u10: [1, 1],
+          u11: [2, 2], u12: [0, 0], u13: [1, 1], u14: [3, 0], u15: [2, 0],
+          u16: [1, 0], u17: [2, 1], u18: [4, 1], u19: [1, 0], u20: [0, 2],
+          u21: [1, 2], u22: [0, 1], u23: [2, 1], u24: [3, 0], u25: [0, 3],
+          u26: [1, 1], u27: [0, 2], u28: [2, 0]
+        }
+      },
+      {
         id: 1,
-        displayDate: "2026-06-11T16:00:00+02:00",
+        date: "2026-06-11T16:00:00+02:00",
         groupClass: "group-a",
         home: "Mexique",
         away: "Afrique du Sud",
@@ -417,70 +484,12 @@
         score: [2, 1],
         odds: { home: 1.70, draw: 3.60, away: 5.10 },
         preds: {
-          u01: [2, 1], u02: [2, 1], u03: [2, 1],
-          u04: [1, 0], u05: [1, 0], u06: [1, 0], u07: [1, 0],
-          u08: [2, 0], u09: [2, 0], u10: [2, 0], u11: [2, 0], u12: [2, 0],
-          u13: [1, 1], u14: [1, 1], u15: [1, 1],
-          u16: [0, 1], u17: [0, 1],
-          u18: [3, 1]
-        }
-      },
-      {
-        id: 2,
-        displayDate: "2026-06-12T21:00:00+02:00",
-        groupClass: "group-b",
-        home: "Canada",
-        away: "Bosnie-Herzégovine",
-        homeFlag: "ca",
-        awayFlag: "ba",
-        status: "live",
-        score: null,
-        odds: { home: 2.45, draw: 3.15, away: 2.95 },
-        preds: {
-          u01: [1, 1], u02: [2, 1], u03: [1, 0], u04: [0, 1],
-          u05: [1, 1], u06: [2, 2], u07: [1, 2], u08: [2, 0],
-          u09: [0, 0], u10: [1, 0], u11: [2, 1], u12: [1, 1],
-          u13: [0, 1], u14: [2, 2], u15: [3, 1], u16: [1, 2],
-          u17: [2, 0]
-        }
-      },
-      {
-        id: 3,
-        displayDate: "2026-06-12T18:00:00+02:00",
-        groupClass: "group-c",
-        home: "France",
-        away: "Japon",
-        homeFlag: "fr",
-        awayFlag: "jp",
-        status: "finished",
-        score: [1, 1],
-        odds: { home: 1.82, draw: 3.40, away: 4.80 },
-        preds: {
-          u01: [2, 1], u02: [1, 1], u03: [1, 1], u04: [1, 1], u05: [1, 1],
-          u06: [0, 0], u07: [2, 2], u08: [0, 0],
-          u09: [2, 0], u10: [3, 1], u11: [2, 1], u12: [1, 0],
-          u13: [0, 1], u14: [1, 2], u15: [2, 0], u16: [3, 2],
-          u17: [0, 2], u18: [2, 1], u19: [3, 0]
-        }
-      },
-      {
-        id: 4,
-        displayDate: "2026-06-11T21:00:00+02:00",
-        groupClass: "group-d",
-        home: "Brésil",
-        away: "Maroc",
-        homeFlag: "br",
-        awayFlag: "ma",
-        status: "finished",
-        score: [0, 2],
-        odds: { home: 1.55, draw: 4.10, away: 6.20 },
-        preds: {
-          u01: [2, 1], u02: [0, 2],
-          u03: [0, 1], u04: [1, 2], u05: [0, 3],
-          u06: [2, 0], u07: [1, 0], u08: [3, 1], u09: [2, 1],
-          u10: [1, 1], u11: [2, 2], u12: [0, 0], u13: [1, 1],
-          u14: [3, 0], u15: [2, 0], u16: [1, 0], u17: [2, 1],
-          u18: [4, 1], u19: [1, 0]
+          u01: [2, 1], u02: [2, 1], u03: [2, 1], u04: [1, 0], u05: [1, 0],
+          u06: [1, 0], u07: [2, 0], u08: [2, 0], u09: [3, 1], u10: [2, 0],
+          u11: [1, 1], u12: [1, 1], u13: [1, 1], u14: [0, 1], u15: [0, 1],
+          u16: [3, 2], u17: [3, 1], u18: [2, 1], u19: [1, 0], u20: [2, 0],
+          u21: [4, 1], u22: [2, 2], u23: [1, 2], u24: [2, 1], u25: [3, 0],
+          u26: [0, 0], u27: [2, 1], u28: [1, 0], u29: [2, 0], u30: [3, 1]
         }
       }
     ];
@@ -509,7 +518,7 @@
     }
 
     function resultType(match, pred) {
-      if (match.status !== "finished" || !match.score) return "unknown";
+      if (match.status !== "finished" || !match.score) return "pending";
       if (pred[0] === match.score[0] && pred[1] === match.score[1]) return "exact";
       if (resultSign(pred[0], pred[1]) === resultSign(match.score[0], match.score[1])) return "correct";
       return "wrong";
@@ -528,103 +537,66 @@
     }
 
     function getEntries(match) {
-      return users.map(user => ({ user, pred: match.preds[user.id] || null }));
-    }
-
-    function groupedPredictions(match, entries) {
-      const withPred = entries.filter(entry => entry.pred);
-      const map = new Map();
-      for (const entry of withPred) {
-        const key = scoreText(entry.pred);
-        if (!map.has(key)) {
-          map.set(key, {
-            key,
-            score: entry.pred,
-            type: resultType(match, entry.pred),
-            pts: pointsFor(match, entry.pred),
-            users: []
-          });
+      const rows = users.map(user => ({ user, pred: match.preds[user.id] || null }));
+      return rows.sort((a, b) => {
+        if (a.user.id === currentUserId) return -1;
+        if (b.user.id === currentUserId) return 1;
+        if (a.pred && !b.pred) return -1;
+        if (!a.pred && b.pred) return 1;
+        if (a.pred && b.pred && match.status === "finished") {
+          return (pointsFor(match, b.pred) || 0) - (pointsFor(match, a.pred) || 0);
         }
-        map.get(key).users.push(entry.user);
-      }
-      const rank = { exact: 0, correct: 1, wrong: 2, unknown: 3 };
-      return [...map.values()].sort((a, b) => {
-        if (rank[a.type] !== rank[b.type]) return rank[a.type] - rank[b.type];
-        return b.users.length - a.users.length;
+        return shortName(a.user).localeCompare(shortName(b.user));
       });
     }
 
     function headerStatus(match) {
       if (match.status === "finished") return `<span class="score">${scoreText(match.score)}</span>`;
-      if (match.status === "live") return `<span class="live">EN COURS</span>`;
-      return `<span class="soon">Bientôt</span>`;
+      return `<span class="live">EN COURS</span>`;
     }
 
-    function pointsLabel(type, pts) {
-      if (type === "unknown") return "";
-      if (type === "wrong") return "0 pt";
-      if (type === "exact") return `⭐ +${pts.toFixed(2)}`;
-      return `✓ +${pts.toFixed(2)}`;
+    function pointsLabel(match, pred) {
+      const type = resultType(match, pred);
+      const points = pointsFor(match, pred);
+      if (points === null) return "…";
+      if (points <= 0) return "0 pt";
+      return `${type === "exact" ? "⭐ " : ""}+${points.toFixed(2)}`;
     }
 
-    function renderMatch(match) {
+    function renderRow(match, entry, hidden) {
+      const { user, pred } = entry;
+      const isMe = user.id === currentUserId;
+      const type = pred ? resultType(match, pred) : "no-bet";
+      const rowStyle = hidden ? "display:none" : "";
+
+      return `
+        <div class="row ${isMe ? "me" : ""} ${hidden ? "extra" : ""}" style="${rowStyle}">
+          <span class="avatar">${initials(user)}</span>
+          <span class="player">${shortName(user)}${isMe ? ' <span class="you">(toi)</span>' : ""}</span>
+          ${pred ? `
+            <span class="pred ${type}">${scoreText(pred)}</span>
+            <span class="pts ${type}">${pointsLabel(match, pred)}</span>
+          ` : '<span class="no-bet">—</span>'}
+        </div>
+      `;
+    }
+
+    function renderMatch(match, index) {
       const entries = getEntries(match);
       const withPred = entries.filter(entry => entry.pred);
-      const myEntry = entries.find(entry => entry.user.id === currentUserId);
-      const myPred = myEntry.pred;
-      const groups = groupedPredictions(match, entries);
       const exactCount = withPred.filter(entry => resultType(match, entry.pred) === "exact").length;
       const correctCount = withPred.filter(entry => resultType(match, entry.pred) === "correct").length;
-      const noBetCount = entries.length - withPred.length;
-      const myType = myPred ? resultType(match, myPred) : "unknown";
-      const myPoints = myPred ? pointsFor(match, myPred) : null;
-
+      const rows = entries.map((entry, rowIndex) => renderRow(match, entry, rowIndex >= visibleCount)).join("");
+      const hiddenCount = Math.max(0, entries.length - visibleCount);
       const stats = [
         `<span>${withPred.length}/${entries.length} pronos</span>`,
         match.status === "finished" && exactCount > 0 ? `<span class="badge green">⭐ ${exactCount} exact${exactCount > 1 ? "s" : ""}</span>` : "",
         match.status === "finished" && correctCount > 0 ? `<span class="badge blue">✓ ${correctCount} correct${correctCount > 1 ? "s" : ""}</span>` : "",
-        match.status === "live" ? `<span class="badge red">EN COURS</span>` : ""
+        match.status === "live" ? '<span class="badge red">EN COURS</span>' : ""
       ].join("");
 
-      const myBlock = myPred ? `
-        <div class="my-row">
-          <div class="avatar">${initials(myEntry.user)}</div>
-          <div class="my-name">${shortName(myEntry.user)} <span class="you">(toi)</span></div>
-          <div class="pred-score ${myType}">${scoreText(myPred)}</div>
-          <div class="pts ${myType}">${myPoints === null ? "…" : pointsLabel(myType, myPoints)}</div>
-        </div>
-      ` : `<div class="no-bet">Pas de prono</div>`;
-
-      const groupsHtml = groups.map((group, index) => {
-        const mine = myPred && group.score[0] === myPred[0] && group.score[1] === myPred[1];
-        const width = Math.round((group.users.length / withPred.length) * 100);
-        const expanded = mine || index === 0;
-        const names = group.users.map(user => {
-          const me = user.id === currentUserId;
-          return `<span class="person ${me ? "me" : ""}">${shortName(user)}${me ? " (toi)" : ""}</span>`;
-        }).join("");
-        const badge = group.type === "unknown"
-          ? ""
-          : `<span class="result-badge ${group.type}">${pointsLabel(group.type, group.pts)}</span>`;
-
-        return `
-          <div class="score-group ${mine ? "mine" : ""} ${expanded ? "expanded" : ""}">
-            <button class="group-button" type="button" data-group-toggle>
-              <span class="group-score ${group.type}">${scoreText(group.score)}</span>
-              <span class="pop">
-                <span class="track"><span class="bar ${group.type}" style="width:${width}%"></span></span>
-                <span class="count">${group.users.length} joueur${group.users.length > 1 ? "s" : ""}</span>
-              </span>
-              ${badge}
-              <span class="chev">▾</span>
-            </button>
-            <div class="names">${names}</div>
-          </div>
-        `;
-      }).join("");
-
       return `
-        <article class="card ${match.groupClass} ${match.open ? "open" : ""}">
+        <article class="card ${match.groupClass} ${index === 0 ? "open" : ""}">
           <button class="card-head" type="button" data-card-toggle>
             <div class="teams">
               <div class="team">
@@ -640,27 +612,15 @@
             </div>
             <div class="stats">${stats}</div>
           </button>
-          <div class="content">
-            <section class="section">
-              <p class="label">Ton prono</p>
-              ${myBlock}
-            </section>
-            <section class="section">
-              <p class="label">Répartition</p>
-              <div class="groups">
-                ${groupsHtml}
-                ${noBetCount > 0 ? `<div class="without">${noBetCount} sans prono</div>` : ""}
-              </div>
-            </section>
+          <div class="rows">
+            ${rows}
+            ${hiddenCount > 0 ? `<button class="more" type="button" data-more data-hidden="${hiddenCount}">voir les ${hiddenCount} autres ▾</button>` : ""}
           </div>
         </article>
       `;
     }
 
-    const orderedMatches = [...matches]
-      .sort((a, b) => new Date(b.displayDate).getTime() - new Date(a.displayDate).getTime())
-      .map((match, index) => ({ ...match, open: index === 0 }));
-
+    const orderedMatches = [...matches].sort((a, b) => new Date(b.date) - new Date(a.date));
     document.getElementById("cards").innerHTML = orderedMatches.map(renderMatch).join("");
 
     document.addEventListener("click", event => {
@@ -670,9 +630,13 @@
         return;
       }
 
-      const groupButton = event.target.closest("[data-group-toggle]");
-      if (groupButton) {
-        groupButton.closest(".score-group").classList.toggle("expanded");
+      const moreButton = event.target.closest("[data-more]");
+      if (moreButton) {
+        const rows = moreButton.closest(".rows").querySelectorAll(".row.extra");
+        const expanded = moreButton.dataset.expanded === "true";
+        rows.forEach(row => { row.style.display = expanded ? "none" : "flex"; });
+        moreButton.dataset.expanded = expanded ? "false" : "true";
+        moreButton.textContent = expanded ? `voir les ${moreButton.dataset.hidden} autres ▾` : "voir moins ▴";
       }
     });
   </script>

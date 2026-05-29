@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 const STAGE_CHAIN: Record<string, string | null> = {
   r32: null,
   group: null,
-  r16: 'group',
+  r16: 'r32',
   qf: 'r16',
   sf: 'qf',
   final: 'sf',

@@ -265,8 +265,8 @@ function GroupView({ matches, predictionByMatch, scores, onScoreChange, userId, 
                   key={match.id}
                   match={match}
                   prediction={predictionByMatch[match.id] ?? null}
-                  home={scores[match.id]?.home ?? 0}
-                  away={scores[match.id]?.away ?? 0}
+                  home={scores[match.id]?.home ?? null}
+                  away={scores[match.id]?.away ?? null}
                   onScoreChange={(h, a) => onScoreChange(match.id, h, a)}
                 />
               ))}
