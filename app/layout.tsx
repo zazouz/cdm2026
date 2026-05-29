@@ -4,7 +4,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Pronostics CDM 2026",
   description: "Pronostics Coupe du Monde 2026",
-  icons: { icon: '/logo-fifa-2026.jpg' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
