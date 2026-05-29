@@ -22,7 +22,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     <LanguageProvider>
       <div className="relative min-h-screen flex flex-col bg-gray-950">
         <div className="pointer-events-none fixed inset-0 z-0">
-          <img src="/bg-fifa-2026.jpg" alt="" aria-hidden className="h-full w-full object-cover opacity-[0.06]" />
+          <img src="/bg-fifa-2026.jpg" alt="" aria-hidden className="h-full w-full object-cover" />
         </div>
         <div className="relative z-10 flex flex-col flex-1">
           <NavBar username={profile?.username ?? ''} isAdmin={isAdmin} />
