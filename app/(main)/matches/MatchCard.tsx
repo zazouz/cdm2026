@@ -8,8 +8,8 @@ import { translateTeam, stageLabel } from '@/lib/i18n'
 type Props = {
   match: Match
   prediction: PredictionWithMatch | null
-  home: number
-  away: number
+  home: number | null
+  away: number | null
   onScoreChange: (home: number, away: number) => void
 }
 
@@ -72,8 +72,10 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
   const lockSoon = !isLocked && lockMs > 0 && lockMs < 30 * 60 * 1000
 
   function step(which: 'home' | 'away', dir: 1 | -1) {
-    const newHome = which === 'home' ? Math.max(0, Math.min(20, home + dir)) : home
-    const newAway = which === 'away' ? Math.max(0, Math.min(20, away + dir)) : away
+    const curHome = home ?? -1
+    const curAway = away ?? -1
+    const newHome = which === 'home' ? Math.max(0, Math.min(20, curHome + dir)) : (home ?? 0)
+    const newAway = which === 'away' ? Math.max(0, Math.min(20, curAway + dir)) : (away ?? 0)
     onScoreChange(newHome, newAway)
   }
 
@@ -89,7 +91,9 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
     ? (GROUP_BORDER[match.group_name] ?? '')
     : ''
 
-  const relevantOdds = home > away ? match.home_odds : away > home ? match.away_odds : match.draw_odds
+  const relevantOdds = (home !== null && away !== null)
+    ? (home > away ? match.home_odds : away > home ? match.away_odds : match.draw_odds)
+    : match.draw_odds
   const maxPts = !isLocked && relevantOdds ? (3 * relevantOdds).toFixed(2) : null
 
   return (
@@ -132,13 +136,13 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
             <div className="flex items-center gap-1.5">
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
                 <button onClick={() => step('home', -1)} aria-label={`${homeTeam} −1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">−</button>
-                <span className="w-9 text-center text-xl font-extrabold text-white">{home}</span>
+                <span className="w-9 text-center text-xl font-extrabold text-white">{home ?? '–'}</span>
                 <button onClick={() => step('home', 1)} aria-label={`${homeTeam} +1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">+</button>
               </div>
               <span className="text-sm font-bold text-gray-600" aria-hidden>–</span>
               <div className="flex items-center overflow-hidden rounded-xl border border-gray-700 bg-gray-800">
                 <button onClick={() => step('away', -1)} aria-label={`${awayTeam} −1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">−</button>
-                <span className="w-9 text-center text-xl font-extrabold text-white">{away}</span>
+                <span className="w-9 text-center text-xl font-extrabold text-white">{away ?? '–'}</span>
                 <button onClick={() => step('away', 1)} aria-label={`${awayTeam} +1`} className="flex h-11 w-8 items-center justify-center text-lg font-light text-gray-500 transition-colors hover:bg-gray-700 hover:text-white active:bg-gray-600">+</button>
               </div>
             </div>

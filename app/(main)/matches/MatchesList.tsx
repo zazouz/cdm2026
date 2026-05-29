@@ -31,11 +31,13 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
   const [view, setView] = useState<'chrono' | 'group'>('chrono')
   const { lang } = useLanguage()
 
-  const [scores, setScores] = useState<Record<number, { home: number; away: number }>>(() => {
-    const init: Record<number, { home: number; away: number }> = {}
+  const [scores, setScores] = useState<Record<number, { home: number | null; away: number | null }>>(() => {
+    const init: Record<number, { home: number | null; away: number | null }> = {}
     for (const m of matches) {
       const pred = predictionByMatch[m.id]
-      init[m.id] = { home: pred?.predicted_home ?? 0, away: pred?.predicted_away ?? 0 }
+      init[m.id] = pred
+        ? { home: pred.predicted_home, away: pred.predicted_away }
+        : { home: null, away: null }
     }
     return init
   })
@@ -52,9 +54,9 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
 
   const dirtyCount = unlockedMatches.filter(m => {
     const score = scores[m.id]
+    if (!score || score.home === null || score.away === null) return false
     const saved = predictionByMatch[m.id]
-    if (!score) return false
-    if (!saved) return score.home !== 0 || score.away !== 0
+    if (!saved) return true
     return score.home !== saved.predicted_home || score.away !== saved.predicted_away
   }).length
 
@@ -65,9 +67,9 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
     try {
       const dirty = unlockedMatches.filter(m => {
         const score = scores[m.id]
+        if (!score || score.home === null || score.away === null) return false
         const saved = predictionByMatch[m.id]
-        if (!score) return false
-        if (!saved) return score.home !== 0 || score.away !== 0
+        if (!saved) return true
         return score.home !== saved.predicted_home || score.away !== saved.predicted_away
       })
       await Promise.all(
@@ -189,7 +191,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
 
 type ViewProps = Props & {
   lang: string
-  scores: Record<number, { home: number; away: number }>
+  scores: Record<number, { home: number | null; away: number | null }>
   onScoreChange: (matchId: number, home: number, away: number) => void
   saveButton: React.ReactNode
 }
