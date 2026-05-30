@@ -4,13 +4,17 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Pronostics CDM 2026",
   description: "Pronostics Coupe du Monde 2026",
+  icons: {
+    icon: "/logo-fifa-2026.jpg",
+    shortcut: "/logo-fifa-2026.jpg",
+    apple: "/logo-fifa-2026.jpg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://flagcdn.com" />
         <link rel="dns-prefetch" href="https://flagcdn.com" />
       </head>
