@@ -5,9 +5,9 @@ export const metadata: Metadata = {
   title: "Pronostics CDM 2026",
   description: "Pronostics Coupe du Monde 2026",
   icons: {
-    icon: "/logo-fifa-2026.jpg",
-    shortcut: "/logo-fifa-2026.jpg",
-    apple: "/logo-fifa-2026.jpg",
+    icon: "/icon.jpg",
+    shortcut: "/icon.jpg",
+    apple: "/icon.jpg",
   },
 };
 
