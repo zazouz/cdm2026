@@ -13,6 +13,9 @@ const T = {
     lastName: 'Nom',
     realNameWarning: 'Utilise ton vrai prénom et nom — les comptes avec de faux noms seront supprimés.',
     pseudo: 'Ton pseudo :',
+    email: 'Email',
+    emailPlaceholder: 'prenom.nom@exemple.com',
+    emailHint: 'Optionnel — uniquement en cas d\'oubli de mot de passe',
     password: 'Mot de passe',
     passwordPlaceholder: '6 caractères minimum',
     confirm: 'Confirmer le mot de passe',
@@ -34,6 +37,9 @@ const T = {
     lastName: 'Last name',
     realNameWarning: 'Use your real first and last name — accounts with fake names will be deleted.',
     pseudo: 'Your username:',
+    email: 'Email',
+    emailPlaceholder: 'firstname.lastname@example.com',
+    emailHint: 'Optional — only used to reset your password if you forget it',
     password: 'Password',
     passwordPlaceholder: 'At least 6 characters',
     confirm: 'Confirm password',
@@ -57,7 +63,7 @@ function capitalize(s: string): string {
 export default function RegisterPage() {
   const router = useRouter()
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
-  const [form, setForm] = useState({ firstName: '', lastName: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -89,8 +95,8 @@ export default function RegisterPage() {
     setLoading(true)
     const supabase = createClient()
 
-    const email = `${username}@prono.app`
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password: form.password })
+    const authEmail = form.email.trim() ? form.email.trim() : `${username}@prono.app`
+    const { data, error: signUpError } = await supabase.auth.signUp({ email: authEmail, password: form.password })
 
     if (signUpError) {
       setError(signUpError.message === 'User already registered' ? t.errUsernameTaken : signUpError.message)
@@ -104,6 +110,7 @@ export default function RegisterPage() {
         username,
         first_name: capitalize(form.firstName),
         last_name: capitalize(form.lastName),
+        email: form.email.trim() || null,
       })
 
       if (insertError) {
@@ -175,6 +182,21 @@ export default function RegisterPage() {
               {t.pseudo} <span className="text-green-400 font-mono">{username}</span>
             </p>
           )}
+
+          <div>
+            <label htmlFor="reg-email" className="block text-sm text-gray-400 mb-1">
+              {t.email} <span className="text-gray-600 text-xs font-normal">({t.emailHint})</span>
+            </label>
+            <input
+              id="reg-email"
+              type="email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder={t.emailPlaceholder}
+              autoComplete="email"
+            />
+          </div>
 
           <div>
             <label htmlFor="reg-password" className="block text-sm text-gray-400 mb-1">{t.password}</label>

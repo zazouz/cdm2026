@@ -8,9 +8,13 @@ create table if not exists public.users (
   username text unique not null,
   first_name text not null,
   last_name text not null,
+  email text,
   is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- Migration : ajouter la colonne email si elle n'existe pas encore
+alter table public.users add column if not exists email text;
 
 -- Table des matchs
 create table if not exists public.matches (

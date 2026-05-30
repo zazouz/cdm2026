@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-client'
 
-const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'david.leroux@msccruises.com'
-
 const T = {
   fr: {
     title: 'Connecte-toi',
@@ -17,7 +15,6 @@ const T = {
     noAccount: 'Pas encore de compte ?',
     register: "S'inscrire",
     forgot: 'Mot de passe oublié ?',
-    forgotMsg: `Envoie un mail à ${SUPPORT_EMAIL}`,
     error: 'Pseudo ou mot de passe incorrect.',
   },
   en: {
@@ -29,7 +26,6 @@ const T = {
     noAccount: 'No account yet?',
     register: 'Sign up',
     forgot: 'Forgot password?',
-    forgotMsg: `Send an email to ${SUPPORT_EMAIL}`,
     error: 'Incorrect username or password.',
   },
 }
@@ -42,7 +38,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [showForgot, setShowForgot] = useState(false)
   const [loginAttempts, setLoginAttempts] = useState(0)
   const t = T[lang]
 
@@ -53,9 +48,18 @@ export default function LoginPage() {
 
     const supabase = createClient()
     const normalizedUsername = username.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '')
-    const email = `${normalizedUsername}@prono.app`
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    let authEmail = `${normalizedUsername}@prono.app`
+    try {
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('email')
+        .eq('username', normalizedUsername)
+        .single()
+      if (userRecord?.email) authEmail = userRecord.email
+    } catch {}
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: authEmail, password })
 
     if (signInError) {
       setLoginAttempts(n => n + 1)
@@ -149,18 +153,12 @@ export default function LoginPage() {
           </button>
 
           <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setShowForgot(v => !v)}
+            <Link
+              href="/forgot-password"
               className="mx-auto flex min-h-11 items-center justify-center px-3 text-sm text-gray-400 transition-colors hover:text-gray-300"
             >
               {t.forgot}
-            </button>
-            {showForgot && (
-              <p className="mt-1 text-xs text-gray-300 bg-gray-800 rounded-lg px-3 py-2">
-                {t.forgotMsg}
-              </p>
-            )}
+            </Link>
           </div>
 
           <Link
