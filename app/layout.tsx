@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ServiceWorkerRegistration } from "./ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
   title: "CDM 2026",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://flagcdn.com" />
       </head>
       <body className="bg-gray-950 text-gray-100 min-h-screen antialiased">
+        <ServiceWorkerRegistration />
         <div className="pointer-events-none fixed inset-0 z-0" aria-hidden style={{ backgroundImage: "url('/bg-fifa-2026.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.2 }} />
         <div className="relative z-[1]">
           {children}
