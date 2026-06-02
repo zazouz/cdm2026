@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase-client'
 const T = {
   fr: {
     title: 'Connecte-toi',
-    loginLabel: 'Email ou pseudo',
+    loginLabel: 'Pseudo (prenomnom) ou e-mail',
     password: 'Mot de passe',
     submit: 'Se connecter',
     loading: 'Connexion...',
@@ -19,7 +19,7 @@ const T = {
   },
   en: {
     title: 'Sign in',
-    loginLabel: 'Email or username',
+    loginLabel: 'Username (firstnamelastname) or email',
     password: 'Password',
     submit: 'Sign in',
     loading: 'Signing in...',
@@ -107,7 +107,7 @@ export default function LoginPage() {
               value={loginInput}
               onChange={e => setLoginInput(e.target.value)}
               className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="oliviergiroud ou prenom.nom@example.com"
+              placeholder="oliviergiroud"
               required
               autoFocus
               autoComplete="username"
