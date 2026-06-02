@@ -8,32 +8,32 @@ import { createClient } from '@/lib/supabase-client'
 const T = {
   fr: {
     title: 'Connecte-toi',
-    pseudo: 'Pseudo',
+    loginLabel: 'Email ou pseudo',
     password: 'Mot de passe',
     submit: 'Se connecter',
     loading: 'Connexion...',
     noAccount: 'Pas encore de compte ?',
     register: "S'inscrire",
     forgot: 'Mot de passe oublié ?',
-    error: 'Pseudo ou mot de passe incorrect.',
+    error: 'Email/pseudo ou mot de passe incorrect.',
   },
   en: {
     title: 'Sign in',
-    pseudo: 'Username',
+    loginLabel: 'Email or username',
     password: 'Password',
     submit: 'Sign in',
     loading: 'Signing in...',
     noAccount: 'No account yet?',
     register: 'Sign up',
     forgot: 'Forgot password?',
-    error: 'Incorrect username or password.',
+    error: 'Incorrect email/username or password.',
   },
 }
 
 export default function LoginPage() {
   const router = useRouter()
   const [lang, setLang] = useState<'fr' | 'en'>('fr')
-  const [username, setUsername] = useState('')
+  const [loginInput, setLoginInput] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,17 +47,22 @@ export default function LoginPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const normalizedUsername = username.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '')
+    let authEmail: string
 
-    let authEmail = `${normalizedUsername}@prono.app`
-    try {
-      const { data: userRecord } = await supabase
-        .from('users')
-        .select('email')
-        .eq('username', normalizedUsername)
-        .single()
-      if (userRecord?.email) authEmail = userRecord.email
-    } catch {}
+    if (loginInput.includes('@')) {
+      authEmail = loginInput.trim()
+    } else {
+      const normalizedUsername = loginInput.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '')
+      authEmail = `${normalizedUsername}@prono.app`
+      try {
+        const { data: userRecord } = await supabase
+          .from('users')
+          .select('email')
+          .eq('username', normalizedUsername)
+          .single()
+        if (userRecord?.email) authEmail = userRecord.email
+      } catch {}
+    }
 
     const { error: signInError } = await supabase.auth.signInWithPassword({ email: authEmail, password })
 
@@ -95,16 +100,17 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="bg-gray-900 rounded-2xl p-6 space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm text-gray-400 mb-1">{t.pseudo}</label>
+            <label htmlFor="login" className="block text-sm text-gray-400 mb-1">{t.loginLabel}</label>
             <input
-              id="username"
+              id="login"
               type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              value={loginInput}
+              onChange={e => setLoginInput(e.target.value)}
               className="w-full bg-gray-800 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="oliviergiroud"
+              placeholder="oliviergiroud ou prenom.nom@example.com"
               required
               autoFocus
+              autoComplete="username"
             />
           </div>
 
