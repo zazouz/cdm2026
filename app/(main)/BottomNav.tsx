@@ -19,7 +19,7 @@ export default function BottomNav({ isAdmin }: { isAdmin: boolean }) {
   ]
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gray-800 bg-gray-950/95 backdrop-blur-xl pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gray-800 bg-gray-950/95 pb-safe">
       {tabs.map(tab => {
         const active = pathname.startsWith(tab.href)
         return (
