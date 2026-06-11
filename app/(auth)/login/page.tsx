@@ -12,8 +12,6 @@ const T = {
     password: 'Mot de passe',
     submit: 'Se connecter',
     loading: 'Connexion...',
-    noAccount: 'Pas encore de compte ?',
-    register: "S'inscrire",
     forgot: 'Mot de passe oublié ?',
     error: 'Email/pseudo ou mot de passe incorrect.',
   },
@@ -23,8 +21,6 @@ const T = {
     password: 'Password',
     submit: 'Sign in',
     loading: 'Signing in...',
-    noAccount: 'No account yet?',
-    register: 'Sign up',
     forgot: 'Forgot password?',
     error: 'Incorrect email/username or password.',
   },
@@ -38,7 +34,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [loginAttempts, setLoginAttempts] = useState(0)
   const t = T[lang]
 
   async function handleSubmit(e: React.FormEvent) {
@@ -67,7 +62,6 @@ export default function LoginPage() {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email: authEmail, password })
 
     if (signInError) {
-      setLoginAttempts(n => n + 1)
       setError(t.error)
       setLoading(false)
       return
@@ -138,15 +132,8 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-red-950/50 rounded-lg px-3 py-2 space-y-1">
+            <div className="bg-red-950/50 rounded-lg px-3 py-2">
               <p className="text-red-400 text-sm">{error}</p>
-              {loginAttempts >= 1 && (
-                <p className="text-xs text-gray-400">
-                  {lang === 'fr'
-                    ? <>Pas encore de compte ? <a href="/register" className="text-green-400 underline">Inscris-toi ici.</a></>
-                    : <>No account yet? <a href="/register" className="text-green-400 underline">Sign up here.</a></>}
-                </p>
-              )}
             </div>
           )}
 
@@ -166,13 +153,6 @@ export default function LoginPage() {
               {t.forgot}
             </Link>
           </div>
-
-          <Link
-            href="/register"
-            className="block w-full rounded-lg border border-gray-600 py-3 text-center text-sm font-semibold text-gray-300 transition-colors hover:border-gray-400 hover:text-white"
-          >
-            {t.noAccount} {t.register}
-          </Link>
         </form>
       </div>
     </main>

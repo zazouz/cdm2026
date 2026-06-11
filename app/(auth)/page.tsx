@@ -23,7 +23,6 @@ const T = {
     step4: 'Les points sont calculés automatiquement peu après la fin du match.',
     step5: 'Suis ton score dans le classement.',
     cta: 'Se connecter',
-    register: 'Créer un compte',
   },
   en: {
     subtitle: 'Predict every match. Points are based on bookmaker odds.',
@@ -42,7 +41,6 @@ const T = {
     step4: 'Points are calculated automatically shortly after the final whistle.',
     step5: 'Track your score on the leaderboard.',
     cta: 'Sign in',
-    register: 'Create an account',
   },
 }
 
@@ -153,12 +151,6 @@ export default function Home() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-500 py-4 text-base font-bold text-gray-950 transition-all hover:bg-green-400 active:scale-[0.98]"
           >
             {t.cta}
-          </Link>
-          <Link
-            href="/register"
-            className="flex w-full items-center justify-center rounded-xl border border-gray-700 py-3 text-sm font-semibold text-gray-300 transition-colors hover:border-gray-500 hover:text-white"
-          >
-            {t.register}
           </Link>
         </div>
 
