@@ -18,6 +18,7 @@ const GROUP_BORDER: Record<string, string> = {
 
 export type UserRow = { id: string; first_name: string | null; last_name: string | null; username: string }
 export type PredEntry = { user: UserRow; pred: Prediction | null }
+export type PronosView = 'players' | 'scores'
 
 type Props = {
   match: Match
@@ -25,6 +26,7 @@ type Props = {
   currentUserId: string
   lang: Lang
   defaultOpen?: boolean
+  view?: PronosView
 }
 
 const T = {
@@ -38,6 +40,8 @@ const T = {
     corrects: (n: number) => `${n} correct${n > 1 ? 's' : ''}`,
     showMore: (n: number) => `voir les ${n} autres ▾`,
     showLess: 'voir moins ▴',
+    noBetRow: (n: number) => `sans prono : ${n} joueur${n > 1 ? 's' : ''}`,
+    inclYou: 'dont toi',
   },
   en: {
     live: 'LIVE',
@@ -49,6 +53,8 @@ const T = {
     corrects: (n: number) => `${n} correct`,
     showMore: (n: number) => `show ${n} more ▾`,
     showLess: 'show less ▴',
+    noBetRow: (n: number) => `no bet: ${n} player${n > 1 ? 's' : ''}`,
+    inclYou: 'incl. you',
   },
 }
 
@@ -64,9 +70,10 @@ function initials(u: UserRow): string {
 
 const VISIBLE = 5
 
-export default function MatchPronosCard({ match, entries, currentUserId, lang, defaultOpen = false }: Props) {
+export default function MatchPronosCard({ match, entries, currentUserId, lang, defaultOpen = false, view = 'players' }: Props) {
   const [open, setOpen] = useState(defaultOpen)
   const [showAll, setShowAll] = useState(false)
+  const [expandedScore, setExpandedScore] = useState<string | null>(null)
   const t = T[lang]
 
   const isFinished = match.status === 'finished'
@@ -150,8 +157,103 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
         </div>
       </button>
 
+      {/* ── Vue groupée par score prédit ── */}
+      {open && view === 'scores' && (
+        <div className="border-t border-gray-800 px-3 pt-2 pb-2.5 space-y-0.5">
+          {(() => {
+            const groupMap = new Map<string, { home: number; away: number; members: PredEntry[] }>()
+            for (const e of withPred) {
+              const key = `${e.pred!.predicted_home}-${e.pred!.predicted_away}`
+              if (!groupMap.has(key)) groupMap.set(key, { home: e.pred!.predicted_home, away: e.pred!.predicted_away, members: [] })
+              groupMap.get(key)!.members.push(e)
+            }
+            const rank = (g: { home: number; away: number }) => {
+              if (!isFinished || match.home_score === null) return 0
+              if (g.home === match.home_score && g.away === match.away_score) return 2
+              return resultSign(g.home, g.away) === resultSign(match.home_score, match.away_score!) ? 1 : 0
+            }
+            const groups = [...groupMap.entries()].sort(([, a], [, b]) => {
+              const r = rank(b) - rank(a)
+              if (r !== 0) return r
+              if (a.members.length !== b.members.length) return b.members.length - a.members.length
+              return (a.home - b.home) || (a.away - b.away)
+            })
+            const noPred = entries.filter(e => e.pred === null)
+            const noPredHasMe = noPred.some(e => e.user.id === currentUserId)
+
+            return (
+              <>
+                {groups.map(([key, g]) => {
+                  const r = rank(g)
+                  const isExact = r === 2
+                  const isCorrect = r === 1
+                  const pts = g.members[0].pred!.points_earned
+                  const meIn = g.members.some(m => m.user.id === currentUserId)
+                  const expanded = expandedScore === key
+
+                  return (
+                    <div key={key}>
+                      <button
+                        onClick={() => setExpandedScore(s => (s === key ? null : key))}
+                        className={`flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left ${meIn ? 'bg-green-950/20' : ''}`}
+                      >
+                        <span className="w-4 shrink-0 text-center text-[10px] font-bold">
+                          {isExact ? '⭐' : isCorrect ? <span className="text-blue-400">✓</span> : null}
+                        </span>
+                        <span className={`shrink-0 font-mono text-[12px] font-extrabold ${
+                          isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : isFinished ? 'text-gray-500' : 'text-white'
+                        }`}>
+                          {g.home}–{g.away}
+                        </span>
+                        <span className="flex min-w-0 flex-1 flex-wrap gap-1">
+                          {g.members.map(m => {
+                            const isMe = m.user.id === currentUserId
+                            return (
+                              <span
+                                key={m.user.id}
+                                className={`flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-extrabold leading-none ${
+                                  isMe ? 'bg-green-950 text-green-400 ring-1 ring-green-900' : 'bg-gray-800 text-gray-400'
+                                }`}
+                              >
+                                {initials(m.user)}
+                              </span>
+                            )
+                          })}
+                        </span>
+                        <span className={`w-14 shrink-0 text-right text-[10px] font-bold ${
+                          isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : 'text-gray-600'
+                        }`}>
+                          {isFinished && pts !== null
+                            ? (Number(pts) > 0 ? `+${Number(pts).toFixed(2)}` : '0 pt')
+                            : t.pending}
+                        </span>
+                      </button>
+                      {expanded && (
+                        <p className="px-2 pb-1.5 pl-8 text-[10px] leading-relaxed text-gray-500">
+                          {g.members
+                            .map(m => shortName(m.user) + (m.user.id === currentUserId ? ` (${t.you})` : ''))
+                            .join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+                {noPred.length > 0 && (
+                  <div className="flex items-center gap-2 px-2 py-1.5">
+                    <span className="w-4 shrink-0" />
+                    <span className="text-[10px] italic text-gray-600">
+                      {t.noBetRow(noPred.length)}{noPredHasMe ? ` (${t.inclYou})` : ''}
+                    </span>
+                  </div>
+                )}
+              </>
+            )
+          })()}
+        </div>
+      )}
+
       {/* ── Liste des participants ── */}
-      {open && (
+      {open && view === 'players' && (
         <div className="border-t border-gray-800 px-3 pt-2 pb-2.5 space-y-0.5">
           {visibleEntries.map(({ user: u, pred: p }) => {
             const isMe = u.id === currentUserId
