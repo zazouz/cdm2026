@@ -42,6 +42,7 @@ const T = {
     showLess: 'voir moins ▴',
     noBetRow: (n: number) => `sans prono : ${n} joueur${n > 1 ? 's' : ''}`,
     inclYou: 'dont toi',
+    youHeader: 'Toi :',
   },
   en: {
     live: 'LIVE',
@@ -55,6 +56,7 @@ const T = {
     showLess: 'show less ▴',
     noBetRow: (n: number) => `no bet: ${n} player${n > 1 ? 's' : ''}`,
     inclYou: 'incl. you',
+    youHeader: 'You:',
   },
 }
 
@@ -66,6 +68,14 @@ function shortName(u: UserRow): string {
 function initials(u: UserRow): string {
   return `${u.first_name?.[0] ?? ''}${u.last_name?.[0] ?? ''}`.toUpperCase()
     || u.username?.[0]?.toUpperCase() || '?'
+}
+
+// Gain si score exact : 3 × côte du résultat prédit (même règle que computePoints)
+function potentialIfExact(match: Match, home: number, away: number): number | null {
+  if (match.home_odds === null || match.draw_odds === null || match.away_odds === null) return null
+  const sign = resultSign(home, away)
+  const odd = sign === 1 ? match.home_odds : sign === 0 ? match.draw_odds : match.away_odds
+  return Math.round(3 * odd * 100) / 100
 }
 
 const VISIBLE = 5
@@ -80,6 +90,23 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
   const isLive = !isFinished && new Date(match.match_date) <= new Date()
 
   const withPred = entries.filter(e => e.pred !== null)
+
+  const myPred = entries.find(e => e.user.id === currentUserId)?.pred ?? null
+  const myExact = myPred !== null && isFinished && match.home_score !== null &&
+    myPred.predicted_home === match.home_score && myPred.predicted_away === match.away_score
+  const myCorrect = myPred !== null && !myExact && isFinished && match.home_score !== null &&
+    resultSign(myPred.predicted_home, myPred.predicted_away) === resultSign(match.home_score, match.away_score!)
+
+  // Prénom seul, désambiguïsé par l'initiale du nom en cas de doublon
+  const firstNameCounts = new Map<string, number>()
+  for (const e of entries) {
+    const f = (e.user.first_name ?? e.user.username).toLowerCase()
+    firstNameCounts.set(f, (firstNameCounts.get(f) ?? 0) + 1)
+  }
+  const displayName = (u: UserRow) => {
+    const f = u.first_name ?? u.username
+    return (firstNameCounts.get(f.toLowerCase()) ?? 0) > 1 && u.last_name ? `${f} ${u.last_name[0]}.` : f
+  }
 
   const exactCount = isFinished && match.home_score !== null
     ? withPred.filter(e =>
@@ -140,7 +167,19 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
 
         {/* Stats bar */}
         <div className="flex items-center gap-1.5 px-3 pb-2.5">
-          <span className="text-[10px] text-gray-500">{t.pronos(withPred.length, entries.length)}</span>
+          <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+            myExact ? 'bg-green-950 text-green-400'
+              : myCorrect ? 'bg-blue-950 text-blue-400'
+              : isFinished && myPred ? 'bg-gray-800 text-gray-500'
+              : 'bg-gray-800 text-gray-300'
+          }`}>
+            {t.youHeader} {myPred ? `${myPred.predicted_home}–${myPred.predicted_away}` : t.noBet}
+            {isFinished && myPred && myPred.points_earned !== null && (
+              Number(myPred.points_earned) > 0
+                ? ` ${myExact ? '⭐' : '✓'} +${Number(myPred.points_earned).toFixed(2)}`
+                : ' · 0 pt'
+            )}
+          </span>
           {isFinished && exactCount > 0 && (
             <span className="rounded-full bg-green-950 px-1.5 py-0.5 text-[9px] font-bold text-green-400">
               ⭐ {t.exacts(exactCount)}
@@ -154,6 +193,7 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
           {isLive && (
             <span className="rounded-full bg-red-950/40 px-1.5 py-0.5 text-[9px] font-bold text-red-400">{t.live}</span>
           )}
+          <span className="ml-auto text-[10px] text-gray-500">{t.pronos(withPred.length, entries.length)}</span>
         </div>
       </button>
 
@@ -190,42 +230,62 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
                   const pts = g.members[0].pred!.points_earned
                   const meIn = g.members.some(m => m.user.id === currentUserId)
                   const expanded = expandedScore === key
+                  const pct = Math.round((g.members.length / withPred.length) * 100)
+                  const potential = potentialIfExact(match, g.home, g.away)
+                  const shown = g.members.slice(0, 3)
+                  const extra = g.members.length - shown.length
 
                   return (
                     <div key={key}>
                       <button
                         onClick={() => setExpandedScore(s => (s === key ? null : key))}
-                        className={`flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left ${meIn ? 'bg-green-950/20' : ''}`}
+                        className={`relative w-full overflow-hidden rounded-xl text-left ${meIn ? 'bg-green-950/20' : ''}`}
                       >
-                        <span className="w-4 shrink-0 text-center text-[10px] font-bold">
-                          {isExact ? '⭐' : isCorrect ? <span className="text-blue-400">✓</span> : null}
-                        </span>
-                        <span className={`shrink-0 font-mono text-[12px] font-extrabold ${
-                          isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : isFinished ? 'text-gray-500' : 'text-white'
-                        }`}>
-                          {g.home}–{g.away}
-                        </span>
-                        <span className="flex min-w-0 flex-1 flex-wrap gap-1">
-                          {g.members.map(m => {
-                            const isMe = m.user.id === currentUserId
-                            return (
-                              <span
-                                key={m.user.id}
-                                className={`flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-extrabold leading-none ${
-                                  isMe ? 'bg-green-950 text-green-400 ring-1 ring-green-900' : 'bg-gray-800 text-gray-400'
-                                }`}
-                              >
-                                {initials(m.user)}
+                        <span
+                          aria-hidden
+                          className={`absolute inset-y-0 left-0 ${
+                            isExact ? 'bg-green-950/50' : isCorrect ? 'bg-blue-950/40' : 'bg-gray-800/40'
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
+                        <span className="relative flex items-center gap-2 px-2 py-1.5">
+                          <span className="w-4 shrink-0 text-center text-[10px] font-bold">
+                            {isExact ? '⭐' : isCorrect ? <span className="text-blue-400">✓</span> : null}
+                          </span>
+                          <span className={`shrink-0 font-mono text-[12px] font-extrabold ${
+                            isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : isFinished ? 'text-gray-500' : 'text-white'
+                          }`}>
+                            {g.home}–{g.away}
+                          </span>
+                          <span className="flex min-w-0 flex-1 flex-wrap gap-1">
+                            {shown.map(m => {
+                              const isMe = m.user.id === currentUserId
+                              return (
+                                <span
+                                  key={m.user.id}
+                                  className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold leading-none ${
+                                    isMe ? 'bg-green-950 text-green-400 ring-1 ring-green-900' : 'bg-gray-800/80 text-gray-300'
+                                  }`}
+                                >
+                                  {displayName(m.user)}
+                                </span>
+                              )
+                            })}
+                            {extra > 0 && (
+                              <span className="rounded-full bg-gray-800/80 px-1.5 py-0.5 text-[9px] font-semibold leading-none text-gray-500">
+                                +{extra}
                               </span>
-                            )
-                          })}
-                        </span>
-                        <span className={`w-14 shrink-0 text-right text-[10px] font-bold ${
-                          isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : 'text-gray-600'
-                        }`}>
-                          {isFinished && pts !== null
-                            ? (Number(pts) > 0 ? `+${Number(pts).toFixed(2)}` : '0 pt')
-                            : t.pending}
+                            )}
+                          </span>
+                          <span className={`w-16 shrink-0 text-right text-[10px] font-bold ${
+                            isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : isFinished ? 'text-gray-600' : 'text-gray-500'
+                          }`}>
+                            {isFinished && pts !== null
+                              ? (Number(pts) > 0 ? `+${Number(pts).toFixed(2)}` : '0 pt')
+                              : !isFinished && potential !== null
+                              ? `→ +${potential.toFixed(2)}`
+                              : t.pending}
+                          </span>
                         </span>
                       </button>
                       {expanded && (
@@ -285,16 +345,23 @@ export default function MatchPronosCard({ match, entries, currentUserId, lang, d
                     }`}>
                       {p.predicted_home}–{p.predicted_away}
                     </span>
-                    <span className={`shrink-0 text-[10px] font-bold w-14 text-right ${
-                      isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : 'text-gray-600'
-                    }`}>
-                      {isFinished && p.points_earned !== null
-                        ? (p.points_earned > 0
-                            ? `${isExact ? '⭐ ' : ''}+${Number(p.points_earned).toFixed(2)}`
-                            : '0 pt')
-                        : t.pending
-                      }
-                    </span>
+                    {(() => {
+                      const potential = isFinished ? null : potentialIfExact(match, p.predicted_home, p.predicted_away)
+                      return (
+                        <span className={`shrink-0 text-[10px] font-bold w-16 text-right ${
+                          isExact ? 'text-green-400' : isCorrect ? 'text-blue-400' : isFinished ? 'text-gray-600' : 'text-gray-500'
+                        }`}>
+                          {isFinished && p.points_earned !== null
+                            ? (p.points_earned > 0
+                                ? `${isExact ? '⭐ ' : ''}+${Number(p.points_earned).toFixed(2)}`
+                                : '0 pt')
+                            : potential !== null
+                            ? `→ +${potential.toFixed(2)}`
+                            : t.pending
+                          }
+                        </span>
+                      )
+                    })()}
                   </>
                 ) : (
                   <span className="shrink-0 text-[10px] italic text-gray-600 ml-auto">{t.noBet}</span>
