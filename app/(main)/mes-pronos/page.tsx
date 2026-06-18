@@ -9,6 +9,33 @@ export const dynamic = 'force-dynamic'
 
 const LOCK_MS = 15 * 60 * 1000
 
+// PostgREST plafonne à 1000 lignes par requête et tronque le surplus sans erreur.
+// On pagine pour récupérer la totalité des pronos sur les matchs verrouillés.
+async function fetchAllPredictions(
+  admin: ReturnType<typeof createAdminClient>,
+  matchIds: number[],
+): Promise<Prediction[]> {
+  if (matchIds.length === 0) return []
+  const PAGE = 1000
+  const all: Prediction[] = []
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await admin
+      .from('predictions')
+      .select('*')
+      .in('match_id', matchIds)
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) {
+      console.error('[CDM2026][pronos] fetch predictions failed', { from, error: error.message })
+      break
+    }
+    if (!data?.length) break
+    all.push(...(data as Prediction[]))
+    if (data.length < PAGE) break
+  }
+  return all
+}
+
 export default async function LesPronos() {
   const cookieStore = await cookies()
   const rawLang = cookieStore.get('prono_lang')?.value
@@ -31,13 +58,11 @@ export default async function LesPronos() {
   const users = (usersData ?? []) as UserRow[]
 
   const matchIds = matches.map(m => m.id)
-  const { data: predsData } = matchIds.length > 0
-    ? await admin.from('predictions').select('*').in('match_id', matchIds)
-    : { data: [] }
+  const predsData = await fetchAllPredictions(admin, matchIds)
 
   // matchId → userId → prediction
   const predMap = new Map<number, Map<string, Prediction>>()
-  for (const p of (predsData ?? []) as Prediction[]) {
+  for (const p of predsData) {
     if (!predMap.has(p.match_id)) predMap.set(p.match_id, new Map())
     predMap.get(p.match_id)!.set(p.user_id, p)
   }
