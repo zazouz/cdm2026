@@ -1,7 +1,6 @@
 import { createAdminClient, createClient } from '@/lib/supabase-server'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
-import { stageLabel } from '@/lib/i18n'
 import { resultSign } from '@/lib/scoring'
 import type { Match, Prediction } from '@/lib/types'
 import Link from 'next/link'
@@ -70,22 +69,9 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
 
   const predByMatchId = new Map((rawPredictions ?? []).map((p: Prediction) => [p.match_id, p]))
 
-  const stageOrder = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
-
-  const grouped: Record<string, Match[]> = {}
-  for (const m of matches) {
-    const key = `${m.stage}__${m.group_name ?? ''}`
-    if (!grouped[key]) grouped[key] = []
-    grouped[key].push(m)
-  }
-
-  const sortedGroups = Object.entries(grouped).sort(([a], [b]) => {
-    const [stageA, groupA] = a.split('__')
-    const [stageB, groupB] = b.split('__')
-    const si = stageOrder.indexOf(stageA) - stageOrder.indexOf(stageB)
-    if (si !== 0) return si
-    return groupA.localeCompare(groupB)
-  })
+  const sortedMatches = [...matches].sort((a, b) =>
+    new Date(b.match_date).getTime() - new Date(a.match_date).getTime()
+  )
 
   const totalPoints = matches.reduce((sum, m) => {
     const p = predByMatchId.get(m.id)
@@ -159,69 +145,55 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
           <p className="text-sm font-semibold text-gray-400">{t.empty}</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {sortedGroups.map(([key, groupMatches]) => {
-            const [stage, groupName] = key.split('__')
-            const label = stage === 'group' && groupName
-              ? t.group(groupName)
-              : stageLabel(stage, lang)
+        <div className="space-y-2">
+          {sortedMatches.map(m => {
+            const p = predByMatchId.get(m.id) ?? null
+            const isExact = p !== null && m.home_score !== null &&
+              p.predicted_home === m.home_score && p.predicted_away === m.away_score
+            const isCorrect = p !== null && !isExact && m.home_score !== null && m.away_score !== null &&
+              resultSign(p.predicted_home, p.predicted_away) === resultSign(m.home_score, m.away_score)
+            const pts = p?.points_earned ?? 0
 
             return (
-              <section key={key}>
-                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">{label}</p>
-                <div className="space-y-2">
-                  {groupMatches.map(m => {
-                    const p = predByMatchId.get(m.id) ?? null
-                    const isExact = p !== null && m.home_score !== null &&
-                      p.predicted_home === m.home_score && p.predicted_away === m.away_score
-                    const isCorrect = p !== null && !isExact && m.home_score !== null && m.away_score !== null &&
-                      resultSign(p.predicted_home, p.predicted_away) === resultSign(m.home_score, m.away_score)
-                    const pts = p?.points_earned ?? 0
-
-                    return (
-                      <div key={m.id} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
-                        <div className="flex items-center px-4 py-3">
-                          <div className="flex flex-1 flex-col items-center gap-1.5">
-                            {m.home_flag
-                              ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
-                              : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-                            <span className="text-center text-[11px] font-semibold leading-tight text-white">{m.home_team}</span>
-                          </div>
-                          <div className="w-14 flex-shrink-0 text-center">
-                            <div className="text-lg font-extrabold text-white">{m.home_score}–{m.away_score}</div>
-                            <div className="text-[10px] uppercase text-gray-500">{t.result}</div>
-                          </div>
-                          <div className="flex flex-1 flex-col items-center gap-1.5">
-                            {m.away_flag
-                              ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
-                              : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
-                            <span className="text-center text-[11px] font-semibold leading-tight text-white">{m.away_team}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between border-t border-gray-800 bg-gray-900/60 px-4 py-2.5">
-                          {p ? (
-                            <span className="text-[11px] text-gray-500">
-                              {t.bet} : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-gray-500 italic">{t.noBet}</span>
-                          )}
-                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-                            isExact ? 'bg-green-950 text-green-400'
-                            : isCorrect ? 'bg-blue-950 text-blue-400'
-                            : 'bg-gray-800 text-gray-600'
-                          }`}>
-                            {isExact && '⭐ '}
-                            {pts > 0 ? `+${Number(pts).toFixed(2)} pts` : '0 pt'}
-                            {isExact && ' exact'}
-                          </span>
-                        </div>
-                      </div>
-                    )
-                  })}
+              <div key={m.id} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
+                <div className="flex items-center px-4 py-3">
+                  <div className="flex flex-1 flex-col items-center gap-1.5">
+                    {m.home_flag
+                      ? <img src={flagUrl(m.home_flag)} alt={m.home_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+                      : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
+                    <span className="text-center text-[11px] font-semibold leading-tight text-white">{m.home_team}</span>
+                  </div>
+                  <div className="w-14 flex-shrink-0 text-center">
+                    <div className="text-lg font-extrabold text-white">{m.home_score}–{m.away_score}</div>
+                    <div className="text-[10px] uppercase text-gray-500">{t.result}</div>
+                  </div>
+                  <div className="flex flex-1 flex-col items-center gap-1.5">
+                    {m.away_flag
+                      ? <img src={flagUrl(m.away_flag)} alt={m.away_team} className="h-7 w-auto rounded-sm shadow object-cover" />
+                      : <div className="h-7 w-10 rounded-sm bg-gray-800" />}
+                    <span className="text-center text-[11px] font-semibold leading-tight text-white">{m.away_team}</span>
+                  </div>
                 </div>
-              </section>
+
+                <div className="flex items-center justify-between border-t border-gray-800 bg-gray-900/60 px-4 py-2.5">
+                  {p ? (
+                    <span className="text-[11px] text-gray-500">
+                      {t.bet} : <span className="font-mono font-bold text-white">{p.predicted_home} – {p.predicted_away}</span>
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-gray-500 italic">{t.noBet}</span>
+                  )}
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                    isExact ? 'bg-green-950 text-green-400'
+                    : isCorrect ? 'bg-blue-950 text-blue-400'
+                    : 'bg-gray-800 text-gray-600'
+                  }`}>
+                    {isExact && '⭐ '}
+                    {pts > 0 ? `+${Number(pts).toFixed(2)} pts` : '0 pt'}
+                    {isExact && ' exact'}
+                  </span>
+                </div>
+              </div>
             )
           })}
         </div>
