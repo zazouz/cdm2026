@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { createAdminClient, createClient } from '@/lib/supabase-server'
 import { computePoints } from '@/lib/scoring'
 import type { Match, Prediction } from '@/lib/types'
@@ -40,6 +41,10 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (matchError) return NextResponse.json({ error: matchError.message }, { status: 500 })
+
+  // Le score a changé : invalide les données impersonnelles cachées (matchs + classement)
+  revalidateTag('matches', 'max')
+  revalidateTag('scores', 'max')
 
   // 2. Récupère tous les pronostics pour ce match
   const { data: predictions } = await supabase

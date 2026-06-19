@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { Match } from '@/lib/types'
+import { useEffect, useMemo, useState } from 'react'
+import type { Match, Prediction } from '@/lib/types'
 import type { Lang } from '@/lib/i18n'
-import MatchPronosCard, { type PredEntry, type PronosView } from './MatchPronosCard'
+import MatchPronosCard, { type PredEntry, type PronosView, type UserRow } from './MatchPronosCard'
 
 export type PronoItem = { match: Match; entries: PredEntry[] }
 
@@ -29,14 +29,39 @@ const T = {
 }
 
 type Props = {
-  items: PronoItem[]
+  matches: Match[]
+  users: UserRow[]
+  predsByMatch: Record<number, Record<string, Prediction>>
   currentUserId: string
   lang: Lang
 }
 
-export default function PronosList({ items, currentUserId, lang }: Props) {
+export default function PronosList({ matches, users, predsByMatch, currentUserId, lang }: Props) {
   const [view, setView] = useState<PronosView>('players')
   const t = T[lang]
+
+  // Reconstruction des entries (joueurs transmis une seule fois). Tri identique
+  // à l'ancienne version serveur : toi d'abord, puis pronostiqueurs, puis points
+  // décroissants si match fini, sinon ordre alphabétique.
+  const items = useMemo<PronoItem[]>(() => matches.map(m => {
+    const matchPreds = predsByMatch[m.id] ?? {}
+    const isFinished = m.status === 'finished'
+    const entries: PredEntry[] = [...users]
+      .sort((a, b) => {
+        if (a.id === currentUserId) return -1
+        if (b.id === currentUserId) return 1
+        const pa = matchPreds[a.id]
+        const pb = matchPreds[b.id]
+        if (pa && !pb) return -1
+        if (!pa && pb) return 1
+        if (pa && pb && isFinished) return (pb.points_earned ?? 0) - (pa.points_earned ?? 0)
+        const nameA = `${a.first_name ?? ''} ${a.last_name ?? ''}`.trim()
+        const nameB = `${b.first_name ?? ''} ${b.last_name ?? ''}`.trim()
+        return nameA.localeCompare(nameB)
+      })
+      .map(u => ({ user: u, pred: matchPreds[u.id] ?? null }))
+    return { match: m, entries }
+  }), [matches, users, predsByMatch, currentUserId])
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)

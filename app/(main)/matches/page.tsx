@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthUser, getAllMatches } from '@/lib/queries'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
 import type { Match } from '@/lib/types'
@@ -41,16 +42,16 @@ export default async function MatchesPage() {
   const lang: Lang = rawLang === 'fr' || rawLang === 'en' ? rawLang : 'fr'
   const t = T[lang]
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) return null
+  const supabase = await createClient()
 
-  const [{ data: allMatches }, { data: myPredictions }] = await Promise.all([
-    supabase.from('matches').select('*').order('match_date', { ascending: true }),
+  const [allMatches, { data: myPredictions }] = await Promise.all([
+    getAllMatches(),
     supabase.from('predictions_with_match').select('*').eq('user_id', user.id),
   ])
 
-  if (!allMatches || allMatches.length === 0) {
+  if (allMatches.length === 0) {
     return (
       <div className="text-center py-20 text-gray-500">
         <p className="text-4xl mb-4">⚽</p>

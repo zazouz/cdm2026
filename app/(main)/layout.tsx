@@ -1,21 +1,14 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
+import { getAuthUser, getProfile } from '@/lib/queries'
 import NavBar from './NavBar'
 import BottomNav from './BottomNav'
 import { LanguageProvider } from './LanguageProvider'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
+  const user = await getAuthUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('username, is_admin')
-    .eq('id', user.id)
-    .single()
-
+  const profile = await getProfile()
   const isAdmin = profile?.is_admin ?? false
 
   return (

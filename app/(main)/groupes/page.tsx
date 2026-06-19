@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase-server'
+import { getGroupMatches } from '@/lib/queries'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
 import { translateTeam } from '@/lib/i18n'
@@ -122,15 +122,7 @@ export default async function GroupesPage() {
   const lang: Lang = rawLang === 'fr' || rawLang === 'en' ? rawLang : 'fr'
   const t = T[lang]
 
-  const supabase = await createClient()
-
-  const { data: matches } = await supabase
-    .from('matches')
-    .select('*')
-    .eq('stage', 'group')
-    .order('match_date', { ascending: true })
-
-  const allMatches = (matches ?? []) as Match[]
+  const allMatches = await getGroupMatches()
 
   if (allMatches.length === 0) {
     return (

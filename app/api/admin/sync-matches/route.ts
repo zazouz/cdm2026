@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { computePoints } from '@/lib/scoring'
 import { getFlag } from '@/lib/flags'
@@ -240,6 +241,10 @@ export async function POST(req: NextRequest) {
 
   // ─── Phase 5 : auto-fetch des cotes si phase suivante débloquée ─────────
   const oddsAutoFetched = await autoFetchOddsIfNeeded(supabase)
+
+  // Matchs/scores/cotes ont pu changer : invalide les données impersonnelles cachées.
+  revalidateTag('matches', 'max')
+  revalidateTag('scores', 'max')
 
   console.log('[CDM2026][sync] done', { created, updated, pointsCalculated, afProcessed, oddsAutoFetched })
   return NextResponse.json({ ok: true, created, updated, pointsCalculated, afProcessed, oddsAutoFetched })

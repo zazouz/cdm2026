@@ -1,7 +1,6 @@
-import { createClient } from '@/lib/supabase-server'
+import { getAuthUser, getLeaderboard } from '@/lib/queries'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
-import type { LeaderboardEntry } from '@/lib/types'
 import LeaderboardTable from './LeaderboardTable'
 
 export const dynamic = 'force-dynamic'
@@ -41,14 +40,10 @@ export default async function LeaderboardPage() {
   const lang: Lang = rawLang === 'fr' || rawLang === 'en' ? rawLang : 'fr'
   const t = T[lang]
 
-  const supabase = await createClient()
-
-  const [{ data: entries }, { data: { user } }] = await Promise.all([
-    supabase.from('leaderboard').select('*').order('total_points', { ascending: false }).order('exact_scores', { ascending: false }).order('correct_results', { ascending: false }).order('username', { ascending: true }),
-    supabase.auth.getUser(),
+  const [rows, user] = await Promise.all([
+    getLeaderboard(),
+    getAuthUser(),
   ])
-
-  const rows = (entries ?? []) as LeaderboardEntry[]
 
   if (rows.length === 0) {
     return (

@@ -1,9 +1,10 @@
-import { createAdminClient, createClient } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/supabase-server'
+import { getAuthUser, getAllMatches, getNonAdminUsers } from '@/lib/queries'
 import { cookies } from 'next/headers'
 import type { Lang } from '@/lib/i18n'
-import type { Match, Prediction } from '@/lib/types'
-import { type UserRow, type PredEntry } from './MatchPronosCard'
-import PronosList, { type PronoItem } from './PronosList'
+import type { Prediction } from '@/lib/types'
+import { type UserRow } from './MatchPronosCard'
+import PronosList from './PronosList'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ async function fetchAllPredictions(
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await admin
       .from('predictions')
-      .select('*')
+      .select('user_id, match_id, predicted_home, predicted_away, points_earned')
       .in('match_id', matchIds)
       .order('id', { ascending: true })
       .range(from, from + PAGE - 1)
@@ -41,54 +42,42 @@ export default async function LesPronos() {
   const rawLang = cookieStore.get('prono_lang')?.value
   const lang: Lang = rawLang === 'fr' || rawLang === 'en' ? rawLang : 'fr'
 
-  const supabase = await createClient()
   const admin = createAdminClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) return null
 
-  const lockCutoff = new Date(Date.now() + LOCK_MS).toISOString()
+  const lockCutoff = Date.now() + LOCK_MS
 
-  const [{ data: matchesData }, { data: usersData }] = await Promise.all([
-    admin.from('matches').select('*').lte('match_date', lockCutoff).order('match_date', { ascending: false }),
-    admin.from('users').select('id, first_name, last_name, username').eq('is_admin', false),
+  const [allMatches, usersData] = await Promise.all([
+    getAllMatches(),
+    getNonAdminUsers(),
   ])
 
-  const matches = (matchesData ?? []) as Match[]
-  const users = (usersData ?? []) as UserRow[]
+  // Matchs verrouillés (coup d'envoi - 15 min déjà passé), du plus récent au plus ancien.
+  const matches = allMatches
+    .filter(m => new Date(m.match_date).getTime() <= lockCutoff)
+    .sort((a, b) => new Date(b.match_date).getTime() - new Date(a.match_date).getTime())
+  const users = usersData as UserRow[]
 
   const matchIds = matches.map(m => m.id)
-  const predsData = await fetchAllPredictions(admin, matchIds)
+  const preds = await fetchAllPredictions(admin, matchIds)
 
-  // matchId → userId → prediction
-  const predMap = new Map<number, Map<string, Prediction>>()
-  for (const p of predsData) {
-    if (!predMap.has(p.match_id)) predMap.set(p.match_id, new Map())
-    predMap.get(p.match_id)!.set(p.user_id, p)
+  // matchId → userId → prono (pronos réels uniquement). Le tri et les entrées
+  // « sans prono » sont reconstruits côté client pour ne transmettre la liste
+  // des joueurs qu'une seule fois au lieu de la dupliquer pour chaque match.
+  const predsByMatch: Record<number, Record<string, Prediction>> = {}
+  for (const p of preds) {
+    (predsByMatch[p.match_id] ??= {})[p.user_id] = p
   }
 
-  const items: PronoItem[] = matches.map(m => {
-    const matchPreds = predMap.get(m.id) ?? new Map<string, Prediction>()
-    const isFinished = m.status === 'finished'
-
-    // Sort: current user first, then by points desc (if finished), then alphabetically
-    const entries: PredEntry[] = [...users]
-      .sort((a, b) => {
-        if (a.id === user.id) return -1
-        if (b.id === user.id) return 1
-        const pa = matchPreds.get(a.id)
-        const pb = matchPreds.get(b.id)
-        if (pa && !pb) return -1
-        if (!pa && pb) return 1
-        if (pa && pb && isFinished) return (pb.points_earned ?? 0) - (pa.points_earned ?? 0)
-        const nameA = `${a.first_name ?? ''} ${a.last_name ?? ''}`.trim()
-        const nameB = `${b.first_name ?? ''} ${b.last_name ?? ''}`.trim()
-        return nameA.localeCompare(nameB)
-      })
-      .map(u => ({ user: u, pred: matchPreds.get(u.id) ?? null }))
-
-    return { match: m, entries }
-  })
-
-  return <PronosList items={items} currentUserId={user.id} lang={lang} />
+  return (
+    <PronosList
+      matches={matches}
+      users={users}
+      predsByMatch={predsByMatch}
+      currentUserId={user.id}
+      lang={lang}
+    />
+  )
 }
