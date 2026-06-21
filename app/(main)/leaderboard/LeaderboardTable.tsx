@@ -75,6 +75,7 @@ export default function LeaderboardTable({
           <Link
             key={entry.id}
             href={`/leaderboard/${entry.id}`}
+            prefetch={false}
             className={`flex items-center gap-2 border-b border-gray-800/50 px-4 py-3 last:border-0 transition-colors ${
               isMe ? 'bg-green-950/20 hover:bg-green-950/30' : 'hover:bg-gray-800/40'
             }`}
