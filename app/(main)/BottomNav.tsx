@@ -26,6 +26,7 @@ export default function BottomNav({ isAdmin }: { isAdmin: boolean }) {
           <Link
             key={tab.href}
             href={tab.href}
+            prefetch={false}
             className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2.5"
           >
             <span className={`text-xl leading-none transition-opacity ${active ? 'opacity-100' : 'opacity-40'}`}>

@@ -45,7 +45,7 @@ export const getAllMatches = unstable_cache(
     return (data ?? []) as Match[]
   },
   ['all-matches'],
-  { tags: ['matches'], revalidate: 30 },
+  { tags: ['matches'], revalidate: 300 },
 )
 
 export const getGroupMatches = unstable_cache(
@@ -59,7 +59,7 @@ export const getGroupMatches = unstable_cache(
     return (data ?? []) as Match[]
   },
   ['group-matches'],
-  { tags: ['matches'], revalidate: 30 },
+  { tags: ['matches'], revalidate: 300 },
 )
 
 export const getLeaderboard = unstable_cache(
@@ -75,7 +75,7 @@ export const getLeaderboard = unstable_cache(
     return (data ?? []) as LeaderboardEntry[]
   },
   ['leaderboard'],
-  { tags: ['scores'], revalidate: 30 },
+  { tags: ['scores'], revalidate: 300 },
 )
 
 export const getNonAdminUsers = unstable_cache(
