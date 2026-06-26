@@ -409,7 +409,7 @@ async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createA
   }
 
   // Groupes : fetch si on est à moins de 14 jours du premier match
-  const firstMatchDate = needsOdds
+  const firstMatchDate = (needsOdds ?? [])
     .filter(m => m.stage === 'group')
     .map(m => new Date(m.match_date).getTime())
     .sort()[0]
