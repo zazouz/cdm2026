@@ -109,7 +109,7 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
     new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
   )
 
-  const isKnockoutPhase = matches.some(m => !['group', 'r32'].includes(m.stage))
+  const isKnockoutPhase = matches.some(m => m.stage !== 'group')
   const [knockoutBannerDismissed, setKnockoutBannerDismissed] = useState(true)
   useEffect(() => {
     setKnockoutBannerDismissed(localStorage.getItem('knockout_banner_dismissed') === '1')
