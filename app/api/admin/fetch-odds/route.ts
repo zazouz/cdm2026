@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { canonicalTeam, normalizeTeam } from '@/lib/teams'
+import { getFlag } from '@/lib/flags'
 
 async function isAdmin(): Promise<boolean> {
   const supabase = await createClient()
@@ -55,23 +56,73 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = await createAdminClient()
-  const { data: matches } = await supabase
+
+  // Matchs sans côtes avec noms connus
+  const { data: namedMatches } = await supabase
     .from('matches')
     .select('*')
     .is('home_odds', null)
     .eq('status', 'scheduled')
+    .not('home_team', 'ilike', '%TBD%')
+    .not('away_team', 'ilike', '%TBD%')
 
-  if (!matches || matches.length === 0) {
+  // Matchs TBD : résolution par horaire quel que soit le statut des côtes
+  const { data: tbdMatches } = await supabase
+    .from('matches')
+    .select('id, match_date, home_odds')
+    .or('home_team.eq.TBD,away_team.eq.TBD')
+    .eq('status', 'scheduled')
+
+  if ((!namedMatches || namedMatches.length === 0) && (!tbdMatches || tbdMatches.length === 0)) {
     return NextResponse.json({ ok: true, updated: 0 })
   }
 
-  // Un seul appel API pour tous les matchs — 1 crédit quelle que soit la quantité
+  // Un seul appel API — 1 crédit quelle que soit la quantité
   const { events, error: oddsError } = await fetchAllOddsEvents()
   if (!events) return NextResponse.json({ error: oddsError ?? 'Erreur The Odds API' }, { status: 502 })
 
   let updated = 0
   const notFound: string[] = []
-  for (const match of matches) {
+  const normalize = normalizeTeam
+  const ONE_HOUR_MS = 60 * 60 * 1000
+
+  // ── Résolution TBD par horaire (±1h) ───────────────────────────────────
+  for (const tbd of (tbdMatches ?? [])) {
+    const tbdTime = new Date(tbd.match_date).getTime()
+    const event = events.find(e => Math.abs(new Date(e.commence_time).getTime() - tbdTime) < ONE_HOUR_MS)
+    if (!event) { notFound.push(`TBD vs TBD (${tbd.match_date.slice(0, 10)})`); continue }
+
+    const bookmaker =
+      event.bookmakers.find(b => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
+      ?? event.bookmakers.find(b => b.markets.some(m => m.key === 'h2h'))
+    if (!bookmaker) continue
+    const h2h = bookmaker.markets.find(m => m.key === 'h2h')
+    if (!h2h) continue
+    const homeOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.home_team))?.price
+    const awayOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.away_team))?.price
+    const drawOdds = h2h.outcomes.find(o => o.name === 'Draw')?.price
+    if (!homeOdds || !awayOdds || !drawOdds) continue
+
+    // Noms + bookmaker toujours mis à jour ; côtes seulement si pas encore posées
+    const oddsAlreadySet = tbd.home_odds != null
+    await supabase.from('matches').update({
+      home_team: event.home_team,
+      away_team: event.away_team,
+      home_flag: getFlag(event.home_team),
+      away_flag: getFlag(event.away_team),
+      odds_bookmaker: bookmaker.key,
+      ...(oddsAlreadySet ? {} : {
+        home_odds: Math.round(homeOdds * 100) / 100,
+        draw_odds: Math.round(drawOdds * 100) / 100,
+        away_odds: Math.round(awayOdds * 100) / 100,
+        odds_fetched_at: new Date().toISOString(),
+      }),
+    }).eq('id', tbd.id)
+    updated++
+  }
+
+  // ── Matchs nommés sans côtes : matching par nom ─────────────────────────
+  for (const match of (namedMatches ?? [])) {
     const odds = matchEvent(events, match.home_team, match.away_team, match.match_date)
     if (odds) {
       await supabase.from('matches').update({
@@ -79,6 +130,7 @@ export async function POST(req: NextRequest) {
         draw_odds: odds.draw,
         away_odds: odds.away,
         odds_fetched_at: new Date().toISOString(),
+        odds_bookmaker: odds.bookmaker,
       }).eq('id', match.id)
       updated++
     } else {
