@@ -21,7 +21,6 @@ const T = {
     result: 'résultat',
     bet: 'Prono',
     noBet: 'Pas de prono',
-    group: (n: string) => `Groupe ${n}`,
   },
   en: {
     back: '← Standings',
@@ -34,7 +33,6 @@ const T = {
     result: 'result',
     bet: 'Bet',
     noBet: 'No bet',
-    group: (n: string) => `Group ${n}`,
   },
 }
 
@@ -54,7 +52,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
   const [{ data: profile }, { data: allEntries }, { data: finishedMatches }] = await Promise.all([
     admin.from('users').select('*').eq('id', userId).single(),
     admin.from('leaderboard').select('id').order('total_points', { ascending: false }),
-    admin.from('matches').select('*').eq('status', 'finished').order('match_date', { ascending: true }),
+    admin.from('matches').select('*').eq('status', 'finished').order('match_date', { ascending: false }),
   ])
 
   if (!profile) notFound()
@@ -68,10 +66,6 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
     : { data: [] }
 
   const predByMatchId = new Map((rawPredictions ?? []).map((p: Prediction) => [p.match_id, p]))
-
-  const sortedMatches = [...matches].sort((a, b) =>
-    new Date(b.match_date).getTime() - new Date(a.match_date).getTime()
-  )
 
   const totalPoints = matches.reduce((sum, m) => {
     const p = predByMatchId.get(m.id)
@@ -146,7 +140,7 @@ export default async function UserPredictionsPage({ params }: { params: Promise<
         </div>
       ) : (
         <div className="space-y-2">
-          {sortedMatches.map(m => {
+          {matches.map(m => {
             const p = predByMatchId.get(m.id) ?? null
             const isExact = p !== null && m.home_score !== null &&
               p.predicted_home === m.home_score && p.predicted_away === m.away_score

@@ -137,6 +137,7 @@ export const STAGE_LABELS: Record<string, { fr: string; en: string }> = {
   r16: { fr: 'Huitièmes de finale', en: 'Round of 16' },
   qf: { fr: 'Quarts de finale', en: 'Quarter-finals' },
   sf: { fr: 'Demi-finales', en: 'Semi-finals' },
+  third: { fr: 'Match pour la 3e place', en: 'Third-place match' },
   final: { fr: 'Finale', en: 'Final' },
 }
 

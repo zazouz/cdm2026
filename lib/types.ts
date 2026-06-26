@@ -15,7 +15,7 @@ export type Match = {
   home_flag: string | null
   away_flag: string | null
   match_date: string
-  stage: 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'final'
+  stage: 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'third' | 'final'
   group_name: string | null
   venue: string | null
   home_odds: number | null
@@ -81,5 +81,6 @@ export const STAGE_LABELS: Record<string, string> = {
   r16: 'Huitièmes de finale',
   qf: 'Quarts de finale',
   sf: 'Demi-finales',
+  third: 'Match pour la 3e place',
   final: 'Finale',
 }

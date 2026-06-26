@@ -13,6 +13,7 @@ const STAGE_CHAIN: Record<string, string | null> = {
   r16: 'r32',
   qf: 'r16',
   sf: 'qf',
+  third: 'sf',
   final: 'sf',
 }
 

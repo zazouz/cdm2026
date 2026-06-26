@@ -14,8 +14,7 @@ async function isAdmin(): Promise<boolean> {
   return data?.is_admin ?? false
 }
 
-const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
-const ODDS_AUTO_FETCH_DELAY_HOURS = 2
+const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final']
 // Délai avant de tenter l'API-Football : 2h15 après le coup d'envoi
 const AF_FALLBACK_DELAY_MS = (2 * 60 + 15) * 60 * 1000
 
@@ -369,7 +368,10 @@ function findAFMatch(fixtures: AFFixture[], homeTeam: string, awayTeam: string, 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Auto-fetch des cotes : 2h après la fin du tour précédent
+// Auto-fetch des cotes : au plus une fois toutes les 4h (quota 500/mois)
+// Le sync tourne toutes les 30min — on n'appelle The Odds API que lors des
+// syncs tombant dans la première demi-heure d'un bloc de 4h UTC (0h,4h,8h…)
+// → max 6 appels/jour × 30 jours = 180 crédits sur les tours à élimination.
 // ─────────────────────────────────────────────────────────────────────────────
 async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createAdminClient>>): Promise<string | null> {
   const oddsApiKey = process.env.ODDS_API_KEY
@@ -388,34 +390,23 @@ async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createA
   const stagesNeedingOdds = [...new Set(needsOdds.map(m => m.stage))]
     .sort((a, b) => STAGE_ORDER.indexOf(a) - STAGE_ORDER.indexOf(b))
 
-  for (const stage of stagesNeedingOdds) {
-    const stageIdx = STAGE_ORDER.indexOf(stage)
+  // Hors phase de groupes : dès qu'un match a des équipes connues sans côtes, on tente le fetch.
+  // L'API retourne ce qui est dispo ; si rien n'est encore publié elle répond vide.
+  if (stagesNeedingOdds.some(s => s !== 'group')) {
+    // Throttle : uniquement dans la première demi-heure d'un bloc de 4h UTC
+    const now = new Date()
+    const inFetchWindow = now.getUTCHours() % 4 === 0 && now.getUTCMinutes() < 30
+    if (!inFetchWindow) return 'odds_throttled'
+    return await triggerOddsFetch(supabase)
+  }
 
-    if (stageIdx === 0) {
-      // Groupes : fetch si on est à moins de 14 jours du premier match
-      const firstMatchDate = needsOdds
-        .filter(m => m.stage === 'group')
-        .map(m => new Date(m.match_date).getTime())
-        .sort()[0]
-      if ((firstMatchDate - Date.now()) / (1000 * 60 * 60 * 24) <= 14) {
-        return await triggerOddsFetch(supabase)
-      }
-    } else {
-      const previousStage = STAGE_ORDER[stageIdx - 1]
-      const { data: prevMatches } = await supabase
-        .from('matches')
-        .select('status, match_date')
-        .eq('stage', previousStage)
-
-      if (!prevMatches?.length || !prevMatches.every(m => m.status === 'finished')) continue
-
-      const lastMatchTime = Math.max(...prevMatches.map(m => new Date(m.match_date).getTime()))
-      const hoursSinceLast = (Date.now() - lastMatchTime) / (1000 * 60 * 60)
-
-      if (hoursSinceLast >= ODDS_AUTO_FETCH_DELAY_HOURS) {
-        return await triggerOddsFetch(supabase)
-      }
-    }
+  // Groupes : fetch si on est à moins de 14 jours du premier match
+  const firstMatchDate = needsOdds
+    .filter(m => m.stage === 'group')
+    .map(m => new Date(m.match_date).getTime())
+    .sort()[0]
+  if ((firstMatchDate - Date.now()) / (1000 * 60 * 60 * 24) <= 14) {
+    return await triggerOddsFetch(supabase)
   }
 
   return null
@@ -431,6 +422,50 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   const events = await eu.json() as OddsApiEvent[]
   if (!events.some(e => e.bookmakers.length > 0)) return 'no_odds_available'
 
+  const canon = canonicalTeam
+  const normalize = normalizeTeam
+  const DAY_MS = 2 * 24 * 60 * 60 * 1000
+  let updatedOdds = 0
+
+  // ── Matchs TBD : correspondance par horaire exact ───────────────────────
+  // Football-data est parfois en retard sur les noms d'équipes à élimination
+  // directe. On récupère équipes + côtes depuis The Odds API en matchant sur
+  // l'heure FIFA exacte (±1h) déjà connue en base.
+  const { data: tbdMatches } = await supabase
+    .from('matches')
+    .select('id, match_date')
+    .eq('home_team', 'TBD')
+    .eq('status', 'scheduled')
+
+  const ONE_HOUR_MS = 60 * 60 * 1000
+  for (const tbd of (tbdMatches ?? [])) {
+    const tbdTime = new Date(tbd.match_date).getTime()
+    const event = events.find(e => Math.abs(new Date(e.commence_time).getTime() - tbdTime) < ONE_HOUR_MS)
+    if (!event) continue
+    const bookmaker =
+      event.bookmakers.find((b: BookmakerEntry) => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
+      ?? event.bookmakers.find((b: BookmakerEntry) => b.markets.some(m => m.key === 'h2h'))
+    if (!bookmaker) continue
+    const h2h = bookmaker.markets.find(m => m.key === 'h2h')
+    if (!h2h) continue
+    const homeOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.home_team))?.price
+    const awayOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.away_team))?.price
+    const drawOdds = h2h.outcomes.find(o => o.name === 'Draw')?.price
+    if (!homeOdds || !awayOdds || !drawOdds) continue
+    await supabase.from('matches').update({
+      home_team: event.home_team,
+      away_team: event.away_team,
+      home_flag: getFlag(event.home_team),
+      away_flag: getFlag(event.away_team),
+      home_odds: Math.round(homeOdds * 100) / 100,
+      draw_odds: Math.round(drawOdds * 100) / 100,
+      away_odds: Math.round(awayOdds * 100) / 100,
+      odds_fetched_at: new Date().toISOString(),
+      odds_bookmaker: bookmaker.key,
+    }).eq('id', tbd.id)
+    updatedOdds++
+  }
+
   const { data: matchesWithoutOdds } = await supabase
     .from('matches')
     .select('id, home_team, away_team, match_date')
@@ -439,12 +474,7 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
     .not('home_team', 'ilike', '%TBD%')
     .not('away_team', 'ilike', '%TBD%')
 
-  if (!matchesWithoutOdds) return 'no_matches'
-
-  const canon = canonicalTeam
-  const normalize = normalizeTeam
-  const DAY_MS = 2 * 24 * 60 * 60 * 1000
-  let updatedOdds = 0
+  if (!matchesWithoutOdds) return `fetched_${updatedOdds}_odds`
 
   for (const match of matchesWithoutOdds) {
     const homeNorm = canon(match.home_team)
@@ -492,7 +522,7 @@ function mapStage(fdStage: string): string {
     ROUND_OF_16: 'r16', LAST_16: 'r16',
     QUARTER_FINAL: 'qf', QUARTER_FINALS: 'qf',
     SEMI_FINAL: 'sf', SEMI_FINALS: 'sf',
-    THIRD_PLACE: 'final', FINAL: 'final',
+    THIRD_PLACE: 'third', FINAL: 'final',
   }
   return map[fdStage] ?? 'group'
 }
