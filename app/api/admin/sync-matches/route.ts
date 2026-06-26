@@ -377,22 +377,30 @@ async function autoFetchOddsIfNeeded(supabase: Awaited<ReturnType<typeof createA
   const oddsApiKey = process.env.ODDS_API_KEY
   if (!oddsApiKey) return null
 
-  const { data: needsOdds } = await supabase
-    .from('matches')
-    .select('id, stage, match_date, home_team, away_team')
-    .is('home_odds', null)
-    .eq('status', 'scheduled')
-    .not('home_team', 'ilike', '%TBD%')
-    .not('away_team', 'ilike', '%TBD%')
+  const [{ data: needsOdds }, { data: tbdScheduled }] = await Promise.all([
+    supabase
+      .from('matches')
+      .select('id, stage, match_date, home_team, away_team')
+      .is('home_odds', null)
+      .eq('status', 'scheduled')
+      .not('home_team', 'ilike', '%TBD%')
+      .not('away_team', 'ilike', '%TBD%'),
+    supabase
+      .from('matches')
+      .select('id')
+      .or('home_team.eq.TBD,away_team.eq.TBD')
+      .eq('status', 'scheduled'),
+  ])
 
-  if (!needsOdds || needsOdds.length === 0) return null
+  const hasTbd = tbdScheduled && tbdScheduled.length > 0
 
-  const stagesNeedingOdds = [...new Set(needsOdds.map(m => m.stage))]
+  if ((!needsOdds || needsOdds.length === 0) && !hasTbd) return null
+
+  const stagesNeedingOdds = [...new Set((needsOdds ?? []).map(m => m.stage))]
     .sort((a, b) => STAGE_ORDER.indexOf(a) - STAGE_ORDER.indexOf(b))
 
-  // Hors phase de groupes : dès qu'un match a des équipes connues sans côtes, on tente le fetch.
-  // L'API retourne ce qui est dispo ; si rien n'est encore publié elle répond vide.
-  if (stagesNeedingOdds.some(s => s !== 'group')) {
+  // Hors phase de groupes (ou matchs TBD à résoudre) : throttle 4h UTC
+  if (stagesNeedingOdds.some(s => s !== 'group') || hasTbd) {
     // Throttle : uniquement dans la première demi-heure d'un bloc de 4h UTC
     const now = new Date()
     const inFetchWindow = now.getUTCHours() % 4 === 0 && now.getUTCMinutes() < 30
@@ -434,7 +442,7 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   const { data: tbdMatches } = await supabase
     .from('matches')
     .select('id, match_date')
-    .eq('home_team', 'TBD')
+    .or('home_team.eq.TBD,away_team.eq.TBD')
     .eq('status', 'scheduled')
 
   const ONE_HOUR_MS = 60 * 60 * 1000
