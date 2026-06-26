@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     const { data: existing } = await supabase
       .from('matches')
-      .select('id, status, home_score, away_score, home_team, away_team, home_flag, away_flag, stage, match_date, score_source, score_confirmed, score_needs_review, api_football_fixture_id')
+      .select('id, status, home_score, away_score, home_team, away_team, home_flag, away_flag, stage, match_date, score_source, score_confirmed, score_needs_review, api_football_fixture_id, odds_bookmaker')
       .eq('fd_match_id', fdMatch.id)
       .maybeSingle()
 
@@ -98,11 +98,20 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    const teamsChanged = existing.home_team !== homeTeam || existing.away_team !== awayTeam
-    const wrongFlag = existing.home_flag !== getFlag(homeTeam) || existing.away_flag !== getFlag(awayTeam)
+    // The Odds API est authoritative sur les noms en phase éliminatoire (odds_bookmaker positionné).
+    // En phase de groupes football-data reste authoritative (noms connus dès le tirage).
+    // Dans tous les cas : jamais rétrograder un vrai nom en TBD.
+    const oddsOwnsElim = existing.stage !== 'group' && !!existing.odds_bookmaker
+    const effectiveHome = existing.home_team && existing.home_team !== 'TBD' && (homeTeam === 'TBD' || oddsOwnsElim)
+      ? existing.home_team : homeTeam
+    const effectiveAway = existing.away_team && existing.away_team !== 'TBD' && (awayTeam === 'TBD' || oddsOwnsElim)
+      ? existing.away_team : awayTeam
+
+    const teamsChanged = existing.home_team !== effectiveHome || existing.away_team !== effectiveAway
+    const wrongFlag = existing.home_flag !== getFlag(effectiveHome) || existing.away_flag !== getFlag(effectiveAway)
     const wrongStage = existing.stage !== stage
     const metaChanged = teamsChanged || wrongFlag || wrongStage
-    const metaUpdate = metaChanged ? { home_team: homeTeam, away_team: awayTeam, home_flag: getFlag(homeTeam), away_flag: getFlag(awayTeam), stage } : {}
+    const metaUpdate = metaChanged ? { home_team: effectiveHome, away_team: effectiveAway, home_flag: getFlag(effectiveHome), away_flag: getFlag(effectiveAway), stage } : {}
 
     // Ne jamais toucher au score si source manuelle
     if (existing.score_source === 'manual') {
@@ -441,7 +450,7 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
   // l'heure FIFA exacte (±1h) déjà connue en base.
   const { data: tbdMatches } = await supabase
     .from('matches')
-    .select('id, match_date')
+    .select('id, match_date, home_odds')
     .or('home_team.eq.TBD,away_team.eq.TBD')
     .eq('status', 'scheduled')
 
@@ -460,16 +469,21 @@ async function triggerOddsFetch(supabase: Awaited<ReturnType<typeof createAdminC
     const awayOdds = h2h.outcomes.find(o => normalize(o.name) === normalize(event.away_team))?.price
     const drawOdds = h2h.outcomes.find(o => o.name === 'Draw')?.price
     if (!homeOdds || !awayOdds || !drawOdds) continue
+    // Les côtes ne s'écrasent jamais une fois posées ; les noms d'équipes, si (résolution TBD).
+    // odds_bookmaker est toujours mis à jour : c'est le signal que The Odds API a résolu ce match.
+    const oddsAlreadySet = tbd.home_odds != null
     await supabase.from('matches').update({
       home_team: event.home_team,
       away_team: event.away_team,
       home_flag: getFlag(event.home_team),
       away_flag: getFlag(event.away_team),
-      home_odds: Math.round(homeOdds * 100) / 100,
-      draw_odds: Math.round(drawOdds * 100) / 100,
-      away_odds: Math.round(awayOdds * 100) / 100,
-      odds_fetched_at: new Date().toISOString(),
       odds_bookmaker: bookmaker.key,
+      ...(oddsAlreadySet ? {} : {
+        home_odds: Math.round(homeOdds * 100) / 100,
+        draw_odds: Math.round(drawOdds * 100) / 100,
+        away_odds: Math.round(awayOdds * 100) / 100,
+        odds_fetched_at: new Date().toISOString(),
+      }),
     }).eq('id', tbd.id)
     updatedOdds++
   }
