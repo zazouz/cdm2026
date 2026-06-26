@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Match, PredictionWithMatch } from '@/lib/types'
 import { useLanguage } from '../LanguageProvider'
@@ -109,6 +109,16 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
     new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
   )
 
+  const isKnockoutPhase = matches.some(m => !['group', 'r32'].includes(m.stage))
+  const [knockoutBannerDismissed, setKnockoutBannerDismissed] = useState(true)
+  useEffect(() => {
+    setKnockoutBannerDismissed(localStorage.getItem('knockout_banner_dismissed') === '1')
+  }, [])
+  function dismissKnockoutBanner() {
+    localStorage.setItem('knockout_banner_dismissed', '1')
+    setKnockoutBannerDismissed(true)
+  }
+
   const saveButton = null
 
   const showFloating = unlockedMatches.length > 0 && (dirtyCount > 0 || saving || lastSaved !== null)
@@ -162,6 +172,28 @@ export default function MatchesList({ matches, predictionByMatch, userId }: Prop
           </button>
         </div>
       </div>
+
+      {isKnockoutPhase && !knockoutBannerDismissed && (
+        <div className="rounded-xl border border-amber-700/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-200/80">
+          <div className="flex items-start justify-between gap-3">
+            <p>
+              <span className="font-semibold text-amber-200">
+                {lang === 'fr' ? 'Phase à élimination directe' : 'Knockout stage'}
+              </span>
+              {lang === 'fr'
+                ? ' — on pronostique le score à la fin du temps réglementaire (90 min). Un match nul est possible. Le temps additionnel et les tirs au but ne comptent pas.'
+                : ' — predict the score at the end of regular time (90 min). A draw is possible. Extra time and penalties don\'t count.'}
+            </p>
+            <button
+              onClick={dismissKnockoutBanner}
+              className="shrink-0 text-amber-500 hover:text-amber-300 transition-colors leading-none mt-0.5"
+              aria-label={lang === 'fr' ? 'Fermer' : 'Dismiss'}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {view === 'chrono' ? (
         <ChronoView
