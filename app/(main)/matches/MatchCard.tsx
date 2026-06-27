@@ -85,7 +85,7 @@ export default function MatchCard({ match, prediction, home, away, onScoreChange
 
   const groupColorClass = match.stage === 'group' && match.group_name
     ? (GROUP_COLORS[match.group_name] ?? 'bg-gray-800 text-gray-500')
-    : 'bg-gray-800 text-gray-500'
+    : 'bg-gray-700 text-white'
 
   const groupBorderClass = match.stage === 'group' && match.group_name
     ? (GROUP_BORDER[match.group_name] ?? '')
