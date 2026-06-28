@@ -138,9 +138,66 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  console.log('[CDM2026][fetch-odds] POST done', { updated, notFound: notFound.length })
+  // ── Création de matchs manquants depuis The Odds API ──────────────────
+  // Si The Odds API connaît un match introuvable en base (±1h), on le crée
+  // et on y attache directement les côtes.
+  const { data: allScheduled } = await supabase
+    .from('matches')
+    .select('id, match_date, stage')
+    .eq('status', 'scheduled')
+
+  let createdFromOdds = 0
+  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000
+
+  for (const event of events) {
+    const eventTime = new Date(event.commence_time).getTime()
+    const exists = (allScheduled ?? []).some(m =>
+      Math.abs(new Date(m.match_date).getTime() - eventTime) < ONE_HOUR_MS
+    )
+    if (exists) continue
+
+    // Inférer le stage depuis les matchs DB proches en date (±3 jours)
+    const nearby = (allScheduled ?? []).filter(m =>
+      Math.abs(new Date(m.match_date).getTime() - eventTime) < THREE_DAYS_MS
+    )
+    if (nearby.length === 0) continue
+
+    const stageCounts = nearby.reduce((acc, m) => {
+      acc[m.stage] = (acc[m.stage] ?? 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    const inferredStage = Object.entries(stageCounts).sort((a, b) => b[1] - a[1])[0][0]
+
+    const bookmaker =
+      event.bookmakers.find(b => b.key === 'betclic_fr' && b.markets.some(m => m.key === 'h2h'))
+      ?? event.bookmakers.find(b => b.markets.some(m => m.key === 'h2h'))
+    const h2h = bookmaker?.markets.find(m => m.key === 'h2h')
+    const homeOdds = h2h?.outcomes.find(o => normalize(o.name) === normalize(event.home_team))?.price
+    const awayOdds = h2h?.outcomes.find(o => normalize(o.name) === normalize(event.away_team))?.price
+    const drawOdds = h2h?.outcomes.find(o => o.name === 'Draw')?.price
+
+    await supabase.from('matches').insert({
+      home_team: event.home_team,
+      away_team: event.away_team,
+      home_flag: getFlag(event.home_team),
+      away_flag: getFlag(event.away_team),
+      match_date: event.commence_time,
+      stage: inferredStage,
+      status: 'scheduled',
+      ...(homeOdds && awayOdds && drawOdds && bookmaker ? {
+        home_odds: Math.round(homeOdds * 100) / 100,
+        draw_odds: Math.round(drawOdds * 100) / 100,
+        away_odds: Math.round(awayOdds * 100) / 100,
+        odds_fetched_at: new Date().toISOString(),
+        odds_bookmaker: bookmaker.key,
+      } : {}),
+    })
+    createdFromOdds++
+  }
+
+  console.log('[CDM2026][fetch-odds] POST done', { updated, createdFromOdds, notFound: notFound.length })
   const availableInApi = events.map(e => `${e.home_team} vs ${e.away_team}`)
-  return NextResponse.json({ ok: true, updated, notFound, availableInApi })
+  return NextResponse.json({ ok: true, updated, createdFromOdds, notFound, availableInApi })
 }
 
 async function fetchAllOddsEvents(): Promise<{ events: OddsApiEvent[] | null; error?: string; quotaRemaining?: string; quotaUsed?: string }> {
