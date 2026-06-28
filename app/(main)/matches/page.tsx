@@ -10,20 +10,22 @@ export const dynamic = 'force-dynamic'
 const STAGE_CHAIN: Record<string, string | null> = {
   r32: null,
   group: null,
-  r16: 'r32',
-  qf: 'r16',
-  sf: 'qf',
+  r16: null,
+  qf: 'r32',
+  sf: 'r16',
   third: 'sf',
-  final: 'sf',
+  final: 'qf',
 }
 
-function isStageVisible(stage: string, allMatches: Match[], now: Date): boolean {
+function isStageVisible(stage: string, allMatches: Match[]): boolean {
   const prevStage = STAGE_CHAIN[stage] ?? null
   if (!prevStage) return true
   const prevMatches = allMatches.filter(m => m.stage === prevStage)
   if (prevMatches.length === 0) return false
-  const lastDate = Math.max(...prevMatches.map(m => new Date(m.match_date).getTime()))
-  return lastDate <= now.getTime()
+  const lastMatch = prevMatches.reduce((a, b) =>
+    new Date(a.match_date) > new Date(b.match_date) ? a : b
+  )
+  return lastMatch.status === 'finished'
 }
 
 const T = {
@@ -70,7 +72,7 @@ export default async function MatchesPage() {
   const LOCK_MS = 15 * 60 * 1000
 
   const matches = allMatches.filter(match => {
-    if (!isStageVisible(match.stage, allMatches, now)) return false
+    if (!isStageVisible(match.stage, allMatches)) return false
     return new Date(match.match_date).getTime() - LOCK_MS > now.getTime()
   })
 
