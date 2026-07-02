@@ -143,7 +143,29 @@ export async function POST(req: NextRequest) {
       }
 
       if (existing.status === 'finished' && existing.score_confirmed) {
-        // Déjà confirmé par football-data, juste mise à jour méta si besoin
+        // Score déjà confirmé par football-data.
+        // Exception : si football-data indique maintenant une durée non-REGULAR (prolongations/tirs)
+        // avec un regularTime différent du score stocké, le score stocké vient probablement d'un
+        // snapshot live incorrect (football-data publie parfois FINISHED+REGULAR avant de corriger).
+        const confirmedWasLive = existing.score_source === 'football_data'
+          && fdMatch.score.duration !== 'REGULAR'
+          && rtScore !== null
+          && (existing.home_score !== rtScore.home || existing.away_score !== rtScore.away)
+        if (confirmedWasLive) {
+          const reviewReason = `Score confirmé ${existing.home_score}-${existing.away_score} mais football-data indique maintenant ${rtScore.home}-${rtScore.away} avec duration=${fdMatch.score.duration}`
+          await supabase.from('matches').update({
+            ...metaUpdate,
+            score_needs_review: true,
+            score_review_reason: reviewReason,
+          }).eq('id', existing.id)
+          await supabase.from('predictions').update({
+            points_earned: null,
+            calculated_at: null,
+          }).eq('match_id', existing.id)
+          console.warn('[CDM2026][sync] CONFIRMED-SCORE-DRIFT — points reset', { matchId: existing.id, reviewReason })
+          updated++
+          continue
+        }
         if (metaChanged) {
           await supabase.from('matches').update(metaUpdate).eq('id', existing.id)
           updated++
