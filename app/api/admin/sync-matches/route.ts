@@ -152,17 +152,29 @@ export async function POST(req: NextRequest) {
           && rtScore !== null
           && (existing.home_score !== rtScore.home || existing.away_score !== rtScore.away)
         if (confirmedWasLive) {
-          const reviewReason = `Score confirmé ${existing.home_score}-${existing.away_score} mais football-data indique maintenant ${rtScore.home}-${rtScore.away} avec duration=${fdMatch.score.duration}`
+          // regularTime est le champ le plus fiable de football-data pour le score à 90min.
+          // On corrige directement sans passer par la revue manuelle.
           await supabase.from('matches').update({
             ...metaUpdate,
-            score_needs_review: true,
-            score_review_reason: reviewReason,
+            home_score: rtScore!.home,
+            away_score: rtScore!.away,
+            score_source: 'football_data',
+            score_confirmed: true,
+            score_needs_review: false,
+            score_review_reason: null,
+            score_period: 'regular_time',
+            score_fetched_at: new Date().toISOString(),
           }).eq('id', existing.id)
           await supabase.from('predictions').update({
             points_earned: null,
             calculated_at: null,
           }).eq('match_id', existing.id)
-          console.warn('[CDM2026][sync] CONFIRMED-SCORE-DRIFT — points reset', { matchId: existing.id, reviewReason })
+          console.warn('[CDM2026][sync] CONFIRMED-SCORE-DRIFT auto-corrected', {
+            matchId: existing.id,
+            was: `${existing.home_score}-${existing.away_score}`,
+            corrected: `${rtScore!.home}-${rtScore!.away}`,
+            duration: fdMatch.score.duration,
+          })
           updated++
           continue
         }
