@@ -13,7 +13,7 @@ type Props = {
   userId: string
 }
 
-const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'final']
+const STAGE_ORDER = ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final']
 
 function formatDayHeader(dateStr: string, lang: string) {
   return new Date(dateStr).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', {
